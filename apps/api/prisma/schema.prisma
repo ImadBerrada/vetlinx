@@ -1,0 +1,779 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["audit", "credentials", "files", "identity", "notifications", "organizations", "platform", "professionals", "recruitment", "verification"]
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  CLOSED
+
+  @@schema("identity")
+}
+
+enum SystemRole {
+  PROFESSIONAL
+  REVIEWER
+  OPERATIONS_ADMIN
+  PLATFORM_ADMIN
+
+  @@schema("identity")
+}
+
+model Account {
+  id                          String                             @id @default(uuid()) @db.Uuid
+  email                       String                             @unique @db.VarChar(320)
+  passwordHash                String                             @map("password_hash") @db.VarChar(255)
+  status                      AccountStatus                      @default(PENDING)
+  createdAt                   DateTime                           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                   DateTime                           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  professional                ProfessionalProfile?
+  memberships                 OrganizationMembership[]
+  refreshSessions             RefreshSession[]
+  systemRoles                 AccountSystemRole[]
+  assignedReviews             VerificationRequest[]              @relation("AssignedReviewer")
+  reviewDecisions             VerificationDecision[]
+  notifications               Notification[]
+  assignedOrganizationReviews OrganizationVerificationRequest[]  @relation("AssignedOrganizationReviewer")
+  organizationReviewDecisions OrganizationVerificationDecision[]
+  createdJobs                 Job[]                              @relation("JobCreator")
+
+  @@map("accounts")
+  @@schema("identity")
+}
+
+enum NotificationKind {
+  VERIFICATION_INFORMATION_REQUESTED
+  CREDENTIAL_VERIFIED
+  CREDENTIAL_REJECTED
+  ORGANIZATION_INFORMATION_REQUESTED
+  ORGANIZATION_VERIFIED
+  ORGANIZATION_REJECTED
+  JOB_APPLICATION_RECEIVED
+  JOB_APPLICATION_STATUS_UPDATED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_UPDATED
+  OFFER_RECEIVED
+  OFFER_UPDATED
+  EMPLOYMENT_CONFIRMED
+  EMPLOYMENT_ENDED
+
+  @@schema("notifications")
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+
+  @@schema("notifications")
+}
+
+model Notification {
+  id                 String             @id @default(uuid()) @db.Uuid
+  recipientAccountId String             @map("recipient_account_id") @db.Uuid
+  kind               NotificationKind
+  status             NotificationStatus @default(UNREAD)
+  title              String             @db.VarChar(180)
+  message            String             @db.Text
+  resourceType       String             @map("resource_type") @db.VarChar(120)
+  resourceId         String             @map("resource_id") @db.VarChar(120)
+  readAt             DateTime?          @map("read_at") @db.Timestamptz(3)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  recipient          Account            @relation(fields: [recipientAccountId], references: [id], onDelete: Cascade)
+
+  @@index([recipientAccountId, status, createdAt])
+  @@map("notifications")
+  @@schema("notifications")
+}
+
+model AccountSystemRole {
+  id        String     @id @default(uuid()) @db.Uuid
+  accountId String     @map("account_id") @db.Uuid
+  role      SystemRole
+  grantedBy String     @map("granted_by") @db.VarChar(120)
+  grantedAt DateTime   @default(now()) @map("granted_at") @db.Timestamptz(3)
+  account   Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, role])
+  @@index([role, grantedAt])
+  @@map("account_system_roles")
+  @@schema("identity")
+}
+
+model RefreshSession {
+  id           String    @id @default(uuid()) @db.Uuid
+  accountId    String    @map("account_id") @db.Uuid
+  familyId     String    @map("family_id") @db.Uuid
+  tokenHash    String    @unique @map("token_hash") @db.Char(64)
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz(3)
+  replacedById String?   @map("replaced_by_id") @db.Uuid
+  userAgent    String?   @map("user_agent") @db.VarChar(500)
+  ipAddress    String?   @map("ip_address") @db.Inet
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  account      Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, expiresAt])
+  @@index([familyId, revokedAt])
+  @@map("refresh_sessions")
+  @@schema("identity")
+}
+
+enum ProfessionalStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+
+  @@schema("professionals")
+}
+
+enum PortfolioVisibility {
+  PRIVATE
+  UNLISTED
+  PUBLIC
+
+  @@schema("professionals")
+}
+
+enum ContactVisibility {
+  PRIVATE
+  VERIFIED_EMPLOYERS
+  PUBLIC
+
+  @@schema("professionals")
+}
+
+model ProfessionalProfile {
+  id           String             @id @default(uuid()) @db.Uuid
+  accountId    String             @unique @map("account_id") @db.Uuid
+  displayName  String             @map("display_name") @db.VarChar(200)
+  countryCode  String             @map("country_code") @db.Char(2)
+  status       ProfessionalStatus @default(DRAFT)
+  headline     String?            @db.VarChar(220)
+  summary      String?            @db.Text
+  publicSlug   String?            @unique @map("public_slug") @db.VarChar(180)
+  visibility   PortfolioVisibility @default(PRIVATE)
+  contactVisibility ContactVisibility @default(PRIVATE) @map("contact_visibility")
+  specialtyCodes String[]         @default([]) @map("specialty_codes")
+  speciesCodes   String[]         @default([]) @map("species_codes")
+  languageCodes  String[]         @default([]) @map("language_codes")
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  account      Account            @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  applications JobApplication[]
+  employments  Employment[]
+  credentials  Credential[]
+
+  @@index([countryCode, status])
+  @@index([visibility, publicSlug])
+  @@map("professional_profiles")
+  @@schema("professionals")
+}
+
+enum CredentialStatus {
+  DRAFT
+  SUBMITTED
+  VERIFIED
+  REJECTED
+  EXPIRED
+  REVOKED
+
+  @@schema("credentials")
+}
+
+model Credential {
+  id                    String           @id @default(uuid()) @db.Uuid
+  professionalProfileId String           @map("professional_profile_id") @db.Uuid
+  typeCode              String           @map("type_code") @db.VarChar(60)
+  title                 String           @db.VarChar(250)
+  issuingOrganization   String           @map("issuing_organization") @db.VarChar(250)
+  countryCode           String           @map("country_code") @db.Char(2)
+  issueDate             DateTime         @map("issue_date") @db.Date
+  expiryDate            DateTime?        @map("expiry_date") @db.Date
+  status                CredentialStatus @default(DRAFT)
+  submittedAt           DateTime?        @map("submitted_at") @db.Timestamptz(3)
+  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  professional          ProfessionalProfile @relation(fields: [professionalProfileId], references: [id], onDelete: Restrict)
+
+  @@index([professionalProfileId, status])
+  @@index([countryCode, typeCode])
+  @@map("credentials")
+  @@schema("credentials")
+}
+
+enum FileValidationStatus {
+  VALIDATED
+  QUARANTINED
+
+  @@schema("files")
+}
+
+model FileObject {
+  id               String               @id @default(uuid()) @db.Uuid
+  ownerAccountId   String               @map("owner_account_id") @db.Uuid
+  originalName     String               @map("original_name") @db.VarChar(255)
+  mediaType        String               @map("media_type") @db.VarChar(120)
+  byteSize         Int                  @map("byte_size")
+  objectKey        String               @unique @map("object_key") @db.VarChar(500)
+  checksumSha256   String               @map("checksum_sha256") @db.Char(64)
+  validationStatus FileValidationStatus @default(VALIDATED) @map("validation_status")
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([ownerAccountId, createdAt])
+  @@map("file_objects")
+  @@schema("files")
+}
+
+enum VerificationRequestStatus {
+  EVIDENCE_REQUIRED
+  READY_TO_SUBMIT
+  SUBMITTED
+  UNDER_REVIEW
+  NEEDS_INFORMATION
+  VERIFIED
+  REJECTED
+  CANCELLED
+
+  @@schema("verification")
+}
+
+model VerificationRequest {
+  id                    String                    @id @default(uuid()) @db.Uuid
+  credentialId          String                    @unique @map("credential_id") @db.Uuid
+  professionalProfileId String                    @map("professional_profile_id") @db.Uuid
+  status                VerificationRequestStatus @default(EVIDENCE_REQUIRED)
+  submittedAt           DateTime?                 @map("submitted_at") @db.Timestamptz(3)
+  assignedReviewerId    String?                   @map("assigned_reviewer_id") @db.Uuid
+  reviewedAt            DateTime?                 @map("reviewed_at") @db.Timestamptz(3)
+  createdAt             DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  evidence              VerificationEvidence[]
+  assignedReviewer      Account?                  @relation("AssignedReviewer", fields: [assignedReviewerId], references: [id], onDelete: Restrict)
+  decisions             VerificationDecision[]
+
+  @@index([professionalProfileId, status])
+  @@index([status, submittedAt])
+  @@index([assignedReviewerId, status])
+  @@map("verification_requests")
+  @@schema("verification")
+}
+
+enum VerificationDecisionAction {
+  NEEDS_INFORMATION
+  VERIFIED
+  REJECTED
+
+  @@schema("verification")
+}
+
+model VerificationDecision {
+  id                    String                     @id @default(uuid()) @db.Uuid
+  verificationRequestId String                     @map("verification_request_id") @db.Uuid
+  reviewerAccountId     String                     @map("reviewer_account_id") @db.Uuid
+  action                VerificationDecisionAction
+  reason                String?                    @db.Text
+  createdAt             DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  verificationRequest   VerificationRequest        @relation(fields: [verificationRequestId], references: [id], onDelete: Restrict)
+  reviewer              Account                    @relation(fields: [reviewerAccountId], references: [id], onDelete: Restrict)
+
+  @@index([verificationRequestId, createdAt])
+  @@index([reviewerAccountId, createdAt])
+  @@map("verification_decisions")
+  @@schema("verification")
+}
+
+model VerificationEvidence {
+  id                    String              @id @default(uuid()) @db.Uuid
+  verificationRequestId String              @map("verification_request_id") @db.Uuid
+  fileObjectId          String              @unique @map("file_object_id") @db.Uuid
+  kind                  String              @default("SUPPORTING_DOCUMENT") @db.VarChar(60)
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  verificationRequest   VerificationRequest @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade)
+
+  @@index([verificationRequestId, createdAt])
+  @@map("verification_evidence")
+  @@schema("verification")
+}
+
+enum OrganizationStatus {
+  DRAFT
+  VERIFICATION_PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+  CLOSED
+
+  @@schema("organizations")
+}
+
+enum OrganizationMemberRole {
+  OWNER
+  ADMIN
+  RECRUITER
+  STAFF
+
+  @@schema("organizations")
+}
+
+enum OrganizationType {
+  CLINIC
+  HOSPITAL
+  LABORATORY
+  UNIVERSITY
+  COMPANY
+  OTHER
+
+  @@schema("organizations")
+}
+
+model Organization {
+  id           String                           @id @default(uuid()) @db.Uuid
+  legalName    String                           @map("legal_name") @db.VarChar(250)
+  countryCode  String                           @map("country_code") @db.Char(2)
+  type         OrganizationType                 @default(CLINIC)
+  publicName   String?                          @map("public_name") @db.VarChar(250)
+  email        String?                          @db.VarChar(320)
+  phone        String?                          @db.VarChar(40)
+  website      String?                          @db.VarChar(500)
+  addressLine1 String?                          @map("address_line_1") @db.VarChar(250)
+  city         String?                          @db.VarChar(120)
+  region       String?                          @db.VarChar(120)
+  postalCode   String?                          @map("postal_code") @db.VarChar(30)
+  status       OrganizationStatus               @default(DRAFT)
+  createdAt    DateTime                         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime                         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  members      OrganizationMembership[]
+  invitations  OrganizationInvitation[]
+  verification OrganizationVerificationRequest?
+  jobs         Job[]
+  employments  Employment[]
+
+  @@index([countryCode, status])
+  @@map("organizations")
+  @@schema("organizations")
+}
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  CLOSED
+
+  @@schema("recruitment")
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  LOCUM
+  CONTRACT
+  INTERNSHIP
+
+  @@schema("recruitment")
+}
+
+enum WorkMode {
+  ON_SITE
+  HYBRID
+  REMOTE
+
+  @@schema("recruitment")
+}
+
+enum JobRequirementCategory {
+  SPECIALTY
+  SPECIES
+  LICENCE
+  LANGUAGE
+  QUALIFICATION
+
+  @@schema("recruitment")
+}
+
+model Job {
+  id                 String           @id @default(uuid()) @db.Uuid
+  organizationId     String           @map("organization_id") @db.Uuid
+  createdByAccountId String           @map("created_by_account_id") @db.Uuid
+  title              String           @db.VarChar(180)
+  description        String           @db.Text
+  countryCode        String           @map("country_code") @db.Char(2)
+  city               String           @db.VarChar(120)
+  employmentType     EmploymentType   @map("employment_type")
+  workMode           WorkMode         @map("work_mode")
+  minExperienceYears Int              @default(0) @map("min_experience_years")
+  salaryMinMonthly   Int?             @map("salary_min_monthly")
+  salaryMaxMonthly   Int?             @map("salary_max_monthly")
+  currencyCode       String?          @map("currency_code") @db.Char(3)
+  status             JobStatus        @default(DRAFT)
+  publishedAt        DateTime?        @map("published_at") @db.Timestamptz(3)
+  closingAt          DateTime?        @map("closing_at") @db.Timestamptz(3)
+  createdAt          DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy          Account          @relation("JobCreator", fields: [createdByAccountId], references: [id], onDelete: Restrict)
+  requirements       JobRequirement[]
+  applications       JobApplication[]
+  employments        Employment[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([status, countryCode, city, publishedAt])
+  @@map("jobs")
+  @@schema("recruitment")
+}
+
+model JobRequirement {
+  id        String                 @id @default(uuid()) @db.Uuid
+  jobId     String                 @map("job_id") @db.Uuid
+  category  JobRequirementCategory
+  valueCode String                 @map("value_code") @db.VarChar(120)
+  label     String                 @db.VarChar(180)
+  required  Boolean                @default(true)
+  createdAt DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  job       Job                    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, category, valueCode])
+  @@index([category, valueCode])
+  @@map("job_requirements")
+  @@schema("recruitment")
+}
+
+enum JobApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  SHORTLISTED
+  INTERVIEWING
+  OFFERED
+  REJECTED
+  WITHDRAWN
+  HIRED
+
+  @@schema("recruitment")
+}
+
+model JobApplication {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  jobId                 String                  @map("job_id") @db.Uuid
+  professionalProfileId String                  @map("professional_profile_id") @db.Uuid
+  coverNote             String?                 @map("cover_note") @db.Text
+  status                JobApplicationStatus    @default(SUBMITTED)
+  submittedAt           DateTime                @default(now()) @map("submitted_at") @db.Timestamptz(3)
+  updatedAt             DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  job                   Job                     @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  professional          ProfessionalProfile     @relation(fields: [professionalProfileId], references: [id], onDelete: Restrict)
+  history               JobApplicationHistory[]
+  interviews            Interview[]
+  offers                JobOffer[]
+
+  @@unique([jobId, professionalProfileId])
+  @@index([professionalProfileId, status, submittedAt])
+  @@index([jobId, status, submittedAt])
+  @@map("job_applications")
+  @@schema("recruitment")
+}
+
+enum InterviewMode {
+  VIDEO
+  PHONE
+  IN_PERSON
+
+  @@schema("recruitment")
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+
+  @@schema("recruitment")
+}
+
+model Interview {
+  id                   String          @id @default(uuid()) @db.Uuid
+  applicationId        String          @map("application_id") @db.Uuid
+  scheduledByAccountId String          @map("scheduled_by_account_id") @db.Uuid
+  startsAt             DateTime        @map("starts_at") @db.Timestamptz(3)
+  endsAt               DateTime        @map("ends_at") @db.Timestamptz(3)
+  timeZone             String          @map("time_zone") @db.VarChar(80)
+  mode                 InterviewMode
+  location             String?         @db.VarChar(500)
+  joinUrl              String?         @map("join_url") @db.VarChar(1000)
+  notes                String?         @db.Text
+  status               InterviewStatus @default(SCHEDULED)
+  cancellationReason   String?         @map("cancellation_reason") @db.Text
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  application          JobApplication  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, startsAt])
+  @@index([status, startsAt])
+  @@map("interviews")
+  @@schema("recruitment")
+}
+
+enum JobOfferStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+  EXPIRED
+
+  @@schema("recruitment")
+}
+
+model JobOffer {
+  id                 String         @id @default(uuid()) @db.Uuid
+  applicationId      String         @map("application_id") @db.Uuid
+  createdByAccountId String         @map("created_by_account_id") @db.Uuid
+  salaryMonthly      Int            @map("salary_monthly")
+  currencyCode       String         @map("currency_code") @db.Char(3)
+  proposedStartDate  DateTime       @map("proposed_start_date") @db.Date
+  expiresAt          DateTime       @map("expires_at") @db.Timestamptz(3)
+  terms              String         @db.Text
+  status             JobOfferStatus @default(DRAFT)
+  sentAt             DateTime?      @map("sent_at") @db.Timestamptz(3)
+  respondedAt        DateTime?      @map("responded_at") @db.Timestamptz(3)
+  responseReason     String?        @map("response_reason") @db.Text
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  application        JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  employment         Employment?
+
+  @@index([applicationId, status, createdAt])
+  @@index([status, expiresAt])
+  @@map("job_offers")
+  @@schema("recruitment")
+}
+
+enum EmploymentStatus {
+  CONFIRMED
+  ACTIVE
+  ENDED
+  CANCELLED
+
+  @@schema("recruitment")
+}
+
+model Employment {
+  id                    String           @id @default(uuid()) @db.Uuid
+  offerId               String           @unique @map("offer_id") @db.Uuid
+  jobId                 String           @map("job_id") @db.Uuid
+  organizationId        String           @map("organization_id") @db.Uuid
+  professionalProfileId String           @map("professional_profile_id") @db.Uuid
+  confirmedByAccountId  String           @map("confirmed_by_account_id") @db.Uuid
+  title                 String           @db.VarChar(180)
+  employmentType        EmploymentType   @map("employment_type")
+  startDate             DateTime         @map("start_date") @db.Date
+  endDate               DateTime?        @map("end_date") @db.Date
+  status                EmploymentStatus @default(ACTIVE)
+  verificationSource    String           @default("ORGANIZATION_CONFIRMED") @map("verification_source") @db.VarChar(80)
+  confirmedAt           DateTime         @default(now()) @map("confirmed_at") @db.Timestamptz(3)
+  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  offer                 JobOffer         @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  job                   Job              @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  organization          Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  professional          ProfessionalProfile @relation(fields: [professionalProfileId], references: [id], onDelete: Restrict)
+  history               EmploymentHistory[]
+
+  @@index([professionalProfileId, status, startDate])
+  @@index([organizationId, status, startDate])
+  @@map("employments")
+  @@schema("recruitment")
+}
+
+model EmploymentHistory {
+  id             String           @id @default(uuid()) @db.Uuid
+  employmentId   String           @map("employment_id") @db.Uuid
+  fromStatus     EmploymentStatus? @map("from_status")
+  toStatus       EmploymentStatus @map("to_status")
+  actorAccountId String           @map("actor_account_id") @db.Uuid
+  reason         String?          @db.Text
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  employment     Employment       @relation(fields: [employmentId], references: [id], onDelete: Cascade)
+
+  @@index([employmentId, createdAt])
+  @@map("employment_history")
+  @@schema("recruitment")
+}
+
+model JobApplicationHistory {
+  id             String                @id @default(uuid()) @db.Uuid
+  applicationId  String                @map("application_id") @db.Uuid
+  fromStatus     JobApplicationStatus? @map("from_status")
+  toStatus       JobApplicationStatus  @map("to_status")
+  actorAccountId String                @map("actor_account_id") @db.Uuid
+  reason         String?               @db.Text
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  application    JobApplication        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+  @@map("job_application_history")
+  @@schema("recruitment")
+}
+
+enum OrganizationInvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+
+  @@schema("organizations")
+}
+
+model OrganizationInvitation {
+  id             String                       @id @default(uuid()) @db.Uuid
+  organizationId String                       @map("organization_id") @db.Uuid
+  email          String                       @db.VarChar(320)
+  role           OrganizationMemberRole
+  tokenHash      String                       @unique @map("token_hash") @db.Char(64)
+  status         OrganizationInvitationStatus @default(PENDING)
+  invitedBy      String                       @map("invited_by") @db.Uuid
+  expiresAt      DateTime                     @map("expires_at") @db.Timestamptz(3)
+  acceptedAt     DateTime?                    @map("accepted_at") @db.Timestamptz(3)
+  createdAt      DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  organization   Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status, createdAt])
+  @@index([email, status])
+  @@map("organization_invitations")
+  @@schema("organizations")
+}
+
+enum OrganizationVerificationStatus {
+  EVIDENCE_REQUIRED
+  READY_TO_SUBMIT
+  SUBMITTED
+  UNDER_REVIEW
+  NEEDS_INFORMATION
+  VERIFIED
+  REJECTED
+
+  @@schema("organizations")
+}
+
+enum OrganizationVerificationDecisionAction {
+  NEEDS_INFORMATION
+  VERIFIED
+  REJECTED
+
+  @@schema("organizations")
+}
+
+model OrganizationVerificationRequest {
+  id                 String                             @id @default(uuid()) @db.Uuid
+  organizationId     String                             @unique @map("organization_id") @db.Uuid
+  status             OrganizationVerificationStatus     @default(EVIDENCE_REQUIRED)
+  assignedReviewerId String?                            @map("assigned_reviewer_id") @db.Uuid
+  submittedAt        DateTime?                          @map("submitted_at") @db.Timestamptz(3)
+  reviewedAt         DateTime?                          @map("reviewed_at") @db.Timestamptz(3)
+  createdAt          DateTime                           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  organization       Organization                       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedReviewer   Account?                           @relation("AssignedOrganizationReviewer", fields: [assignedReviewerId], references: [id], onDelete: Restrict)
+  evidence           OrganizationVerificationEvidence[]
+  decisions          OrganizationVerificationDecision[]
+
+  @@index([status, submittedAt])
+  @@index([assignedReviewerId, status])
+  @@map("organization_verification_requests")
+  @@schema("organizations")
+}
+
+model OrganizationVerificationEvidence {
+  id                    String                          @id @default(uuid()) @db.Uuid
+  verificationRequestId String                          @map("verification_request_id") @db.Uuid
+  fileObjectId          String                          @unique @map("file_object_id") @db.Uuid
+  kind                  String                          @default("BUSINESS_REGISTRATION") @db.VarChar(60)
+  createdAt             DateTime                        @default(now()) @map("created_at") @db.Timestamptz(3)
+  verificationRequest   OrganizationVerificationRequest @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade)
+
+  @@index([verificationRequestId, createdAt])
+  @@map("organization_verification_evidence")
+  @@schema("organizations")
+}
+
+model OrganizationVerificationDecision {
+  id                    String                                 @id @default(uuid()) @db.Uuid
+  verificationRequestId String                                 @map("verification_request_id") @db.Uuid
+  reviewerAccountId     String                                 @map("reviewer_account_id") @db.Uuid
+  action                OrganizationVerificationDecisionAction
+  reason                String?                                @db.Text
+  createdAt             DateTime                               @default(now()) @map("created_at") @db.Timestamptz(3)
+  verificationRequest   OrganizationVerificationRequest        @relation(fields: [verificationRequestId], references: [id], onDelete: Restrict)
+  reviewer              Account                                @relation(fields: [reviewerAccountId], references: [id], onDelete: Restrict)
+
+  @@index([verificationRequestId, createdAt])
+  @@index([reviewerAccountId, createdAt])
+  @@map("organization_verification_decisions")
+  @@schema("organizations")
+}
+
+model OrganizationMembership {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organizationId String                 @map("organization_id") @db.Uuid
+  accountId      String                 @map("account_id") @db.Uuid
+  role           OrganizationMemberRole
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  account        Account                @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, accountId])
+  @@index([accountId])
+  @@map("organization_memberships")
+  @@schema("organizations")
+}
+
+model AuditEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  actorId       String   @map("actor_id") @db.VarChar(120)
+  action        String   @db.VarChar(160)
+  resourceType  String   @map("resource_type") @db.VarChar(120)
+  resourceId    String   @map("resource_id") @db.VarChar(120)
+  occurredAt    DateTime @map("occurred_at") @db.Timestamptz(3)
+  correlationId String   @map("correlation_id") @db.VarChar(120)
+  reason        String?  @db.Text
+  changes       Json?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([resourceType, resourceId, occurredAt])
+  @@index([actorId, occurredAt])
+  @@map("audit_events")
+  @@schema("audit")
+}
+
+enum OutboxStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+
+  @@schema("platform")
+}
+
+model OutboxEvent {
+  id            String       @id @db.Uuid
+  name          String       @db.VarChar(160)
+  version       Int
+  aggregateId   String       @map("aggregate_id") @db.VarChar(120)
+  correlationId String       @map("correlation_id") @db.VarChar(120)
+  causationId   String?      @map("causation_id") @db.VarChar(120)
+  payload       Json
+  occurredAt    DateTime     @map("occurred_at") @db.Timestamptz(3)
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  publishedAt   DateTime?    @map("published_at") @db.Timestamptz(3)
+  lastError     String?      @map("last_error") @db.Text
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([status, occurredAt])
+  @@map("outbox_events")
+  @@schema("platform")
+}

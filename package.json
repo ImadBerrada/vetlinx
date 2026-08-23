@@ -1,0 +1,51 @@
+{
+  "name": "vetlinx",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:web": "next dev",
+    "dev:api": "npm --prefix apps/api run start:dev",
+    "build": "next build",
+    "build:web": "next build",
+    "build:api": "npm --prefix apps/api run build",
+    "start": "next start",
+    "start:api": "npm --prefix apps/api run start:prod",
+    "lint": "eslint",
+    "lint:api": "npm --prefix apps/api run lint",
+    "test:e2e": "playwright test",
+    "test:api": "npm --prefix apps/api run test -- --runInBand",
+    "test:api:e2e": "npm --prefix apps/api run test:e2e -- --runInBand",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:generate": "npm --prefix apps/api run db:generate",
+    "db:migrate": "npm --prefix apps/api run db:migrate",
+    "db:deploy": "npm --prefix apps/api run db:deploy",
+    "db:seed:access": "npm --prefix apps/api run seed:access",
+    "verify": "npm run lint && npm run build:web && npm run lint:api && npm run build:api && npm run test:api && npm run test:api:e2e"
+  },
+  "dependencies": {
+    "lucide-react": "^1.27.0",
+    "next": "16.2.12",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.12",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.25",
+      "sharp": "0.35.3"
+    }
+  }
+}

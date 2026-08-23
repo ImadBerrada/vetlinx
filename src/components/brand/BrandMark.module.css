@@ -1,0 +1,24 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #062f51;
+  font-size: 30px;
+  font-weight: 760;
+  letter-spacing: -1.3px;
+  line-height: 1;
+}
+
+.brand svg {
+  width: 25px;
+  height: 32px;
+  fill: none;
+  stroke: #0aa884;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.accent { color: #0aa884; }
+.inverse { color: #fff; }
+

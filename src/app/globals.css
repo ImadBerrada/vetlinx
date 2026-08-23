@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0b1739;
+  --navy: #052e50;
+  --navy-deep: #032847;
+  --teal: #0a8f7a;
+  --teal-dark: #08705f;
+  --amber: #c88716;
+  --canvas: #f3f7f8;
+  --surface: #ffffff;
+  --surface-subtle: #f8fbfc;
+  --line: #d5e0e6;
+  --line-strong: #bccbd4;
+  --muted: #607286;
+  --success-soft: #e5f5f1;
+  --warning-soft: #fff4de;
+  --danger-soft: #fbeaea;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --shadow-focus: 0 0 0 3px rgba(10,143,122,.16);
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+::selection { background: #b8eee2; color: #063d34; }
+:focus-visible { outline: 3px solid rgba(10, 168, 132, .32); outline-offset: 2px; }
+a{color:inherit}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

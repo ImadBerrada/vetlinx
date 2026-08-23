@@ -1,0 +1,16 @@
+.center { margin-bottom: 18px; overflow: hidden; border: 1px solid #d4e2e3; border-radius: 10px; background: #fff; }
+.center > header { min-height: 42px; display: flex; align-items: center; gap: 8px; padding: 10px 13px; border-bottom: 1px solid #e2e9ea; color: #254457; background: #f4f8f8; }
+.center > header svg { width: 16px; color: #0a8877; }
+.center > header strong { font-size: 11px; }
+.center > header span { min-width: 20px; height: 20px; display: grid; place-items: center; margin-left: auto; border-radius: 50%; color: white; background: #0a8877; font-size: 9px; font-weight: 800; }
+.center article { min-height: 76px; display: grid; grid-template-columns: 29px 1fr 25px; align-items: start; gap: 10px; padding: 13px; border-bottom: 1px solid #edf1f2; }
+.center article:last-child { border-bottom: 0; }
+.center article > svg { width: 28px; height: 28px; padding: 6px; border-radius: 50%; color: #9a660a; background: #fff3dc; }
+.center article.positive > svg { color: #087562; background: #dff4ed; }
+.center article.negative > svg { color: #b32836; background: #fde8ea; }
+.center article div { display: grid; gap: 4px; }
+.center article strong { font-size: 10px; }
+.center article p { margin: 0; color: #5f7280; font-size: 9px; line-height: 1.5; }
+.center article time { color: #84909a; font-size: 8px; }
+.center article button { display: grid; place-items: center; border: 0; color: #71818d; background: transparent; cursor: pointer; }
+.center article button svg { width: 14px; }

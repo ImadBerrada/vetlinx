@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vetlinx
+      POSTGRES_USER: vetlinx
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vetlinx -d vetlinx"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - vetlinx_postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./apps/api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
+      DATABASE_URL: postgresql://vetlinx:${POSTGRES_PASSWORD}@postgres:5432/vetlinx
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET}
+      JWT_ACCESS_TTL_SECONDS: ${JWT_ACCESS_TTL_SECONDS:-900}
+      REFRESH_TOKEN_TTL_DAYS: ${REFRESH_TOKEN_TTL_DAYS:-30}
+      EVIDENCE_STORAGE_PATH: /app/var/evidence
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      ENABLE_API_DOCS: ${ENABLE_API_DOCS:-false}
+    command: ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - vetlinx_evidence:/app/var/evidence
+
+  web:
+    build:
+      context: .
+      args:
+        VETLINX_API_URL: http://api:4000
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      VETLINX_API_URL: http://api:4000
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+volumes:
+  vetlinx_postgres_data:
+  vetlinx_evidence:

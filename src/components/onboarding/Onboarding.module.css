@@ -1,0 +1,104 @@
+.page { min-height: 100vh; display: grid; grid-template-columns: minmax(600px, 55%) 1fr; background: #fff; }
+.formColumn { min-height: 100vh; padding: 48px clamp(48px, 5vw, 90px); }
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; }
+.header > p { margin: 1px 0 0; display: grid; gap: 4px; text-align: right; color: #627085; font-size: 13px; }
+.header strong { color: #0b1739; font-size: 14px; font-weight: 570; }
+.formWrap { width: min(100%, 690px); margin: clamp(70px, 10vh, 120px) 0 0; }
+.complete { display: inline-flex; align-items: center; gap: 12px; color: #078b70; font-size: 15px; font-weight: 620; }
+.complete svg { width: 28px; height: 28px; padding: 6px; border-radius: 50%; background: #0aa884; color: #fff; }
+.formWrap h1 { margin: 27px 0 17px; color: #071a3c; font-size: clamp(40px, 3.4vw, 53px); line-height: 1.07; letter-spacing: -2px; }
+.lead { max-width: 670px; margin: 0 0 40px; color: #526581; font-size: 18px; line-height: 1.65; }
+.field { margin-bottom: 27px; }
+.field label { display: block; margin-bottom: 10px; color: #10203f; font-size: 15px; font-weight: 640; }
+.field label span { margin-left: 4px; color: #c1434d; }
+.field input, .field select { width: 100%; height: 62px; border: 1px solid #aebdca; border-radius: 5px; background: #fff; color: #0b1739; padding: 0 18px; font-size: 17px; }
+.field select { appearance: auto; }
+.field input:focus, .field select:focus { border-color: #0aa884; outline: none; box-shadow: 0 0 0 3px rgba(10,168,132,.12); }
+.field input[aria-invalid="true"] { border-color: #b63e48; }
+.fieldError { margin: 8px 0 0; color: #a82f3b; font-size: 13px; }
+.formError { margin: -4px 0 20px; border-left: 3px solid #b63e48; background: #fff5f5; color: #842731; padding: 11px 13px; font-size: 14px; }
+.primary { width: 100%; height: 62px; display: flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: 5px; background: #0aa884; color: #fff; font-size: 17px; font-weight: 680; cursor: pointer; }
+.primary:hover:not(:disabled) { background: #08745f; }
+.primary:disabled { opacity: .72; cursor: wait; }
+.later { display: block; width: fit-content; margin: 20px auto 0; color: #078b70; font-weight: 620; text-decoration: none; }
+.later:hover { text-decoration: underline; }
+.hint { margin: 24px 0 0; text-align: center; color: #657791; font-size: 13px; }
+.recordColumn { min-height: 100vh; display: flex; background: #062f51; color: #fff; padding: 62px clamp(48px, 5vw, 92px); }
+.recordInner { width: min(100%, 620px); margin: auto; }
+.recordInner > h2, .previewSection h2 { margin: 0 0 12px; font-size: 23px; letter-spacing: -.5px; }
+.recordLead { max-width: 520px; margin: 0; color: #d2dee7; font-size: 16px; line-height: 1.55; }
+.steps { position: relative; display: grid; gap: 35px; list-style: none; margin: 39px 0 45px; padding: 0; }
+.steps::before { content: ""; position: absolute; left: 25px; top: 48px; bottom: 48px; border-left: 2px dashed #8197a8; }
+.steps li { position: relative; display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 22px; }
+.steps li > span { width: 52px; height: 52px; border: 2px solid #8197a8; border-radius: 50%; background: #062f51; z-index: 1; }
+.steps .done > span { display: grid; place-items: center; border-color: #0aa884; color: #0aa884; }
+.steps .done svg { width: 24px; }
+.steps .active > span { border: 8px solid #0b5571; background: #fff; box-shadow: 0 0 0 2px #0aa884; }
+.steps li div { display: grid; gap: 6px; }
+.steps strong { font-size: 17px; }
+.steps .done strong { color: #31d0ab; }
+.steps small { color: #d2dee7; font-size: 14px; }
+.previewSection { padding-top: 35px; border-top: 1px solid rgba(255,255,255,.24); }
+.previewSection > p { margin: 0 0 24px; color: #d2dee7; font-size: 14px; }
+.previewCard { min-height: 188px; display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 26px; border: 1px solid #7891a3; border-radius: 6px; padding: 28px; }
+.initials { width: 104px; height: 104px; display: grid; place-items: center; border: 1px solid #b4c5d0; border-radius: 50%; color: #0cc29a; font-size: 36px; font-weight: 720; }
+.previewText h3 { margin: 0 0 15px; font-size: 22px; letter-spacing: -.5px; }
+.previewText p { display: flex; align-items: center; gap: 9px; margin: 0 0 20px; color: #eef4f7; font-size: 14px; }
+.previewText p svg { width: 18px; }
+.previewText > div { display: flex; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.22); color: #dce7ed; font-size: 13px; }
+.previewText > div svg { width: 20px; color: #8de6d1; }
+.security { display: flex; align-items: flex-start; gap: 12px; margin: 28px 0 0; color: #d2dee7; font-size: 13px; line-height: 1.5; }
+.security svg { width: 20px; flex: 0 0 auto; }
+.spinner { width: 18px; animation: spin .8s linear infinite; }
+.loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; gap: 10px; color: #526581; }
+.loading svg { width: 20px; animation: spin .8s linear infinite; }
+.editLayout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(280px, .65fr); gap: 16px; align-items: start; }
+.editPanel, .editPreview { border: 1px solid var(--line); border-radius: var(--radius-md); background: #fff; }
+.editPanel > header { min-height: 90px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+.editPanel > header small, .editPreview > small { color: var(--teal-dark); font: 700 9px/1 var(--font-geist-mono); letter-spacing: .1em; text-transform: uppercase; }
+.editPanel > header h2 { margin: 5px 0; font: 600 20px/1.2 Georgia, serif; }
+.editPanel > header p { margin: 0; color: var(--muted); font-size: 11px; }
+.editPanel > header svg { width: 24px; color: var(--teal); }
+.editPanel form { padding: 22px; }
+.editPanel form footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 4px; }
+.editPanel form footer a { color: var(--navy); font-size: 12px; font-weight: 700; }
+.editPanel .primary { width: auto; height: 46px; padding: 0 18px; font-size: 13px; }
+.editPanel .primary > svg:not(.spinner) { width: 16px; }
+.formSuccess { margin: -4px 0 20px; border-left: 3px solid var(--teal); background: var(--teal-soft); color: #075f53; padding: 11px 13px; font-size: 13px; }
+.editPreview { min-height: 350px; padding: 28px; text-align: center; border-top: 3px solid var(--teal); }
+.editPreview .initials { margin: 30px auto 20px; border-color: #b9d8d2; background: var(--teal-soft); color: var(--teal-dark); }
+.editPreview h2 { margin: 0 0 8px; font: 600 21px/1.2 Georgia, serif; }
+.editPreview > p { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; color: var(--muted); font-size: 12px; }
+.editPreview > p svg { width: 15px; }
+.editPreview > div:last-child { display: flex; align-items: center; gap: 8px; margin-top: 28px; padding: 14px; border: 1px solid #bfddd6; background: var(--teal-soft); color: #075f53; text-align: left; font-size: 11px; line-height: 1.45; }
+.editPreview > div:last-child svg { width: 18px; flex: 0 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 960px) {
+  .page { display: block; }
+  .formColumn { min-height: auto; padding: 30px 24px 48px; }
+  .header > p { font-size: 11px; }
+  .formWrap { margin-top: 58px; }
+  .formWrap h1 { font-size: 42px; }
+  .recordColumn { min-height: auto; padding: 48px 24px; }
+  .editLayout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .header { align-items: center; }
+  .header > p { max-width: 150px; overflow: hidden; }
+  .header strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .formWrap h1 { font-size: 38px; }
+  .lead { font-size: 16px; }
+  .field input, .field select, .primary { height: 56px; }
+  .recordColumn { padding-top: 42px; }
+  .previewCard { grid-template-columns: 72px 1fr; gap: 18px; padding: 20px 16px; }
+  .initials { width: 72px; height: 72px; font-size: 26px; }
+  .previewText h3 { font-size: 18px; }
+  .editPanel > header, .editPanel form { padding: 18px; }
+  .editPanel form footer { align-items: stretch; flex-direction: column-reverse; }
+  .editPanel form footer a { text-align: center; padding: 10px; }
+  .editPanel .primary { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.5s; } }
