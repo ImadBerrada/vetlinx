@@ -27,4 +27,25 @@ Events are stored in the PostgreSQL outbox with an aggregate ID, event type, sch
 | `EmploymentEnded` | Recruitment | Portfolio, analytics |
 | `ProfessionalPortfolioUpdated` | Recruitment/Professionals | Portfolio projection, search |
 
+## Planned Phase 2 events
+
+These names define the approved integration vocabulary. They are implemented only with the corresponding Phase 2 use case.
+
+| Event | Producer | Intended consumers |
+|---|---|---|
+| `LicencePathwayPublished` | Licensing | Search, notifications, audit analytics |
+| `LicencePathwaySuperseded` | Licensing | Active-enrollment review, notifications |
+| `PathwayEnrollmentStarted` | Licensing | Professional dashboard, analytics |
+| `RequirementProgressChanged` | Licensing | Readiness projection, notifications |
+| `ExternalApplicationRecorded` | Licensing | Professional dashboard |
+| `LicenceRenewalDue` | Licensing | Notifications, portfolio |
+| `LearningProductPublished` | Learning | Catalogue search, notifications |
+| `EnrollmentCreated` | Learning | Provider workspace, professional dashboard |
+| `LearningProgressChanged` | Learning | Professional dashboard |
+| `AttendanceConfirmed` | Learning | Completion evaluation, provider reporting |
+| `AssessmentCompleted` | Learning | Completion evaluation |
+| `CertificateIssued` | Learning | CPD, portfolio, licensing readiness, notifications |
+| `CertificateRevoked` | Learning | CPD, portfolio, licensing readiness, notifications |
+| `CpdRecordCreated` | Learning | Portfolio, licensing readiness |
+
 The MVP writes events durably but does not yet run a distributed broker. A future relay can claim unprocessed outbox rows and publish to Kafka/SNS/SQS without changing producers.

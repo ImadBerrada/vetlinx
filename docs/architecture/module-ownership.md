@@ -16,6 +16,13 @@ Each module owns its persistence model and business rules. A module must not que
 | Notifications | Templates, delivery requests, preferences, delivery outcomes | `NotificationDelivered`, `NotificationFailed` |
 | Taxonomy | Countries, authorities, professional titles, specialties, species, controlled vocabulary | `TaxonomyChanged` |
 | Audit | Append-only security and business audit events | No domain events; receives all auditable actions |
+| Licensing (Phase 2) | Jurisdictions, authorities, licence types, pathway versions, professional pathway enrollments and requirement progress | `LicencePathwayPublished`, `PathwayEnrollmentStarted`, `RequirementProgressChanged`, `LicenceRenewalDue` |
+| Learning (Phase 2) | Provider capability, learning products and versions, sessions, enrollments, progress, attendance, assessments, certificates and CPD | `LearningProductPublished`, `EnrollmentCreated`, `AttendanceConfirmed`, `CertificateIssued`, `CpdRecordCreated` |
+| Owners and Animals (Phase 3) | Owner profiles, animal identities, owner-animal relationships | `OwnerProfileCreated`, `AnimalRegistered`, `AnimalRelationshipChanged` |
+| Consent and Appointments (Phase 3) | Consent grants/withdrawals and appointment lifecycle | `ConsentGranted`, `ConsentWithdrawn`, `AppointmentConfirmed` |
+| Clinical Records (Phase 4) | Encounters, observations, diagnoses, procedures, prescriptions, orders, results, reports, amendments | `EncounterCompleted`, `PrescriptionIssued`, `ClinicalRecordAmended` |
+| Billing and Entitlements (Phase 5) | Plans, entitlements, subscriptions, invoices, internal payment ledger | `EntitlementChanged`, `InvoiceIssued`, `PaymentRecorded` |
+| Intelligence (Phase 5) | Governed analytical projections, benchmark definitions, approved model outputs | `ProjectionRefreshed`, `BenchmarkPublished` |
 
 ## Dependency direction
 
@@ -39,3 +46,4 @@ A module is eligible to become a microservice when it has stable boundaries and 
 
 Extraction must not require consumers to change business semantics. The module keeps its public commands, queries, event names, idempotency rules, and data identifiers.
 
+Future modules in this table describe approved boundaries, not current physical deployments or permission to expose unfinished routes.

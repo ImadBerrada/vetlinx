@@ -22,3 +22,21 @@ Authorization is enforced in the API. Frontend visibility is convenience only an
 Organization permissions are also constrained by active membership and organization ID. A valid system role does not bypass ownership checks unless an endpoint explicitly supports platform administration.
 
 System roles currently used: `PROFESSIONAL`, `REVIEWER`, `OPERATIONS_ADMIN`, and `PLATFORM_ADMIN`. Organization roles currently used: `OWNER`, `ADMIN`, `RECRUITER`, and `STAFF`.
+
+## Phase 2 authorization extension
+
+Phase 2 adds capability assignments scoped to a verified organization. Provider and instructor access are not global login personas.
+
+| Capability | Professional | Provider manager | Instructor | Licensing curator | Licensing reviewer | Platform admin |
+|---|---:|---:|---:|---:|---:|---:|
+| Manage own pathway enrollment/evidence links | Yes | Own record | Own record | Own record | Own record | Support only |
+| Draft pathway versions | No | No | No | Yes | Yes | Yes |
+| Publish/supersede pathway versions | No | No | No | No | Yes | Yes |
+| Manage provider catalogue | No | Scoped organization | Assigned content only | No | No | Yes |
+| Publish learning products | No | Submit for review | No | No | No | Approved reviewer/admin |
+| Manage sessions/attendance | Own learning only | Scoped organization | Assigned sessions | No | No | Yes |
+| Grade assessments | Own attempt only | Scoped organization | Assigned assessments | No | No | Yes |
+| Issue/revoke certificates | No | Rule-driven/scoped | No direct issue | No | No | Governed support |
+| Manage own CPD | Yes | Own record | Own record | Own record | Own record | Support only |
+
+Capability assignments must include organization, permission, optional content/session scope, grantor, effective time, and revocation time. Frontend navigation never substitutes for API authorization.
