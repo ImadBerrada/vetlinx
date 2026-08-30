@@ -1,11 +1,15 @@
 import {
   BadRequestException,
+  Body,
   Controller,
+  Delete,
   Get,
   Headers,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
@@ -16,7 +20,11 @@ import {
   AccessTokenGuard,
   type AuthenticatedRequest,
 } from '../identity/access-token.guard';
-import { PathwaySearchQueryDto } from './dto/licensing-professional.dto';
+import {
+  LinkRequirementCredentialDto,
+  PathwaySearchQueryDto,
+  UpdateRequirementProgressDto,
+} from './dto/licensing-professional.dto';
 import { LicensingService } from './licensing.service';
 
 @ApiTags('Licensing')
@@ -82,6 +90,58 @@ export class LicensingController {
     return this.licensing.getOwnedEnrollment(
       request.user.accountId,
       enrollmentId,
+    );
+  }
+
+  @Put('me/enrollments/:enrollmentId/requirements/:requirementId/credential')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  linkRequirementCredential(
+    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Param('requirementId', new ParseUUIDPipe()) requirementId: string,
+    @Body() dto: LinkRequirementCredentialDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.licensing.linkCredential(
+      request.user.accountId,
+      enrollmentId,
+      requirementId,
+      dto.credentialId,
+      this.correlationId(request),
+    );
+  }
+
+  @Delete('me/enrollments/:enrollmentId/requirements/:requirementId/credential')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  unlinkRequirementCredential(
+    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Param('requirementId', new ParseUUIDPipe()) requirementId: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.licensing.unlinkCredential(
+      request.user.accountId,
+      enrollmentId,
+      requirementId,
+      this.correlationId(request),
+    );
+  }
+
+  @Patch('me/enrollments/:enrollmentId/requirements/:requirementId')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  updateRequirementProgress(
+    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Param('requirementId', new ParseUUIDPipe()) requirementId: string,
+    @Body() dto: UpdateRequirementProgressDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.licensing.setRequirementInProgress(
+      request.user.accountId,
+      enrollmentId,
+      requirementId,
+      dto.note,
+      this.correlationId(request),
     );
   }
 

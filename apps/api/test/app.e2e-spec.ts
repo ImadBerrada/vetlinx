@@ -667,7 +667,7 @@ describe('VetLinX API (e2e)', () => {
       .expect(409);
   });
 
-  it('pins a professional enrollment and enforces ownership', async () => {
+  it('rejects linking another professional credential and recalculates when evidence is revoked', async () => {
     const suffix = randomUUID();
     const jurisdictionCode = await availableJurisdictionCode();
     const fixture = await prisma.$transaction(async (transaction) => {
@@ -862,6 +862,151 @@ describe('VetLinX API (e2e)', () => {
       .get(`/api/v1/licensing/me/enrollments/${enrollmentId}`)
       .set('authorization', `Bearer ${otherAccessToken}`)
       .expect(404);
+
+    const otherCredential = await request(app.getHttpServer())
+      .post('/api/v1/credentials/me')
+      .set('authorization', `Bearer ${otherAccessToken}`)
+      .send({
+        typeCode: 'DEGREE',
+        title: 'Doctor of Veterinary Medicine',
+        issuingOrganization: 'Other Test University',
+        countryCode: jurisdictionCode,
+        issueDate: '2020-06-30',
+      })
+      .expect(201);
+    const otherCredentialId = requiredString(
+      otherCredential.body as unknown,
+      'id',
+    );
+    credentialIds.push(otherCredentialId);
+    await prisma.credential.update({
+      where: { id: otherCredentialId },
+      data: { status: 'VERIFIED' },
+    });
+
+    await request(app.getHttpServer())
+      .put(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/requirements/${fixture.requirement.id}/credential`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({ credentialId: otherCredentialId })
+      .expect(404);
+
+    const ownerCredential = await request(app.getHttpServer())
+      .post('/api/v1/credentials/me')
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({
+        typeCode: 'DEGREE',
+        title: 'Doctor of Veterinary Medicine',
+        issuingOrganization: 'Owner Test University',
+        countryCode: jurisdictionCode,
+        issueDate: '2020-06-30',
+      })
+      .expect(201);
+    const ownerCredentialId = requiredString(
+      ownerCredential.body as unknown,
+      'id',
+    );
+    credentialIds.push(ownerCredentialId);
+    await prisma.credential.update({
+      where: { id: ownerCredentialId },
+      data: { status: 'VERIFIED' },
+    });
+
+    await request(app.getHttpServer())
+      .put(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/requirements/${fixture.requirement.id}/credential`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({ credentialId: ownerCredentialId })
+      .expect(200)
+      .expect((response) => {
+        expect(requiredString(response.body as unknown, 'state')).toBe(
+          'SATISFIED',
+        );
+      });
+    await request(app.getHttpServer())
+      .put(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/requirements/${fixture.requirement.id}/credential`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({ credentialId: ownerCredentialId })
+      .expect(200);
+
+    expect(
+      await prisma.outboxEvent.count({
+        where: {
+          aggregateId: enrollmentId,
+          name: 'RequirementProgressChanged',
+        },
+      }),
+    ).toBe(1);
+
+    await prisma.credential.update({
+      where: { id: ownerCredentialId },
+      data: { status: 'REVOKED' },
+    });
+    await request(app.getHttpServer())
+      .get(`/api/v1/licensing/me/enrollments/${enrollmentId}`)
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .expect(200)
+      .expect((response) => {
+        const body: unknown = response.body;
+        if (!isRecord(body) || !Array.isArray(body.requirements)) {
+          throw new Error('Expected recalculated requirement readiness');
+        }
+        expect(body.requirements[0]).toEqual(
+          expect.objectContaining({ state: 'MISSING' }),
+        );
+      });
+
+    await request(app.getHttpServer())
+      .patch(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/requirements/${fixture.requirement.id}`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({ state: 'IN_PROGRESS', note: 'Requesting university transcript' })
+      .expect(200)
+      .expect((response) => {
+        expect(requiredString(response.body as unknown, 'state')).toBe(
+          'IN_PROGRESS',
+        );
+      });
+    await request(app.getHttpServer())
+      .patch(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/requirements/${fixture.requirement.id}`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({ state: 'IN_PROGRESS', note: 'Requesting university transcript' })
+      .expect(200);
+    await request(app.getHttpServer())
+      .delete(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/requirements/${fixture.requirement.id}/credential`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .expect(200)
+      .expect((response) => {
+        expect(requiredString(response.body as unknown, 'state')).toBe(
+          'MISSING',
+        );
+      });
+
+    expect(
+      await prisma.outboxEvent.count({
+        where: {
+          aggregateId: enrollmentId,
+          name: 'RequirementProgressChanged',
+        },
+      }),
+    ).toBe(4);
+    expect(
+      await prisma.auditEvent.count({
+        where: {
+          actorId: ownerAccountId,
+          action: 'licensing.requirement_progress.changed',
+        },
+      }),
+    ).toBe(4);
 
     const versionTwo = await prisma.licencePathwayVersion.create({
       data: {

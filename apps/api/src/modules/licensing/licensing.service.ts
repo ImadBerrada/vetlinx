@@ -39,9 +39,24 @@ import {
   assertPathwayVersionTransition,
   evaluateRequirement,
 } from './licensing-rules';
-import type { PathwayVersionStatus, RequirementRule } from './licensing.types';
+import type {
+  PathwayVersionStatus,
+  RequirementProgressState,
+  RequirementRule,
+} from './licensing.types';
 
 type VersionCommand = 'submit' | 'publish' | 'supersede';
+
+type ProgressContext = {
+  enrollmentId: string;
+  requirement: { id: string; rule: Prisma.JsonValue };
+  progress: {
+    id: string;
+    state: RequirementProgressState;
+    linkedCredentialId: string | null;
+    note: string | null;
+  };
+};
 
 @Injectable()
 export class LicensingService implements LicensingPublicApi {
@@ -195,12 +210,15 @@ export class LicensingService implements LicensingPublicApi {
       throw new NotFoundException('Professional profile not found');
     }
     const preview = await this.previewEligibility(accountId, pathwayId);
-    return this.idempotent(
+    const enrollment = await this.idempotent(
       accountId,
       operation,
       idempotencyKey,
       { pathwayId },
-      (resourceId) => this.getOwnedEnrollment(accountId, resourceId),
+      (resourceId) =>
+        this.prisma.pathwayEnrollment.findUniqueOrThrow({
+          where: { id: resourceId },
+        }),
       async (transaction, requestHash) => {
         const duplicate = await transaction.pathwayEnrollment.findFirst({
           where: {
@@ -275,26 +293,150 @@ export class LicensingService implements LicensingPublicApi {
         return enrollment;
       },
     );
+    return this.getOwnedEnrollment(accountId, enrollment.id);
   }
 
   async listMyEnrollments(accountId: string) {
     const professional = await this.professionals.findByAccountId(accountId);
     if (!professional) return [];
-    return this.prisma.pathwayEnrollment.findMany({
+    const enrollments = await this.prisma.pathwayEnrollment.findMany({
       where: { professionalProfileId: professional.id },
-      include: this.enrollmentInclude(),
+      select: { id: true },
       orderBy: { startedAt: 'desc' },
     });
+    return Promise.all(
+      enrollments.map(({ id }) => this.getOwnedEnrollment(accountId, id)),
+    );
   }
 
   async getOwnedEnrollment(accountId: string, enrollmentId: string) {
+    await this.refreshLinkedEvidence(accountId, enrollmentId);
     const enrollment = await this.prisma.pathwayEnrollment.findFirst({
       where: { id: enrollmentId, professional: { accountId } },
       include: this.enrollmentInclude(),
     });
     if (!enrollment)
       throw new NotFoundException('Pathway enrollment not found');
-    return enrollment;
+    const requirements = enrollment.pathwayVersion.requirements.map(
+      (requirement) => {
+        const progress = enrollment.requirementProgress.find(
+          ({ requirementId }) => requirementId === requirement.id,
+        );
+        return {
+          id: requirement.id,
+          code: requirement.code,
+          titleEn: requirement.titleEn,
+          titleAr: requirement.titleAr,
+          descriptionEn: requirement.descriptionEn,
+          descriptionAr: requirement.descriptionAr,
+          position: requirement.position,
+          required: requirement.required,
+          state: progress?.state ?? 'MISSING',
+          credentialId: progress?.linkedCredentialId ?? undefined,
+          note: progress?.note ?? undefined,
+          evaluatedAt: progress?.evaluatedAt ?? undefined,
+        };
+      },
+    );
+    const required = requirements.filter((requirement) => requirement.required);
+    const satisfied = required.filter(
+      ({ state }) => state === 'SATISFIED' || state === 'NOT_APPLICABLE',
+    ).length;
+    return {
+      ...enrollment,
+      requirements,
+      readiness: {
+        required: required.length,
+        satisfied,
+        needsReview: required.filter(({ state }) => state === 'NEEDS_REVIEW')
+          .length,
+        remaining: required.length - satisfied,
+        ready: required.length === satisfied,
+      },
+    };
+  }
+
+  async linkCredential(
+    accountId: string,
+    enrollmentId: string,
+    requirementId: string,
+    credentialId: string,
+    correlationId: string,
+  ) {
+    const context = await this.requireProgressContext(
+      accountId,
+      enrollmentId,
+      requirementId,
+    );
+    const owned = await this.credentials.findOwnedByAccount(
+      accountId,
+      credentialId,
+    );
+    if (!owned) throw new NotFoundException('Credential not found');
+    const evidence = (await this.credentials.listOwnedEvidence(accountId)).find(
+      ({ id }) => id === credentialId,
+    );
+    if (!evidence) throw new NotFoundException('Credential not found');
+    const evaluation = evaluateRequirement(
+      this.requirementRule(context.requirement.rule),
+      [evidence],
+    );
+    if (evaluation.state === 'MISSING') {
+      throw new BadRequestException(
+        'Credential does not satisfy this pathway requirement',
+      );
+    }
+    return this.changeRequirementProgress(
+      accountId,
+      context,
+      evaluation.state,
+      evaluation.credentialId,
+      evaluation.explanation,
+      correlationId,
+    );
+  }
+
+  async unlinkCredential(
+    accountId: string,
+    enrollmentId: string,
+    requirementId: string,
+    correlationId: string,
+  ) {
+    const context = await this.requireProgressContext(
+      accountId,
+      enrollmentId,
+      requirementId,
+    );
+    return this.changeRequirementProgress(
+      accountId,
+      context,
+      'MISSING',
+      undefined,
+      'No credential is linked to this requirement.',
+      correlationId,
+    );
+  }
+
+  async setRequirementInProgress(
+    accountId: string,
+    enrollmentId: string,
+    requirementId: string,
+    note: string | undefined,
+    correlationId: string,
+  ) {
+    const context = await this.requireProgressContext(
+      accountId,
+      enrollmentId,
+      requirementId,
+    );
+    return this.changeRequirementProgress(
+      accountId,
+      context,
+      'IN_PROGRESS',
+      undefined,
+      note?.trim() || 'Professional marked this requirement as in progress.',
+      correlationId,
+    );
   }
 
   createJurisdiction(
@@ -674,6 +816,12 @@ export class LicensingService implements LicensingPublicApi {
     accountId: string,
     enrollmentId: string,
   ): Promise<LicensingReadiness | null> {
+    const owned = await this.prisma.pathwayEnrollment.findFirst({
+      where: { id: enrollmentId, professional: { accountId } },
+      select: { id: true },
+    });
+    if (!owned) return null;
+    await this.refreshLinkedEvidence(accountId, enrollmentId);
     const enrollment = await this.prisma.pathwayEnrollment.findFirst({
       where: { id: enrollmentId, professional: { accountId } },
       include: {
@@ -881,6 +1029,166 @@ export class LicensingService implements LicensingPublicApi {
           include: { jurisdiction: true, authority: true, licenceType: true },
         },
       },
+    });
+  }
+
+  private async requireProgressContext(
+    accountId: string,
+    enrollmentId: string,
+    requirementId: string,
+  ): Promise<ProgressContext> {
+    const enrollment = await this.prisma.pathwayEnrollment.findFirst({
+      where: { id: enrollmentId, professional: { accountId } },
+      select: {
+        id: true,
+        pathwayVersion: {
+          select: {
+            requirements: {
+              where: { id: requirementId },
+              select: { id: true, rule: true },
+            },
+          },
+        },
+        requirementProgress: {
+          where: { requirementId },
+          select: {
+            id: true,
+            state: true,
+            linkedCredentialId: true,
+            note: true,
+          },
+        },
+      },
+    });
+    const requirement = enrollment?.pathwayVersion.requirements[0];
+    const progress = enrollment?.requirementProgress[0];
+    if (!enrollment || !requirement || !progress) {
+      throw new NotFoundException('Enrollment requirement not found');
+    }
+    return { enrollmentId: enrollment.id, requirement, progress };
+  }
+
+  private async refreshLinkedEvidence(accountId: string, enrollmentId: string) {
+    const enrollment = await this.prisma.pathwayEnrollment.findFirst({
+      where: { id: enrollmentId, professional: { accountId } },
+      select: {
+        id: true,
+        requirementProgress: {
+          select: {
+            id: true,
+            state: true,
+            linkedCredentialId: true,
+            note: true,
+            requirement: { select: { id: true, rule: true } },
+          },
+        },
+      },
+    });
+    if (!enrollment) {
+      throw new NotFoundException('Pathway enrollment not found');
+    }
+    const evidence = await this.credentials.listOwnedEvidence(accountId);
+    for (const progress of enrollment.requirementProgress) {
+      if (!progress.linkedCredentialId) continue;
+      const linked = evidence.find(
+        ({ id }) => id === progress.linkedCredentialId,
+      );
+      const evaluation = evaluateRequirement(
+        this.requirementRule(progress.requirement.rule),
+        linked ? [linked] : [],
+      );
+      if (
+        progress.state !== evaluation.state ||
+        progress.linkedCredentialId !== (evaluation.credentialId ?? null)
+      ) {
+        await this.changeRequirementProgress(
+          accountId,
+          {
+            enrollmentId,
+            requirement: progress.requirement,
+            progress,
+          },
+          evaluation.state,
+          evaluation.credentialId,
+          evaluation.explanation,
+          randomUUID(),
+        );
+      }
+    }
+  }
+
+  private async changeRequirementProgress(
+    accountId: string,
+    context: ProgressContext,
+    state: RequirementProgressState,
+    credentialId: string | undefined,
+    note: string,
+    correlationId: string,
+  ) {
+    const linkedCredentialId = credentialId ?? null;
+    const effectiveChange =
+      context.progress.state !== state ||
+      context.progress.linkedCredentialId !== linkedCredentialId;
+    if (!effectiveChange) {
+      if (context.progress.note === note) {
+        return this.prisma.requirementProgress.findUniqueOrThrow({
+          where: { id: context.progress.id },
+          include: { requirement: true },
+        });
+      }
+      return this.prisma.requirementProgress.update({
+        where: { id: context.progress.id },
+        data: { note, evaluatedAt: new Date() },
+        include: { requirement: true },
+      });
+    }
+
+    const occurredAt = new Date();
+    return this.prisma.$transaction(async (transaction) => {
+      const updated = await transaction.requirementProgress.update({
+        where: { id: context.progress.id },
+        data: {
+          state,
+          linkedCredentialId,
+          note,
+          evaluatedAt: occurredAt,
+        },
+        include: { requirement: true },
+      });
+      await this.audit.recordInTransaction(transaction, {
+        actorId: accountId,
+        action: 'licensing.requirement_progress.changed',
+        resourceType: 'requirement_progress',
+        resourceId: context.progress.id,
+        occurredAt: occurredAt.toISOString(),
+        correlationId,
+        changes: {
+          enrollmentId: context.enrollmentId,
+          requirementId: context.requirement.id,
+          state: { from: context.progress.state, to: state },
+          credentialId: {
+            from: context.progress.linkedCredentialId,
+            to: linkedCredentialId,
+          },
+        },
+      });
+      await this.outbox.enqueue(transaction, [
+        {
+          id: randomUUID(),
+          name: 'RequirementProgressChanged',
+          version: 1,
+          occurredAt: occurredAt.toISOString(),
+          aggregateId: context.enrollmentId,
+          correlationId,
+          payload: {
+            enrollmentId: context.enrollmentId,
+            requirementId: context.requirement.id,
+            state,
+            credentialId: linkedCredentialId,
+          },
+        },
+      ]);
+      return updated;
     });
   }
 
