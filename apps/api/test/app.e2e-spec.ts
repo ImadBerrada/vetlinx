@@ -52,6 +52,13 @@ describe('VetLinX API (e2e)', () => {
   const interviewIds: string[] = [];
   const offerIds: string[] = [];
   const employmentIds: string[] = [];
+  const licensingJurisdictionIds: string[] = [];
+  const licensingAuthorityIds: string[] = [];
+  const licenceTypeIds: string[] = [];
+  const licencePathwayIds: string[] = [];
+  const licencePathwayVersionIds: string[] = [];
+  const pathwayRequirementIds: string[] = [];
+  const licensingEnrollmentIds: string[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -169,6 +176,129 @@ describe('VetLinX API (e2e)', () => {
         expect(hasFoundationModule('identity')).toBe(true);
         expect(hasFoundationModule('professionals')).toBe(true);
       });
+  });
+
+  it('pins a pathway enrollment to its published version', async () => {
+    const suffix = randomUUID();
+    const fixture = await prisma.$transaction(async (transaction) => {
+      const account = await transaction.account.create({
+        data: {
+          email: `licensing-${suffix}@example.com`,
+          passwordHash: 'integration-test-only',
+          status: 'ACTIVE',
+        },
+      });
+      const professional = await transaction.professionalProfile.create({
+        data: {
+          accountId: account.id,
+          displayName: 'Dr. Licensing Persistence',
+          countryCode: 'AE',
+          status: 'ACTIVE',
+        },
+      });
+      const jurisdiction = await transaction.licensingJurisdiction.create({
+        data: {
+          code: `AE-${suffix}`,
+          nameEn: 'United Arab Emirates',
+          nameAr: 'الإمارات العربية المتحدة',
+        },
+      });
+      const authority = await transaction.licensingAuthority.create({
+        data: {
+          jurisdictionId: jurisdiction.id,
+          code: `MOCCAE-${suffix}`,
+          nameEn: 'Ministry of Climate Change and Environment',
+          nameAr: 'وزارة التغير المناخي والبيئة',
+          websiteUrl: 'https://www.moccae.gov.ae/',
+        },
+      });
+      const licenceType = await transaction.licenceType.create({
+        data: {
+          code: `VETERINARIAN-${suffix}`,
+          nameEn: 'Veterinary professional licence',
+          nameAr: 'ترخيص مزاولة مهنة الطب البيطري',
+          professionalTitleCode: 'VETERINARIAN',
+        },
+      });
+      const pathway = await transaction.licencePathway.create({
+        data: {
+          jurisdictionId: jurisdiction.id,
+          authorityId: authority.id,
+          licenceTypeId: licenceType.id,
+          slug: `uae-veterinarian-${suffix}`,
+        },
+      });
+      const publishedVersion = await transaction.licencePathwayVersion.create({
+        data: {
+          pathwayId: pathway.id,
+          version: 1,
+          status: 'PUBLISHED',
+          sourceUrl: 'https://www.moccae.gov.ae/',
+          sourceTitle: 'Veterinary professional licensing requirements',
+          reviewedAt: new Date(),
+          reviewedByAccountId: account.id,
+        },
+      });
+      const requirement = await transaction.pathwayRequirement.create({
+        data: {
+          pathwayVersionId: publishedVersion.id,
+          code: 'VERIFIED_DEGREE',
+          titleEn: 'Verified veterinary degree',
+          titleAr: 'شهادة طب بيطري موثقة',
+          descriptionEn: 'Provide a verified veterinary degree.',
+          descriptionAr: 'تقديم شهادة طب بيطري موثقة.',
+          position: 1,
+          rule: {
+            kind: 'VERIFIED_CREDENTIAL',
+            credentialTypeCode: 'DEGREE',
+          },
+        },
+      });
+      const enrollment = await transaction.pathwayEnrollment.create({
+        data: {
+          professionalProfileId: professional.id,
+          pathwayVersionId: publishedVersion.id,
+        },
+      });
+      const draftVersion = await transaction.licencePathwayVersion.create({
+        data: {
+          pathwayId: pathway.id,
+          version: 2,
+          status: 'DRAFT',
+          sourceUrl: 'https://www.moccae.gov.ae/',
+          sourceTitle: 'Updated veterinary professional requirements',
+        },
+      });
+
+      return {
+        accountId: account.id,
+        professionalId: professional.id,
+        jurisdictionId: jurisdiction.id,
+        authorityId: authority.id,
+        licenceTypeId: licenceType.id,
+        pathwayId: pathway.id,
+        versionIds: [publishedVersion.id, draftVersion.id],
+        requirementId: requirement.id,
+        enrollmentId: enrollment.id,
+      };
+    });
+
+    accountIds.push(fixture.accountId);
+    profileIds.push(fixture.professionalId);
+    licensingJurisdictionIds.push(fixture.jurisdictionId);
+    licensingAuthorityIds.push(fixture.authorityId);
+    licenceTypeIds.push(fixture.licenceTypeId);
+    licencePathwayIds.push(fixture.pathwayId);
+    licencePathwayVersionIds.push(...fixture.versionIds);
+    pathwayRequirementIds.push(fixture.requirementId);
+    licensingEnrollmentIds.push(fixture.enrollmentId);
+
+    const enrollment = await prisma.pathwayEnrollment.findUniqueOrThrow({
+      where: { id: fixture.enrollmentId },
+      include: { pathwayVersion: true },
+    });
+    expect(enrollment.pathwayVersion.version).toBe(1);
+    expect(enrollment.pathwayVersion.status).toBe('PUBLISHED');
   });
 
   it('registers, authenticates, rotates a session, and creates a profile', async () => {
@@ -1144,6 +1274,33 @@ describe('VetLinX API (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.requirementProgress.deleteMany({
+      where: { enrollmentId: { in: licensingEnrollmentIds } },
+    });
+    await prisma.externalLicenceApplication.deleteMany({
+      where: { enrollmentId: { in: licensingEnrollmentIds } },
+    });
+    await prisma.pathwayEnrollment.deleteMany({
+      where: { id: { in: licensingEnrollmentIds } },
+    });
+    await prisma.pathwayRequirement.deleteMany({
+      where: { id: { in: pathwayRequirementIds } },
+    });
+    await prisma.licencePathwayVersion.deleteMany({
+      where: { id: { in: licencePathwayVersionIds } },
+    });
+    await prisma.licencePathway.deleteMany({
+      where: { id: { in: licencePathwayIds } },
+    });
+    await prisma.licenceType.deleteMany({
+      where: { id: { in: licenceTypeIds } },
+    });
+    await prisma.licensingAuthority.deleteMany({
+      where: { id: { in: licensingAuthorityIds } },
+    });
+    await prisma.licensingJurisdiction.deleteMany({
+      where: { id: { in: licensingJurisdictionIds } },
+    });
     await prisma.auditEvent.deleteMany({
       where: { actorId: { in: accountIds } },
     });

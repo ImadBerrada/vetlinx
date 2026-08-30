@@ -6,7 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["audit", "credentials", "files", "identity", "notifications", "organizations", "platform", "professionals", "recruitment", "verification"]
+  schemas  = ["audit", "credentials", "files", "identity", "licensing", "notifications", "organizations", "platform", "professionals", "recruitment", "verification"]
 }
 
 enum AccountStatus {
@@ -21,6 +21,8 @@ enum AccountStatus {
 enum SystemRole {
   PROFESSIONAL
   REVIEWER
+  LICENSING_CURATOR
+  LICENSING_REVIEWER
   OPERATIONS_ADMIN
   PLATFORM_ADMIN
 
@@ -44,6 +46,9 @@ model Account {
   assignedOrganizationReviews OrganizationVerificationRequest[]  @relation("AssignedOrganizationReviewer")
   organizationReviewDecisions OrganizationVerificationDecision[]
   createdJobs                 Job[]                              @relation("JobCreator")
+  reviewedPathwayVersions     LicencePathwayVersion[]            @relation("LicensingPathwayReviewer")
+  licensingReminderPreference LicensingReminderPreference?
+  licensingMutationReceipts   LicensingMutationReceipt[]
 
   @@map("accounts")
   @@schema("identity")
@@ -151,25 +156,26 @@ enum ContactVisibility {
 }
 
 model ProfessionalProfile {
-  id           String             @id @default(uuid()) @db.Uuid
-  accountId    String             @unique @map("account_id") @db.Uuid
-  displayName  String             @map("display_name") @db.VarChar(200)
-  countryCode  String             @map("country_code") @db.Char(2)
-  status       ProfessionalStatus @default(DRAFT)
-  headline     String?            @db.VarChar(220)
-  summary      String?            @db.Text
-  publicSlug   String?            @unique @map("public_slug") @db.VarChar(180)
-  visibility   PortfolioVisibility @default(PRIVATE)
-  contactVisibility ContactVisibility @default(PRIVATE) @map("contact_visibility")
-  specialtyCodes String[]         @default([]) @map("specialty_codes")
-  speciesCodes   String[]         @default([]) @map("species_codes")
-  languageCodes  String[]         @default([]) @map("language_codes")
-  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
-  account      Account            @relation(fields: [accountId], references: [id], onDelete: Restrict)
-  applications JobApplication[]
-  employments  Employment[]
-  credentials  Credential[]
+  id                 String              @id @default(uuid()) @db.Uuid
+  accountId          String              @unique @map("account_id") @db.Uuid
+  displayName        String              @map("display_name") @db.VarChar(200)
+  countryCode        String              @map("country_code") @db.Char(2)
+  status             ProfessionalStatus  @default(DRAFT)
+  headline           String?             @db.VarChar(220)
+  summary            String?             @db.Text
+  publicSlug         String?             @unique @map("public_slug") @db.VarChar(180)
+  visibility         PortfolioVisibility @default(PRIVATE)
+  contactVisibility  ContactVisibility   @default(PRIVATE) @map("contact_visibility")
+  specialtyCodes     String[]            @default([]) @map("specialty_codes")
+  speciesCodes       String[]            @default([]) @map("species_codes")
+  languageCodes      String[]            @default([]) @map("language_codes")
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  account            Account             @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  applications       JobApplication[]
+  employments        Employment[]
+  credentials        Credential[]
+  pathwayEnrollments PathwayEnrollment[]
 
   @@index([countryCode, status])
   @@index([visibility, publicSlug])
@@ -189,24 +195,317 @@ enum CredentialStatus {
 }
 
 model Credential {
-  id                    String           @id @default(uuid()) @db.Uuid
-  professionalProfileId String           @map("professional_profile_id") @db.Uuid
-  typeCode              String           @map("type_code") @db.VarChar(60)
-  title                 String           @db.VarChar(250)
-  issuingOrganization   String           @map("issuing_organization") @db.VarChar(250)
-  countryCode           String           @map("country_code") @db.Char(2)
-  issueDate             DateTime         @map("issue_date") @db.Date
-  expiryDate            DateTime?        @map("expiry_date") @db.Date
-  status                CredentialStatus @default(DRAFT)
-  submittedAt           DateTime?        @map("submitted_at") @db.Timestamptz(3)
-  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
-  professional          ProfessionalProfile @relation(fields: [professionalProfileId], references: [id], onDelete: Restrict)
+  id                    String                @id @default(uuid()) @db.Uuid
+  professionalProfileId String                @map("professional_profile_id") @db.Uuid
+  typeCode              String                @map("type_code") @db.VarChar(60)
+  title                 String                @db.VarChar(250)
+  issuingOrganization   String                @map("issuing_organization") @db.VarChar(250)
+  countryCode           String                @map("country_code") @db.Char(2)
+  issueDate             DateTime              @map("issue_date") @db.Date
+  expiryDate            DateTime?             @map("expiry_date") @db.Date
+  status                CredentialStatus      @default(DRAFT)
+  submittedAt           DateTime?             @map("submitted_at") @db.Timestamptz(3)
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  professional          ProfessionalProfile   @relation(fields: [professionalProfileId], references: [id], onDelete: Restrict)
+  requirementProgress   RequirementProgress[]
+  professionalLicence   ProfessionalLicence?
 
   @@index([professionalProfileId, status])
   @@index([countryCode, typeCode])
+  @@index([expiryDate, status])
   @@map("credentials")
   @@schema("credentials")
+}
+
+enum PathwayVersionStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  SUPERSEDED
+  WITHDRAWN
+
+  @@schema("licensing")
+}
+
+enum PathwayEnrollmentStatus {
+  ACTIVE
+  SUBMITTED_EXTERNALLY
+  APPROVED
+  REJECTED
+  WITHDRAWN
+
+  @@schema("licensing")
+}
+
+enum RequirementProgressState {
+  MISSING
+  IN_PROGRESS
+  SATISFIED
+  NEEDS_REVIEW
+  NOT_APPLICABLE
+
+  @@schema("licensing")
+}
+
+enum ExternalLicenceApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  WITHDRAWN
+
+  @@schema("licensing")
+}
+
+enum LicenceApplicationVerificationSource {
+  USER_REPORTED
+  AUTHORITY_INTEGRATION
+
+  @@schema("licensing")
+}
+
+enum ProfessionalLicenceStatus {
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  REVOKED
+
+  @@schema("licensing")
+}
+
+model LicensingJurisdiction {
+  id          String               @id @default(uuid()) @db.Uuid
+  code        String               @unique @db.VarChar(80)
+  nameEn      String               @map("name_en") @db.VarChar(200)
+  nameAr      String               @map("name_ar") @db.VarChar(200)
+  active      Boolean              @default(true)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  authorities LicensingAuthority[]
+  pathways    LicencePathway[]
+
+  @@index([active, nameEn])
+  @@map("jurisdictions")
+  @@schema("licensing")
+}
+
+model LicensingAuthority {
+  id             String                @id @default(uuid()) @db.Uuid
+  jurisdictionId String                @map("jurisdiction_id") @db.Uuid
+  code           String                @db.VarChar(100)
+  nameEn         String                @map("name_en") @db.VarChar(250)
+  nameAr         String                @map("name_ar") @db.VarChar(250)
+  websiteUrl     String                @map("website_url") @db.VarChar(1000)
+  active         Boolean               @default(true)
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  jurisdiction   LicensingJurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  pathways       LicencePathway[]
+  licences       ProfessionalLicence[]
+
+  @@unique([jurisdictionId, code])
+  @@index([jurisdictionId, active, nameEn])
+  @@map("authorities")
+  @@schema("licensing")
+}
+
+model LicenceType {
+  id                    String           @id @default(uuid()) @db.Uuid
+  code                  String           @unique @db.VarChar(100)
+  nameEn                String           @map("name_en") @db.VarChar(200)
+  nameAr                String           @map("name_ar") @db.VarChar(200)
+  professionalTitleCode String           @map("professional_title_code") @db.VarChar(100)
+  active                Boolean          @default(true)
+  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  pathways              LicencePathway[]
+
+  @@index([active, professionalTitleCode])
+  @@map("licence_types")
+  @@schema("licensing")
+}
+
+model LicencePathway {
+  id             String                  @id @default(uuid()) @db.Uuid
+  jurisdictionId String                  @map("jurisdiction_id") @db.Uuid
+  authorityId    String                  @map("authority_id") @db.Uuid
+  licenceTypeId  String                  @map("licence_type_id") @db.Uuid
+  slug           String                  @db.VarChar(180)
+  active         Boolean                 @default(true)
+  createdAt      DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  jurisdiction   LicensingJurisdiction   @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  authority      LicensingAuthority      @relation(fields: [authorityId], references: [id], onDelete: Restrict)
+  licenceType    LicenceType             @relation(fields: [licenceTypeId], references: [id], onDelete: Restrict)
+  versions       LicencePathwayVersion[]
+
+  @@unique([jurisdictionId, authorityId, licenceTypeId, slug])
+  @@index([jurisdictionId, licenceTypeId, active])
+  @@index([authorityId, active])
+  @@map("licence_pathways")
+  @@schema("licensing")
+}
+
+model LicencePathwayVersion {
+  id                  String               @id @default(uuid()) @db.Uuid
+  pathwayId           String               @map("pathway_id") @db.Uuid
+  version             Int
+  status              PathwayVersionStatus @default(DRAFT)
+  effectiveFrom       DateTime?            @map("effective_from") @db.Date
+  effectiveTo         DateTime?            @map("effective_to") @db.Date
+  sourceUrl           String               @map("source_url") @db.VarChar(1000)
+  sourceTitle         String               @map("source_title") @db.VarChar(300)
+  reviewedAt          DateTime?            @map("reviewed_at") @db.Timestamptz(3)
+  reviewedByAccountId String?              @map("reviewed_by_account_id") @db.Uuid
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  pathway             LicencePathway       @relation(fields: [pathwayId], references: [id], onDelete: Restrict)
+  reviewedBy          Account?             @relation("LicensingPathwayReviewer", fields: [reviewedByAccountId], references: [id], onDelete: Restrict)
+  requirements        PathwayRequirement[]
+  enrollments         PathwayEnrollment[]
+
+  @@unique([pathwayId, version])
+  @@index([status, effectiveFrom])
+  @@index([reviewedByAccountId, reviewedAt])
+  @@map("licence_pathway_versions")
+  @@schema("licensing")
+}
+
+model PathwayRequirement {
+  id               String                @id @default(uuid()) @db.Uuid
+  pathwayVersionId String                @map("pathway_version_id") @db.Uuid
+  code             String                @db.VarChar(120)
+  titleEn          String                @map("title_en") @db.VarChar(250)
+  titleAr          String                @map("title_ar") @db.VarChar(250)
+  descriptionEn    String                @map("description_en") @db.Text
+  descriptionAr    String                @map("description_ar") @db.Text
+  position         Int
+  required         Boolean               @default(true)
+  rule             Json
+  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  pathwayVersion   LicencePathwayVersion @relation(fields: [pathwayVersionId], references: [id], onDelete: Restrict)
+  progress         RequirementProgress[]
+
+  @@unique([pathwayVersionId, code])
+  @@unique([pathwayVersionId, position])
+  @@index([pathwayVersionId, required])
+  @@map("pathway_requirements")
+  @@schema("licensing")
+}
+
+model PathwayEnrollment {
+  id                    String                      @id @default(uuid()) @db.Uuid
+  professionalProfileId String                      @map("professional_profile_id") @db.Uuid
+  pathwayVersionId      String                      @map("pathway_version_id") @db.Uuid
+  status                PathwayEnrollmentStatus     @default(ACTIVE)
+  startedAt             DateTime                    @default(now()) @map("started_at") @db.Timestamptz(3)
+  submittedExternallyAt DateTime?                   @map("submitted_externally_at") @db.Timestamptz(3)
+  completedAt           DateTime?                   @map("completed_at") @db.Timestamptz(3)
+  createdAt             DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  professional          ProfessionalProfile         @relation(fields: [professionalProfileId], references: [id], onDelete: Restrict)
+  pathwayVersion        LicencePathwayVersion       @relation(fields: [pathwayVersionId], references: [id], onDelete: Restrict)
+  requirementProgress   RequirementProgress[]
+  externalApplication   ExternalLicenceApplication?
+  professionalLicence   ProfessionalLicence?
+
+  @@unique([professionalProfileId, pathwayVersionId])
+  @@index([professionalProfileId, status, startedAt])
+  @@index([pathwayVersionId, status])
+  @@map("pathway_enrollments")
+  @@schema("licensing")
+}
+
+model RequirementProgress {
+  id                 String                   @id @default(uuid()) @db.Uuid
+  enrollmentId       String                   @map("enrollment_id") @db.Uuid
+  requirementId      String                   @map("requirement_id") @db.Uuid
+  state              RequirementProgressState @default(MISSING)
+  linkedCredentialId String?                  @map("linked_credential_id") @db.Uuid
+  note               String?                  @db.Text
+  evaluatedAt        DateTime                 @default(now()) @map("evaluated_at") @db.Timestamptz(3)
+  createdAt          DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+  enrollment         PathwayEnrollment        @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  requirement        PathwayRequirement       @relation(fields: [requirementId], references: [id], onDelete: Restrict)
+  linkedCredential   Credential?              @relation(fields: [linkedCredentialId], references: [id], onDelete: Restrict)
+
+  @@unique([enrollmentId, requirementId])
+  @@index([linkedCredentialId, state])
+  @@index([state, evaluatedAt])
+  @@map("requirement_progress")
+  @@schema("licensing")
+}
+
+model ExternalLicenceApplication {
+  id                 String                               @id @default(uuid()) @db.Uuid
+  enrollmentId       String                               @unique @map("enrollment_id") @db.Uuid
+  authorityReference String                               @map("authority_reference") @db.VarChar(200)
+  submittedAt        DateTime                             @map("submitted_at") @db.Timestamptz(3)
+  status             ExternalLicenceApplicationStatus     @default(SUBMITTED)
+  verificationSource LicenceApplicationVerificationSource @default(USER_REPORTED) @map("verification_source")
+  lastReportedAt     DateTime                             @default(now()) @map("last_reported_at") @db.Timestamptz(3)
+  createdAt          DateTime                             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  enrollment         PathwayEnrollment                    @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+
+  @@index([status, lastReportedAt])
+  @@map("external_licence_applications")
+  @@schema("licensing")
+}
+
+model ProfessionalLicence {
+  id            String                    @id @default(uuid()) @db.Uuid
+  credentialId  String                    @unique @map("credential_id") @db.Uuid
+  enrollmentId  String                    @unique @map("enrollment_id") @db.Uuid
+  authorityId   String                    @map("authority_id") @db.Uuid
+  licenceNumber String                    @map("licence_number") @db.VarChar(160)
+  status        ProfessionalLicenceStatus @default(ACTIVE)
+  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  credential    Credential                @relation(fields: [credentialId], references: [id], onDelete: Restrict)
+  enrollment    PathwayEnrollment         @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+  authority     LicensingAuthority        @relation(fields: [authorityId], references: [id], onDelete: Restrict)
+
+  @@unique([authorityId, licenceNumber])
+  @@index([authorityId, status])
+  @@map("professional_licences")
+  @@schema("licensing")
+}
+
+model LicensingReminderPreference {
+  id             String   @id @default(uuid()) @db.Uuid
+  accountId      String   @unique @map("account_id") @db.Uuid
+  timeZone       String   @map("time_zone") @db.VarChar(80)
+  renewalEnabled Boolean  @default(true) @map("renewal_enabled")
+  leadDays       Int      @default(90) @map("lead_days")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  account        Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([renewalEnabled, leadDays])
+  @@map("licensing_reminder_preferences")
+  @@schema("licensing")
+}
+
+model LicensingMutationReceipt {
+  id             String   @id @default(uuid()) @db.Uuid
+  accountId      String   @map("account_id") @db.Uuid
+  operation      String   @db.VarChar(120)
+  idempotencyKey String   @map("idempotency_key") @db.Uuid
+  requestHash    String   @map("request_hash") @db.Char(64)
+  resourceId     String   @map("resource_id") @db.VarChar(120)
+  responseStatus Int      @map("response_status")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  account        Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, operation, idempotencyKey])
+  @@index([createdAt])
+  @@map("licensing_mutation_receipts")
+  @@schema("licensing")
 }
 
 enum FileValidationStatus {
@@ -563,24 +862,24 @@ enum EmploymentStatus {
 }
 
 model Employment {
-  id                    String           @id @default(uuid()) @db.Uuid
-  offerId               String           @unique @map("offer_id") @db.Uuid
-  jobId                 String           @map("job_id") @db.Uuid
-  organizationId        String           @map("organization_id") @db.Uuid
-  professionalProfileId String           @map("professional_profile_id") @db.Uuid
-  confirmedByAccountId  String           @map("confirmed_by_account_id") @db.Uuid
-  title                 String           @db.VarChar(180)
-  employmentType        EmploymentType   @map("employment_type")
-  startDate             DateTime         @map("start_date") @db.Date
-  endDate               DateTime?        @map("end_date") @db.Date
-  status                EmploymentStatus @default(ACTIVE)
-  verificationSource    String           @default("ORGANIZATION_CONFIRMED") @map("verification_source") @db.VarChar(80)
-  confirmedAt           DateTime         @default(now()) @map("confirmed_at") @db.Timestamptz(3)
-  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
-  offer                 JobOffer         @relation(fields: [offerId], references: [id], onDelete: Restrict)
-  job                   Job              @relation(fields: [jobId], references: [id], onDelete: Restrict)
-  organization          Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  id                    String              @id @default(uuid()) @db.Uuid
+  offerId               String              @unique @map("offer_id") @db.Uuid
+  jobId                 String              @map("job_id") @db.Uuid
+  organizationId        String              @map("organization_id") @db.Uuid
+  professionalProfileId String              @map("professional_profile_id") @db.Uuid
+  confirmedByAccountId  String              @map("confirmed_by_account_id") @db.Uuid
+  title                 String              @db.VarChar(180)
+  employmentType        EmploymentType      @map("employment_type")
+  startDate             DateTime            @map("start_date") @db.Date
+  endDate               DateTime?           @map("end_date") @db.Date
+  status                EmploymentStatus    @default(ACTIVE)
+  verificationSource    String              @default("ORGANIZATION_CONFIRMED") @map("verification_source") @db.VarChar(80)
+  confirmedAt           DateTime            @default(now()) @map("confirmed_at") @db.Timestamptz(3)
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  offer                 JobOffer            @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  job                   Job                 @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  organization          Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   professional          ProfessionalProfile @relation(fields: [professionalProfileId], references: [id], onDelete: Restrict)
   history               EmploymentHistory[]
 
@@ -591,14 +890,14 @@ model Employment {
 }
 
 model EmploymentHistory {
-  id             String           @id @default(uuid()) @db.Uuid
-  employmentId   String           @map("employment_id") @db.Uuid
+  id             String            @id @default(uuid()) @db.Uuid
+  employmentId   String            @map("employment_id") @db.Uuid
   fromStatus     EmploymentStatus? @map("from_status")
-  toStatus       EmploymentStatus @map("to_status")
-  actorAccountId String           @map("actor_account_id") @db.Uuid
-  reason         String?          @db.Text
-  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  employment     Employment       @relation(fields: [employmentId], references: [id], onDelete: Cascade)
+  toStatus       EmploymentStatus  @map("to_status")
+  actorAccountId String            @map("actor_account_id") @db.Uuid
+  reason         String?           @db.Text
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  employment     Employment        @relation(fields: [employmentId], references: [id], onDelete: Cascade)
 
   @@index([employmentId, createdAt])
   @@map("employment_history")
