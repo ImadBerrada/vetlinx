@@ -301,6 +301,308 @@ describe('VetLinX API (e2e)', () => {
     expect(enrollment.pathwayVersion.status).toBe('PUBLISHED');
   });
 
+  it('allows a licensing curator to draft but not publish a pathway version', async () => {
+    const suffix = randomUUID();
+    const registration = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({
+        email: `licensing-curator-${suffix}@example.com`,
+        password: 'LicensingTest!12345',
+      })
+      .expect(201);
+    const curatorRegistration: unknown = registration.body;
+    if (
+      !isRecord(curatorRegistration) ||
+      !isRecord(curatorRegistration.account)
+    ) {
+      throw new Error('Expected curator registration response');
+    }
+    const curatorAccountId = requiredString(curatorRegistration.account, 'id');
+    const curatorAccessToken = requiredString(
+      registration.body as unknown,
+      'accessToken',
+    );
+    accountIds.push(curatorAccountId);
+    await prisma.accountSystemRole.create({
+      data: {
+        accountId: curatorAccountId,
+        role: 'LICENSING_CURATOR',
+        grantedBy: 'e2e-test',
+      },
+    });
+
+    const jurisdiction = await request(app.getHttpServer())
+      .post('/api/v1/licensing/admin/jurisdictions')
+      .set('authorization', `Bearer ${curatorAccessToken}`)
+      .set('idempotency-key', randomUUID())
+      .send({
+        code: 'AE',
+        nameEn: 'United Arab Emirates',
+        nameAr: 'الإمارات العربية المتحدة',
+      })
+      .expect(201);
+    const jurisdictionId = requiredString(jurisdiction.body as unknown, 'id');
+    licensingJurisdictionIds.push(jurisdictionId);
+
+    const authority = await request(app.getHttpServer())
+      .post('/api/v1/licensing/admin/authorities')
+      .set('authorization', `Bearer ${curatorAccessToken}`)
+      .set('idempotency-key', randomUUID())
+      .send({
+        jurisdictionId,
+        code: `MOCCAE-${suffix}`,
+        nameEn: 'Ministry of Climate Change and Environment',
+        nameAr: 'وزارة التغير المناخي والبيئة',
+        websiteUrl: 'https://www.moccae.gov.ae/',
+      })
+      .expect(201);
+    const authorityId = requiredString(authority.body as unknown, 'id');
+    licensingAuthorityIds.push(authorityId);
+
+    const licenceType = await request(app.getHttpServer())
+      .post('/api/v1/licensing/admin/licence-types')
+      .set('authorization', `Bearer ${curatorAccessToken}`)
+      .set('idempotency-key', randomUUID())
+      .send({
+        code: `VETERINARIAN-${suffix}`,
+        nameEn: 'Veterinary professional licence',
+        nameAr: 'ترخيص مزاولة مهنة الطب البيطري',
+        professionalTitleCode: 'VETERINARIAN',
+      })
+      .expect(201);
+    const licenceTypeId = requiredString(licenceType.body as unknown, 'id');
+    licenceTypeIds.push(licenceTypeId);
+
+    const pathway = await request(app.getHttpServer())
+      .post('/api/v1/licensing/admin/pathways')
+      .set('authorization', `Bearer ${curatorAccessToken}`)
+      .set('idempotency-key', randomUUID())
+      .send({
+        jurisdictionId,
+        authorityId,
+        licenceTypeId,
+        slug: `uae-veterinarian-${suffix}`,
+        sourceUrl: 'https://www.moccae.gov.ae/en/services/licensing',
+        sourceTitle: 'Veterinary professional licensing requirements',
+        requirements: [
+          {
+            code: 'DEGREE',
+            titleEn: 'Veterinary degree',
+            titleAr: 'شهادة الطب البيطري',
+            descriptionEn: 'A verified veterinary degree is required.',
+            descriptionAr: 'يجب تقديم شهادة طب بيطري موثقة.',
+            position: 1,
+            required: true,
+            rule: {
+              kind: 'VERIFIED_CREDENTIAL',
+              credentialTypeCode: 'DEGREE',
+            },
+          },
+        ],
+      })
+      .expect(201);
+    const pathwayId = requiredString(pathway.body as unknown, 'id');
+    const pathwayVersionId = requiredString(
+      pathway.body as unknown,
+      'versionId',
+    );
+    licencePathwayIds.push(pathwayId);
+    licencePathwayVersionIds.push(pathwayVersionId);
+    const requirements = await prisma.pathwayRequirement.findMany({
+      where: { pathwayVersionId },
+      select: { id: true },
+    });
+    pathwayRequirementIds.push(...requirements.map(({ id }) => id));
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/licensing/admin/versions/${pathwayVersionId}/publish`)
+      .set('authorization', `Bearer ${curatorAccessToken}`)
+      .set('idempotency-key', randomUUID())
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/licensing/admin/versions/${pathwayVersionId}/submit`)
+      .set('authorization', `Bearer ${curatorAccessToken}`)
+      .set('idempotency-key', randomUUID())
+      .expect(200);
+
+    const reviewerRegistration = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({
+        email: `licensing-publisher-${suffix}@example.com`,
+        password: 'LicensingTest!12345',
+      })
+      .expect(201);
+    const reviewerBody: unknown = reviewerRegistration.body;
+    if (!isRecord(reviewerBody) || !isRecord(reviewerBody.account)) {
+      throw new Error('Expected licensing reviewer registration response');
+    }
+    const reviewerAccountId = requiredString(reviewerBody.account, 'id');
+    const reviewerAccessToken = requiredString(reviewerBody, 'accessToken');
+    accountIds.push(reviewerAccountId);
+    await prisma.accountSystemRole.create({
+      data: {
+        accountId: reviewerAccountId,
+        role: 'LICENSING_REVIEWER',
+        grantedBy: 'e2e-test',
+      },
+    });
+
+    const publicationKey = randomUUID();
+    const publicationCorrelationId = randomUUID();
+    await request(app.getHttpServer())
+      .post(`/api/v1/licensing/admin/versions/${pathwayVersionId}/publish`)
+      .set('authorization', `Bearer ${reviewerAccessToken}`)
+      .set('idempotency-key', publicationKey)
+      .set('x-correlation-id', publicationCorrelationId)
+      .expect(200)
+      .expect((response) => {
+        expect(requiredString(response.body as unknown, 'status')).toBe(
+          'PUBLISHED',
+        );
+      });
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/licensing/admin/versions/${pathwayVersionId}/publish`)
+      .set('authorization', `Bearer ${reviewerAccessToken}`)
+      .set('idempotency-key', publicationKey)
+      .set('x-correlation-id', randomUUID())
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/licensing/admin/versions/${randomUUID()}/publish`)
+      .set('authorization', `Bearer ${reviewerAccessToken}`)
+      .set('idempotency-key', publicationKey)
+      .expect(409);
+
+    const publicationEvent = await prisma.outboxEvent.findFirstOrThrow({
+      where: {
+        aggregateId: pathwayId,
+        name: 'LicencePathwayPublished',
+      },
+      orderBy: { occurredAt: 'desc' },
+    });
+    outboxIds.push(publicationEvent.id);
+    const publicationPayload: unknown = publicationEvent.payload;
+    expect(isRecord(publicationPayload)).toBe(true);
+    if (!isRecord(publicationPayload)) {
+      throw new Error('Expected licensing publication event payload');
+    }
+    expect(publicationPayload).toMatchObject({
+      pathwayId,
+      pathwayVersionId,
+      version: 1,
+      jurisdictionCode: 'AE',
+      licenceTypeCode: `VETERINARIAN-${suffix}`.toUpperCase(),
+    });
+
+    const publicationAudit = await prisma.auditEvent.findFirstOrThrow({
+      where: {
+        actorId: reviewerAccountId,
+        action: 'licensing.pathway_version.published',
+        resourceId: pathwayVersionId,
+      },
+      orderBy: { occurredAt: 'desc' },
+    });
+    expect(publicationAudit.correlationId).toBe(publicationCorrelationId);
+    const publicationChanges: unknown = publicationAudit.changes;
+    expect(publicationChanges).toMatchObject({
+      transition: { from: 'IN_REVIEW', to: 'PUBLISHED' },
+      source: {
+        title: 'Veterinary professional licensing requirements',
+        url: 'https://www.moccae.gov.ae/en/services/licensing',
+      },
+    });
+  });
+
+  it('prevents editing a published pathway version', async () => {
+    const suffix = randomUUID();
+    const registration = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({
+        email: `licensing-reviewer-${suffix}@example.com`,
+        password: 'LicensingTest!12345',
+      })
+      .expect(201);
+    const reviewerRegistration: unknown = registration.body;
+    if (
+      !isRecord(reviewerRegistration) ||
+      !isRecord(reviewerRegistration.account)
+    ) {
+      throw new Error('Expected reviewer registration response');
+    }
+    const reviewerAccountId = requiredString(
+      reviewerRegistration.account,
+      'id',
+    );
+    const reviewerAccessToken = requiredString(
+      registration.body as unknown,
+      'accessToken',
+    );
+    accountIds.push(reviewerAccountId);
+    await prisma.accountSystemRole.create({
+      data: {
+        accountId: reviewerAccountId,
+        role: 'LICENSING_REVIEWER',
+        grantedBy: 'e2e-test',
+      },
+    });
+
+    const fixture = await prisma.$transaction(async (transaction) => {
+      const jurisdiction = await transaction.licensingJurisdiction.create({
+        data: { code: `QA-${suffix}`, nameEn: 'Qatar', nameAr: 'قطر' },
+      });
+      const authority = await transaction.licensingAuthority.create({
+        data: {
+          jurisdictionId: jurisdiction.id,
+          code: `MOPH-${suffix}`,
+          nameEn: 'Ministry of Public Health',
+          nameAr: 'وزارة الصحة العامة',
+          websiteUrl: 'https://www.moph.gov.qa/',
+        },
+      });
+      const licenceType = await transaction.licenceType.create({
+        data: {
+          code: `VETERINARIAN-QA-${suffix}`,
+          nameEn: 'Veterinarian licence',
+          nameAr: 'ترخيص طبيب بيطري',
+          professionalTitleCode: 'VETERINARIAN',
+        },
+      });
+      const pathway = await transaction.licencePathway.create({
+        data: {
+          jurisdictionId: jurisdiction.id,
+          authorityId: authority.id,
+          licenceTypeId: licenceType.id,
+          slug: `qatar-veterinarian-${suffix}`,
+        },
+      });
+      const version = await transaction.licencePathwayVersion.create({
+        data: {
+          pathwayId: pathway.id,
+          version: 1,
+          status: 'PUBLISHED',
+          sourceUrl: 'https://www.moph.gov.qa/',
+          sourceTitle: 'Published veterinary licensing requirements',
+          reviewedAt: new Date(),
+          reviewedByAccountId: reviewerAccountId,
+        },
+      });
+      return { jurisdiction, authority, licenceType, pathway, version };
+    });
+    licensingJurisdictionIds.push(fixture.jurisdiction.id);
+    licensingAuthorityIds.push(fixture.authority.id);
+    licenceTypeIds.push(fixture.licenceType.id);
+    licencePathwayIds.push(fixture.pathway.id);
+    licencePathwayVersionIds.push(fixture.version.id);
+
+    await request(app.getHttpServer())
+      .patch(`/api/v1/licensing/admin/versions/${fixture.version.id}`)
+      .set('authorization', `Bearer ${reviewerAccessToken}`)
+      .send({ sourceTitle: 'Silently changed' })
+      .expect(409);
+  });
+
   it('registers, authenticates, rotates a session, and creates a profile', async () => {
     const email = `integration-${randomUUID()}@example.com`;
     const password = 'Correct-Horse-Battery-42';
@@ -1318,6 +1620,7 @@ describe('VetLinX API (e2e)', () => {
             ...interviewIds,
             ...offerIds,
             ...employmentIds,
+            ...licencePathwayIds,
           ],
         },
       },

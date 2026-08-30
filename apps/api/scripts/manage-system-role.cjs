@@ -7,11 +7,17 @@ config({ path: resolve(process.cwd(), '.env') });
 
 const [action, emailInput, roleInput, ...reasonParts] = process.argv.slice(2);
 const allowedActions = new Set(['grant', 'revoke']);
-const allowedRoles = new Set(['REVIEWER', 'OPERATIONS_ADMIN', 'PLATFORM_ADMIN']);
+const allowedRoles = new Set([
+  'REVIEWER',
+  'OPERATIONS_ADMIN',
+  'PLATFORM_ADMIN',
+  'LICENSING_CURATOR',
+  'LICENSING_REVIEWER',
+]);
 
 if (!allowedActions.has(action) || !emailInput || !allowedRoles.has(roleInput)) {
   console.error(
-    'Usage: npm run role:manage -- <grant|revoke> <account-email> <REVIEWER|OPERATIONS_ADMIN|PLATFORM_ADMIN> [reason]',
+    'Usage: npm run role:manage -- <grant|revoke> <account-email> <REVIEWER|OPERATIONS_ADMIN|PLATFORM_ADMIN|LICENSING_CURATOR|LICENSING_REVIEWER> [reason]',
   );
   process.exit(2);
 }

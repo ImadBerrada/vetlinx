@@ -6,6 +6,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { CredentialsModule } from './modules/credentials/credentials.module';
 import { HealthModule } from './modules/health/health.module';
 import { IdentityModule } from './modules/identity/identity.module';
+import { LicensingModule } from './modules/licensing/licensing.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PlatformModule } from './modules/platform/platform.module';
@@ -32,6 +33,7 @@ import { PersistenceModule } from './platform/persistence/persistence.module';
     HealthModule,
     PlatformModule,
     IdentityModule,
+    LicensingModule,
     ProfessionalsModule,
     CredentialsModule,
     VerificationModule,
