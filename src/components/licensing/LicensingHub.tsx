@@ -133,9 +133,9 @@ export function LicensingHub({ locale }: { locale: Locale }) {
 
   const licenceTypes = useMemo(() => {
     const entries = new Map<string, string>();
-    pathways.forEach((pathway) => entries.set(pathway.licenceType.code, pathway.licenceType.nameEn));
+    pathways.forEach((pathway) => entries.set(pathway.licenceType.code, locale === "ar" ? pathway.licenceType.nameAr : pathway.licenceType.nameEn));
     return [...entries.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [pathways]);
+  }, [locale, pathways]);
 
   const filteredPathways = pathways.filter(
     (pathway) =>
@@ -203,18 +203,18 @@ export function LicensingHub({ locale }: { locale: Locale }) {
         {loadError ? (
           <section className={styles.errorState} role="alert">
             <RefreshCw />
-            <div><h2>Licensing workspace unavailable</h2><p>{loadError}</p></div>
-            <button type="button" onClick={retryLoad}>Try again</button>
+            <div><h2>{locale === "ar" ? "مساحة الترخيص غير متاحة" : "Licensing workspace unavailable"}</h2><p>{loadError}</p></div>
+            <button type="button" onClick={retryLoad}>{locale === "ar" ? "إعادة المحاولة" : "Try again"}</button>
           </section>
         ) : loading ? (
-          <LoadingState />
+          <LoadingState locale={locale} />
         ) : (
           <div className={styles.workspace}>
             <div className={styles.primaryColumn}>
               <section className={styles.currentSection} aria-labelledby="current-pathways-title">
                 <div className={styles.sectionHeading}>
                   <div><span>{copy.inProgress}</span><h2 id="current-pathways-title">{copy.currentPathways}</h2></div>
-                  <small>{activeEnrollments.length ? `${activeEnrollments.length} active` : copy.nothingStarted}</small>
+                  <small>{activeEnrollments.length ? (locale === "ar" ? `${activeEnrollments.length} نشط` : `${activeEnrollments.length} active`) : copy.nothingStarted}</small>
                 </div>
                 {activeEnrollments.length ? (
                   <div className={styles.currentGrid}>
@@ -222,9 +222,9 @@ export function LicensingHub({ locale }: { locale: Locale }) {
                       <Link href={`/licensing/pathways/${enrollment.pathwayVersion.pathway.id}`} key={enrollment.id} className={styles.currentCard}>
                         <span className={styles.authorityMark}><Landmark /></span>
                         <div>
-                          <small>{enrollment.pathwayVersion.pathway.jurisdiction.nameEn}</small>
-                          <h3>{enrollment.pathwayVersion.pathway.licenceType.nameEn}</h3>
-                          <p>{enrollment.readiness.satisfied} of {enrollment.readiness.required} required items satisfied</p>
+                          <small>{locale === "ar" ? enrollment.pathwayVersion.pathway.jurisdiction.nameAr : enrollment.pathwayVersion.pathway.jurisdiction.nameEn}</small>
+                          <h3>{locale === "ar" ? enrollment.pathwayVersion.pathway.licenceType.nameAr : enrollment.pathwayVersion.pathway.licenceType.nameEn}</h3>
+                          <p>{locale === "ar" ? `${enrollment.readiness.satisfied} من ${enrollment.readiness.required} متطلبات إلزامية مستوفاة` : `${enrollment.readiness.satisfied} of ${enrollment.readiness.required} required items satisfied`}</p>
                         </div>
                         <span className={styles.readinessRing} aria-label={`${enrollment.readiness.remaining} required items remaining`}>
                           {enrollment.readiness.ready ? <Check /> : enrollment.readiness.remaining}
@@ -247,7 +247,7 @@ export function LicensingHub({ locale }: { locale: Locale }) {
                     <label>{copy.jurisdiction}
                       <select value={jurisdictionCode} onChange={(event) => setJurisdictionCode(event.target.value)}>
                         <option value="">{copy.allJurisdictions}</option>
-                        {jurisdictions.map((jurisdiction) => <option key={jurisdiction.id} value={jurisdiction.code}>{jurisdiction.nameEn}</option>)}
+                        {jurisdictions.map((jurisdiction) => <option key={jurisdiction.id} value={jurisdiction.code}>{locale === "ar" ? jurisdiction.nameAr : jurisdiction.nameEn}</option>)}
                       </select>
                     </label>
                     <label>{copy.licenceType}
@@ -262,7 +262,7 @@ export function LicensingHub({ locale }: { locale: Locale }) {
                 {filteredPathways.length ? (
                   <div className={styles.pathwayList}>
                     {filteredPathways.map((pathway) => (
-                      <PathwayCard key={pathway.id} pathway={pathway} eligibility={eligibility[pathway.id]} />
+                      <PathwayCard key={pathway.id} pathway={pathway} eligibility={eligibility[pathway.id]} locale={locale} />
                     ))}
                   </div>
                 ) : (
@@ -290,20 +290,20 @@ export function LicensingHub({ locale }: { locale: Locale }) {
                   </label>
                   <label>{copy.timeZone}
                     <input name="timeZone" defaultValue={preference.timeZone} required />
-                    <small>Use an IANA time zone, such as Asia/Dubai.</small>
+                    <small>{locale === "ar" ? "استخدم منطقة زمنية وفق IANA مثل Asia/Dubai." : "Use an IANA time zone, such as Asia/Dubai."}</small>
                   </label>
                   <label>{copy.reminderLead}
                     <select name="leadDays" defaultValue={preference.leadDays}>
-                      {[30, 60, 90, 120].map((days) => <option key={days} value={days}>{days} days</option>)}
+                      {[30, 60, 90, 120].map((days) => <option key={days} value={days}>{locale === "ar" ? `${days} يوماً` : `${days} days`}</option>)}
                     </select>
                   </label>
                   {reminderMessage ? <p className={styles.reminderMessage} role="status">{reminderMessage}</p> : null}
                   <button type="submit" disabled={savingReminder}>
                     {savingReminder ? <LoaderCircle className={styles.spinner} /> : <Check />}
-                    {savingReminder ? "Saving…" : copy.saveReminders}
+                    {savingReminder ? (locale === "ar" ? "جارٍ الحفظ…" : "Saving…") : copy.saveReminders}
                   </button>
                 </form>
-              ) : <p className={styles.unavailable}>Reminder settings are unavailable for this account.</p>}
+              ) : <p className={styles.unavailable}>{locale === "ar" ? "إعدادات التذكير غير متاحة لهذا الحساب." : "Reminder settings are unavailable for this account."}</p>}
               <div className={styles.truthNote}><ShieldCheck /><p><strong>{copy.authorityTruth}</strong> {copy.authorityTruthBody}</p></div>
             </aside>
           </div>
@@ -313,55 +313,56 @@ export function LicensingHub({ locale }: { locale: Locale }) {
   );
 }
 
-function PathwayCard({ pathway, eligibility }: { pathway: ApiLicencePathwaySummary; eligibility?: ApiLicensingEligibility }) {
+function PathwayCard({ pathway, eligibility, locale }: { pathway: ApiLicencePathwaySummary; eligibility?: ApiLicensingEligibility; locale: Locale }) {
   const version = pathway.versions[0];
   return (
     <article className={styles.pathwayCard}>
       <div className={styles.pathwayIdentity}>
         <span className={styles.authorityMark}><Landmark /></span>
         <div>
-          <small>{pathway.jurisdiction.nameEn} · {pathway.authority.nameEn}</small>
-          <h3>{pathway.licenceType.nameEn}</h3>
-          <p>{version ? `Published pathway version ${version.version}` : "Published pathway"}</p>
+          <small>{locale === "ar" ? pathway.jurisdiction.nameAr : pathway.jurisdiction.nameEn} · {locale === "ar" ? pathway.authority.nameAr : pathway.authority.nameEn}</small>
+          <h3>{locale === "ar" ? pathway.licenceType.nameAr : pathway.licenceType.nameEn}</h3>
+          <p>{locale === "ar" ? (version ? `مسار منشور · الإصدار ${version.version}` : "مسار منشور") : (version ? `Published pathway version ${version.version}` : "Published pathway")}</p>
         </div>
-        <span className={styles.governed}><ShieldCheck />Published</span>
+        <span className={styles.governed}><ShieldCheck />{locale === "ar" ? "منشور" : "Published"}</span>
       </div>
       {eligibility ? (
         <div className={styles.eligibility}>
           <div className={styles.eligibilitySummary}>
             {eligibility.summary.ready ? <CheckCircle2 /> : <CircleDashed />}
-            <div><strong>{eligibility.summary.ready ? "Evidence ready" : `${eligibility.summary.remaining} item${eligibility.summary.remaining === 1 ? "" : "s"} remaining`}</strong><small>{eligibility.summary.satisfied} of {eligibility.summary.required} required items satisfied</small></div>
+            <div><strong>{locale === "ar" ? (eligibility.summary.ready ? "الأدلة جاهزة" : `${eligibility.summary.remaining} متطلبات متبقية`) : (eligibility.summary.ready ? "Evidence ready" : `${eligibility.summary.remaining} item${eligibility.summary.remaining === 1 ? "" : "s"} remaining`)}</strong><small>{locale === "ar" ? `${eligibility.summary.satisfied} من ${eligibility.summary.required} متطلبات إلزامية مستوفاة` : `${eligibility.summary.satisfied} of ${eligibility.summary.required} required items satisfied`}</small></div>
           </div>
           {eligibility.requirements.slice(0, 1).map((requirement) => (
             <div className={styles.evidencePreview} key={requirement.id}>
               <span>{requirement.state === "SATISFIED" ? <Check /> : <CircleDashed />}</span>
-              <div><strong>{requirement.titleEn}</strong><p>{requirement.explanation}</p></div>
+              <div><strong>{locale === "ar" ? requirement.titleAr : requirement.titleEn}</strong><p>{locale === "ar" ? localizedExplanation(requirement.explanation) : requirement.explanation}</p></div>
             </div>
           ))}
         </div>
-      ) : <div className={styles.eligibilityPending}><CircleDashed />Eligibility preview unavailable</div>}
+      ) : <div className={styles.eligibilityPending}><CircleDashed />{locale === "ar" ? "معاينة الأهلية غير متاحة" : "Eligibility preview unavailable"}</div>}
       <footer>
         <div>
-          <span>Source</span>
-          {version ? <a href={version.sourceUrl} target="_blank" rel="noreferrer">{version.sourceTitle}<ExternalLink /></a> : <small>Source unavailable</small>}
-          {version?.effectiveFrom ? <small>Effective {formatDate(version.effectiveFrom)}</small> : null}
+          <span>{locale === "ar" ? "المصدر" : "Source"}</span>
+          {version ? <a href={version.sourceUrl} dir="ltr" target="_blank" rel="noreferrer">{version.sourceTitle}<ExternalLink /></a> : <small>{locale === "ar" ? "المصدر غير متاح" : "Source unavailable"}</small>}
+          {version?.effectiveFrom ? <small>{locale === "ar" ? "ساري من" : "Effective"} {formatDate(version.effectiveFrom, locale)}</small> : null}
         </div>
-        <Link href={`/licensing/pathways/${pathway.id}`} aria-label={`Open ${pathway.licenceType.nameEn} pathway`}>
-          Review pathway <ArrowRight />
+        <Link href={`/licensing/pathways/${pathway.id}`} aria-label={locale === "ar" ? `فتح مسار ${pathway.licenceType.nameAr}` : `Open ${pathway.licenceType.nameEn} pathway`}>
+          {locale === "ar" ? "مراجعة المسار" : "Review pathway"} <ArrowRight className={styles.directionalIcon} />
         </Link>
       </footer>
     </article>
   );
 }
 
-function LoadingState() {
-  return <div className={styles.loading} role="status"><LoaderCircle /><div><strong>Loading licensing pathways</strong><span>Checking published sources and your evidence readiness…</span></div></div>;
+function LoadingState({ locale }: { locale: Locale }) {
+  return <div className={styles.loading} role="status"><LoaderCircle /><div><strong>{locale === "ar" ? "جارٍ تحميل مسارات الترخيص" : "Loading licensing pathways"}</strong><span>{locale === "ar" ? "جارٍ التحقق من المصادر المنشورة وجاهزية أدلتك…" : "Checking published sources and your evidence readiness…"}</span></div></div>;
 }
 
 async function readBody<T>(response: Response): Promise<T & { message?: string }> {
   return (await response.json().catch(() => ({}))) as T & { message?: string };
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(value));
+function formatDate(value: string, locale: Locale) {
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(value));
 }
+function localizedExplanation(value: string) { if (/satisfied|matches/i.test(value)) return "يطابق الدليل الموثق المرتبط هذا المتطلب."; if (/credential|evidence/i.test(value)) return "يلزم ربط مؤهل موثق يطابق هذا المتطلب."; return "تحقق من الدليل المطلوب وحالته قبل المتابعة."; }

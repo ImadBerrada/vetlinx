@@ -262,8 +262,15 @@ test("curator drafts while reviewer publishes a pathway", async ({ browser }, te
     route.fulfill({ json: { pathways: [adminPathwayFixture("DRAFT")] } }),
   );
   await curator.goto("/review/licensing");
-  await curator.getByRole("button", { name: "Create pathway" }).click();
+  const createTrigger = curator.getByRole("button", { name: "Create pathway" });
+  await createTrigger.click();
   await expect(curator.getByRole("dialog", { name: "Create licensing pathway" })).toBeVisible();
+  await expect(curator.getByRole("button", { name: "Close create pathway dialog" })).toBeFocused();
+  await curator.keyboard.press("Shift+Tab");
+  await expect(curator.getByRole("button", { name: "Create governed draft" })).toBeFocused();
+  await curator.keyboard.press("Escape");
+  await expect(curator.getByRole("dialog", { name: "Create licensing pathway" })).toBeHidden();
+  await expect(createTrigger).toBeFocused();
   await expect(curator.getByRole("button", { name: "Publish pathway" })).toHaveCount(0);
 
   const reviewerContext = await browser.newContext();
