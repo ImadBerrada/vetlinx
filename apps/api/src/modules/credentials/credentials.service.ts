@@ -62,6 +62,23 @@ export class CredentialsService implements CredentialsPublicApi {
     });
   }
 
+  async listOwnedEvidence(accountId: string) {
+    const professional = await this.professionals.findByAccountId(accountId);
+    if (!professional) return [];
+    return this.prisma.credential.findMany({
+      where: { professionalProfileId: professional.id },
+      select: {
+        id: true,
+        professionalProfileId: true,
+        typeCode: true,
+        countryCode: true,
+        status: true,
+        expiryDate: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async createMine(
     accountId: string,
     dto: CreateCredentialDto,

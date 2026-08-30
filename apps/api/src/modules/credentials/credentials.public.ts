@@ -1,3 +1,5 @@
+import type { CredentialStatus } from '../../generated/prisma/enums';
+
 export const CREDENTIALS_PUBLIC_API = Symbol('CREDENTIALS_PUBLIC_API');
 
 export interface OwnedCredentialSummary {
@@ -12,4 +14,14 @@ export interface CredentialsPublicApi {
     accountId: string,
     credentialId: string,
   ): Promise<OwnedCredentialSummary | null>;
+  listOwnedEvidence(accountId: string): Promise<
+    Array<{
+      id: string;
+      professionalProfileId: string;
+      typeCode: string;
+      countryCode: string;
+      status: CredentialStatus;
+      expiryDate: Date | null;
+    }>
+  >;
 }

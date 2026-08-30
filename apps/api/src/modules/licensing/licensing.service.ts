@@ -13,6 +13,14 @@ import {
 } from '../../platform/events/outbox-writer.port';
 import { PrismaService } from '../../platform/persistence/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import {
+  CREDENTIALS_PUBLIC_API,
+  type CredentialsPublicApi,
+} from '../credentials/credentials.public';
+import {
+  PROFESSIONALS_PUBLIC_API,
+  type ProfessionalsPublicApi,
+} from '../professionals/professionals.public';
 import type {
   CreateLicencePathwayDto,
   CreateLicenceTypeDto,
@@ -22,12 +30,16 @@ import type {
   PathwayRequirementDto,
   UpdatePathwayVersionDto,
 } from './dto/licensing-admin.dto';
+import type { PathwaySearchQueryDto } from './dto/licensing-professional.dto';
 import type {
   LicensingPublicApi,
   LicensingReadiness,
 } from './licensing.public';
-import { assertPathwayVersionTransition } from './licensing-rules';
-import type { PathwayVersionStatus } from './licensing.types';
+import {
+  assertPathwayVersionTransition,
+  evaluateRequirement,
+} from './licensing-rules';
+import type { PathwayVersionStatus, RequirementRule } from './licensing.types';
 
 type VersionCommand = 'submit' | 'publish' | 'supersede';
 
@@ -37,7 +49,253 @@ export class LicensingService implements LicensingPublicApi {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     @Inject(OUTBOX_WRITER) private readonly outbox: OutboxWriter,
+    @Inject(CREDENTIALS_PUBLIC_API)
+    private readonly credentials: CredentialsPublicApi,
+    @Inject(PROFESSIONALS_PUBLIC_API)
+    private readonly professionals: ProfessionalsPublicApi,
   ) {}
+
+  listJurisdictions() {
+    return this.prisma.licensingJurisdiction.findMany({
+      where: { active: true },
+      select: { id: true, code: true, nameEn: true, nameAr: true },
+      orderBy: { nameEn: 'asc' },
+    });
+  }
+
+  listPathways(query: PathwaySearchQueryDto) {
+    const effective = this.effectiveVersionWhere();
+    return this.prisma.licencePathway.findMany({
+      where: {
+        active: true,
+        jurisdiction: {
+          active: true,
+          code: query.jurisdictionCode,
+        },
+        licenceType: { active: true, code: query.licenceTypeCode },
+        authority: { active: true },
+        versions: { some: effective },
+      },
+      select: {
+        id: true,
+        slug: true,
+        jurisdiction: {
+          select: { code: true, nameEn: true, nameAr: true },
+        },
+        authority: {
+          select: {
+            code: true,
+            nameEn: true,
+            nameAr: true,
+            websiteUrl: true,
+          },
+        },
+        licenceType: {
+          select: {
+            code: true,
+            nameEn: true,
+            nameAr: true,
+            professionalTitleCode: true,
+          },
+        },
+        versions: {
+          where: effective,
+          orderBy: { version: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            version: true,
+            effectiveFrom: true,
+            effectiveTo: true,
+            sourceUrl: true,
+            sourceTitle: true,
+          },
+        },
+      },
+      orderBy: [{ jurisdiction: { nameEn: 'asc' } }, { slug: 'asc' }],
+    });
+  }
+
+  async getPathway(pathwayId: string) {
+    const pathway = await this.findPublicPathway(pathwayId);
+    if (!pathway) throw new NotFoundException('Licence pathway not found');
+    return pathway;
+  }
+
+  async previewEligibility(accountId: string, pathwayId: string) {
+    const professional = await this.professionals.findByAccountId(accountId);
+    if (!professional) {
+      throw new NotFoundException('Professional profile not found');
+    }
+    const pathway = await this.prisma.licencePathway.findUnique({
+      where: { id: pathwayId, active: true },
+      include: {
+        jurisdiction: true,
+        authority: true,
+        licenceType: true,
+        versions: {
+          where: { status: 'PUBLISHED' },
+          orderBy: { version: 'desc' },
+          include: { requirements: { orderBy: { position: 'asc' } } },
+        },
+      },
+    });
+    if (!pathway) throw new NotFoundException('Licence pathway not found');
+    const version = pathway.versions.find((candidate) =>
+      this.isVersionEffective(candidate.effectiveFrom, candidate.effectiveTo),
+    );
+    if (!version) {
+      throw new NotFoundException(
+        'No currently effective pathway version is available',
+      );
+    }
+    const evidence = (
+      await this.credentials.listOwnedEvidence(accountId)
+    ).filter(
+      ({ professionalProfileId }) => professionalProfileId === professional.id,
+    );
+    const requirements = version.requirements.map((requirement) => ({
+      id: requirement.id,
+      code: requirement.code,
+      titleEn: requirement.titleEn,
+      titleAr: requirement.titleAr,
+      descriptionEn: requirement.descriptionEn,
+      descriptionAr: requirement.descriptionAr,
+      position: requirement.position,
+      required: requirement.required,
+      ...evaluateRequirement(this.requirementRule(requirement.rule), evidence),
+    }));
+    const required = requirements.filter((requirement) => requirement.required);
+    const satisfied = required.filter(
+      ({ state }) => state === 'SATISFIED' || state === 'NOT_APPLICABLE',
+    ).length;
+    return {
+      pathwayId: pathway.id,
+      pathwayVersionId: version.id,
+      version: version.version,
+      requirements,
+      summary: {
+        required: required.length,
+        satisfied,
+        remaining: required.length - satisfied,
+        ready: required.length === satisfied,
+      },
+    };
+  }
+
+  async enroll(
+    accountId: string,
+    pathwayId: string,
+    idempotencyKey: string,
+    correlationId: string,
+  ) {
+    const operation = 'enroll-pathway';
+    const professional = await this.professionals.findByAccountId(accountId);
+    if (!professional) {
+      throw new NotFoundException('Professional profile not found');
+    }
+    const preview = await this.previewEligibility(accountId, pathwayId);
+    return this.idempotent(
+      accountId,
+      operation,
+      idempotencyKey,
+      { pathwayId },
+      (resourceId) => this.getOwnedEnrollment(accountId, resourceId),
+      async (transaction, requestHash) => {
+        const duplicate = await transaction.pathwayEnrollment.findFirst({
+          where: {
+            professionalProfileId: professional.id,
+            status: { in: ['ACTIVE', 'SUBMITTED_EXTERNALLY'] },
+            pathwayVersion: { pathwayId },
+          },
+          select: { id: true },
+        });
+        if (duplicate) {
+          throw new ConflictException(
+            'An active enrollment already exists for this pathway',
+          );
+        }
+        const occurredAt = new Date();
+        const enrollment = await transaction.pathwayEnrollment.create({
+          data: {
+            professionalProfileId: professional.id,
+            pathwayVersionId: preview.pathwayVersionId,
+            requirementProgress: {
+              create: preview.requirements.map((requirement) => ({
+                requirementId: requirement.id,
+                state: requirement.state,
+                linkedCredentialId: requirement.credentialId,
+                note: requirement.explanation,
+                evaluatedAt: occurredAt,
+              })),
+            },
+          },
+          include: this.enrollmentInclude(),
+        });
+        await this.audit.recordInTransaction(transaction, {
+          actorId: accountId,
+          action: 'licensing.pathway_enrollment.started',
+          resourceType: 'pathway_enrollment',
+          resourceId: enrollment.id,
+          occurredAt: occurredAt.toISOString(),
+          correlationId,
+          changes: {
+            pathwayId,
+            pathwayVersionId: preview.pathwayVersionId,
+            version: preview.version,
+            status: { to: 'ACTIVE' },
+          },
+        });
+        await this.outbox.enqueue(transaction, [
+          {
+            id: randomUUID(),
+            name: 'PathwayEnrollmentStarted',
+            version: 1,
+            occurredAt: occurredAt.toISOString(),
+            aggregateId: enrollment.id,
+            correlationId,
+            payload: {
+              enrollmentId: enrollment.id,
+              professionalProfileId: professional.id,
+              pathwayId,
+              pathwayVersionId: preview.pathwayVersionId,
+              version: preview.version,
+            },
+          },
+        ]);
+        await this.saveReceipt(
+          transaction,
+          accountId,
+          operation,
+          idempotencyKey,
+          requestHash,
+          enrollment.id,
+          201,
+        );
+        return enrollment;
+      },
+    );
+  }
+
+  async listMyEnrollments(accountId: string) {
+    const professional = await this.professionals.findByAccountId(accountId);
+    if (!professional) return [];
+    return this.prisma.pathwayEnrollment.findMany({
+      where: { professionalProfileId: professional.id },
+      include: this.enrollmentInclude(),
+      orderBy: { startedAt: 'desc' },
+    });
+  }
+
+  async getOwnedEnrollment(accountId: string, enrollmentId: string) {
+    const enrollment = await this.prisma.pathwayEnrollment.findFirst({
+      where: { id: enrollmentId, professional: { accountId } },
+      include: this.enrollmentInclude(),
+    });
+    if (!enrollment)
+      throw new NotFoundException('Pathway enrollment not found');
+    return enrollment;
+  }
 
   createJurisdiction(
     accountId: string,
@@ -626,6 +884,63 @@ export class LicensingService implements LicensingPublicApi {
     });
   }
 
+  private findPublicPathway(pathwayId: string) {
+    const effective = this.effectiveVersionWhere();
+    return this.prisma.licencePathway.findFirst({
+      where: {
+        id: pathwayId,
+        active: true,
+        jurisdiction: { active: true },
+        authority: { active: true },
+        licenceType: { active: true },
+        versions: { some: effective },
+      },
+      include: {
+        jurisdiction: true,
+        authority: true,
+        licenceType: true,
+        versions: {
+          where: effective,
+          orderBy: { version: 'desc' },
+          take: 1,
+          include: { requirements: { orderBy: { position: 'asc' } } },
+        },
+      },
+    });
+  }
+
+  private effectiveVersionWhere() {
+    const now = new Date();
+    return {
+      status: 'PUBLISHED' as const,
+      AND: [
+        { OR: [{ effectiveFrom: null }, { effectiveFrom: { lte: now } }] },
+        { OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }] },
+      ],
+    };
+  }
+
+  private enrollmentInclude() {
+    return {
+      pathwayVersion: {
+        include: {
+          pathway: {
+            include: {
+              jurisdiction: true,
+              authority: true,
+              licenceType: true,
+            },
+          },
+          requirements: { orderBy: { position: 'asc' as const } },
+        },
+      },
+      requirementProgress: {
+        orderBy: { requirement: { position: 'asc' as const } },
+        include: { requirement: true },
+      },
+    } as const;
+  }
+
   private async validatePathwayReferences(
     transaction: Prisma.TransactionClient,
     dto: CreateLicencePathwayDto,
@@ -745,6 +1060,38 @@ export class LicensingService implements LicensingPublicApi {
       codes.add(requirement.code);
       positions.add(requirement.position);
     }
+  }
+
+  private isVersionEffective(
+    effectiveFrom: Date | null,
+    effectiveTo: Date | null,
+  ) {
+    const now = Date.now();
+    return (
+      (!effectiveFrom || effectiveFrom.getTime() <= now) &&
+      (!effectiveTo || effectiveTo.getTime() >= now)
+    );
+  }
+
+  private requirementRule(value: Prisma.JsonValue): RequirementRule {
+    if (!value || Array.isArray(value) || typeof value !== 'object') {
+      throw new ConflictException('Pathway requirement rule is invalid');
+    }
+    const kind = value.kind;
+    const credentialTypeCode = value.credentialTypeCode;
+    const countryCode = value.countryCode;
+    if (
+      kind !== 'VERIFIED_CREDENTIAL' ||
+      typeof credentialTypeCode !== 'string' ||
+      (countryCode !== undefined && typeof countryCode !== 'string')
+    ) {
+      throw new ConflictException('Pathway requirement rule is invalid');
+    }
+    return {
+      kind,
+      credentialTypeCode,
+      ...(countryCode ? { countryCode } : {}),
+    };
   }
 
   private requestHash(payload: unknown) {

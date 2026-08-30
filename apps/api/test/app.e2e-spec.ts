@@ -60,6 +60,69 @@ describe('VetLinX API (e2e)', () => {
   const pathwayRequirementIds: string[] = [];
   const licensingEnrollmentIds: string[] = [];
 
+  async function availableJurisdictionCode() {
+    const candidates = [
+      'AE',
+      'SA',
+      'QA',
+      'BH',
+      'OM',
+      'KW',
+      'JO',
+      'EG',
+      'MA',
+      'TN',
+      'DZ',
+      'LY',
+      'IQ',
+      'LB',
+      'TR',
+      'PK',
+      'IN',
+      'MY',
+      'SG',
+      'GB',
+      'IE',
+      'FR',
+      'DE',
+      'ES',
+      'IT',
+      'NL',
+      'BE',
+      'SE',
+      'NO',
+      'DK',
+      'FI',
+      'PL',
+      'PT',
+      'GR',
+      'US',
+      'CA',
+      'MX',
+      'BR',
+      'AR',
+      'CL',
+      'AU',
+      'NZ',
+      'ZA',
+      'KE',
+      'GH',
+      'NG',
+      'JP',
+      'KR',
+      'TH',
+      'ID',
+    ];
+    const existing = await prisma.licensingJurisdiction.findMany({
+      where: { code: { in: candidates } },
+      select: { code: true },
+    });
+    const used = new Set(existing.map(({ code }) => code));
+    const available = candidates.find((code) => !used.has(code));
+    if (!available) throw new Error('No test jurisdiction code is available');
+    return available;
+  }
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -303,6 +366,7 @@ describe('VetLinX API (e2e)', () => {
 
   it('allows a licensing curator to draft but not publish a pathway version', async () => {
     const suffix = randomUUID();
+    const jurisdictionCode = await availableJurisdictionCode();
     const registration = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
       .send({
@@ -336,7 +400,7 @@ describe('VetLinX API (e2e)', () => {
       .set('authorization', `Bearer ${curatorAccessToken}`)
       .set('idempotency-key', randomUUID())
       .send({
-        code: 'AE',
+        code: jurisdictionCode,
         nameEn: 'United Arab Emirates',
         nameAr: 'الإمارات العربية المتحدة',
       })
@@ -492,7 +556,7 @@ describe('VetLinX API (e2e)', () => {
       pathwayId,
       pathwayVersionId,
       version: 1,
-      jurisdictionCode: 'AE',
+      jurisdictionCode,
       licenceTypeCode: `VETERINARIAN-${suffix}`.toUpperCase(),
     });
 
@@ -601,6 +665,247 @@ describe('VetLinX API (e2e)', () => {
       .set('authorization', `Bearer ${reviewerAccessToken}`)
       .send({ sourceTitle: 'Silently changed' })
       .expect(409);
+  });
+
+  it('pins a professional enrollment and enforces ownership', async () => {
+    const suffix = randomUUID();
+    const jurisdictionCode = await availableJurisdictionCode();
+    const fixture = await prisma.$transaction(async (transaction) => {
+      const jurisdiction = await transaction.licensingJurisdiction.create({
+        data: {
+          code: jurisdictionCode,
+          nameEn: 'Saudi Arabia',
+          nameAr: 'المملكة العربية السعودية',
+        },
+      });
+      const authority = await transaction.licensingAuthority.create({
+        data: {
+          jurisdictionId: jurisdiction.id,
+          code: `MEWA-${suffix}`,
+          nameEn: 'Ministry of Environment Water and Agriculture',
+          nameAr: 'وزارة البيئة والمياه والزراعة',
+          websiteUrl: 'https://www.mewa.gov.sa/',
+        },
+      });
+      const licenceType = await transaction.licenceType.create({
+        data: {
+          code: `VETERINARIAN-SA-${suffix}`.toUpperCase(),
+          nameEn: 'Veterinarian licence',
+          nameAr: 'ترخيص طبيب بيطري',
+          professionalTitleCode: 'VETERINARIAN',
+        },
+      });
+      const pathway = await transaction.licencePathway.create({
+        data: {
+          jurisdictionId: jurisdiction.id,
+          authorityId: authority.id,
+          licenceTypeId: licenceType.id,
+          slug: `saudi-veterinarian-${suffix}`,
+        },
+      });
+      const version = await transaction.licencePathwayVersion.create({
+        data: {
+          pathwayId: pathway.id,
+          version: 1,
+          status: 'PUBLISHED',
+          sourceUrl: 'https://www.mewa.gov.sa/en/services/licensing',
+          sourceTitle: 'Veterinarian licensing requirements',
+          reviewedAt: new Date(),
+        },
+      });
+      const requirement = await transaction.pathwayRequirement.create({
+        data: {
+          pathwayVersionId: version.id,
+          code: 'VETERINARY_DEGREE',
+          titleEn: 'Veterinary degree',
+          titleAr: 'شهادة الطب البيطري',
+          descriptionEn: 'A verified veterinary degree is required.',
+          descriptionAr: 'يجب تقديم شهادة طب بيطري موثقة.',
+          position: 1,
+          required: true,
+          rule: {
+            kind: 'VERIFIED_CREDENTIAL',
+            credentialTypeCode: 'DEGREE',
+          },
+        },
+      });
+      return {
+        jurisdiction,
+        authority,
+        licenceType,
+        pathway,
+        version,
+        requirement,
+      };
+    });
+    licensingJurisdictionIds.push(fixture.jurisdiction.id);
+    licensingAuthorityIds.push(fixture.authority.id);
+    licenceTypeIds.push(fixture.licenceType.id);
+    licencePathwayIds.push(fixture.pathway.id);
+    licencePathwayVersionIds.push(fixture.version.id);
+    pathwayRequirementIds.push(fixture.requirement.id);
+
+    const ownerRegistration = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({
+        email: `licensing-owner-${suffix}@example.com`,
+        password: 'LicensingTest!12345',
+      })
+      .expect(201);
+    const ownerBody: unknown = ownerRegistration.body;
+    if (!isRecord(ownerBody) || !isRecord(ownerBody.account)) {
+      throw new Error('Expected enrollment owner registration response');
+    }
+    const ownerAccountId = requiredString(ownerBody.account, 'id');
+    const ownerAccessToken = requiredString(ownerBody, 'accessToken');
+    accountIds.push(ownerAccountId);
+    const ownerProfile = await request(app.getHttpServer())
+      .post('/api/v1/professionals/me')
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({ displayName: 'Dr. Pathway Owner', countryCode: 'sa' })
+      .expect(201);
+    profileIds.push(requiredString(ownerProfile.body as unknown, 'id'));
+
+    const otherRegistration = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({
+        email: `licensing-other-${suffix}@example.com`,
+        password: 'LicensingTest!12345',
+      })
+      .expect(201);
+    const otherBody: unknown = otherRegistration.body;
+    if (!isRecord(otherBody) || !isRecord(otherBody.account)) {
+      throw new Error('Expected second professional registration response');
+    }
+    const otherAccountId = requiredString(otherBody.account, 'id');
+    const otherAccessToken = requiredString(otherBody, 'accessToken');
+    accountIds.push(otherAccountId);
+    const otherProfile = await request(app.getHttpServer())
+      .post('/api/v1/professionals/me')
+      .set('authorization', `Bearer ${otherAccessToken}`)
+      .send({ displayName: 'Dr. Other Professional', countryCode: 'sa' })
+      .expect(201);
+    profileIds.push(requiredString(otherProfile.body as unknown, 'id'));
+
+    await request(app.getHttpServer())
+      .get('/api/v1/licensing/jurisdictions')
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ code: jurisdictionCode }),
+          ]),
+        );
+      });
+    await request(app.getHttpServer())
+      .get('/api/v1/licensing/pathways')
+      .query({
+        jurisdictionCode: jurisdictionCode.toLowerCase(),
+        licenceTypeCode: fixture.licenceType.code.toLowerCase(),
+      })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: fixture.pathway.id }),
+          ]),
+        );
+      });
+    await request(app.getHttpServer())
+      .get(`/api/v1/licensing/pathways/${fixture.pathway.id}`)
+      .expect(200);
+    await request(app.getHttpServer())
+      .get(`/api/v1/licensing/pathways/${fixture.pathway.id}/eligibility`)
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .expect(200)
+      .expect((response) => {
+        const body: unknown = response.body;
+        if (!isRecord(body) || !Array.isArray(body.requirements)) {
+          throw new Error('Expected eligibility requirements');
+        }
+        expect(body.requirements).toEqual([
+          expect.objectContaining({
+            code: 'VETERINARY_DEGREE',
+            state: 'MISSING',
+          }),
+        ]);
+      });
+
+    const enrollmentKey = randomUUID();
+    const enrollmentResponse = await request(app.getHttpServer())
+      .post(`/api/v1/licensing/pathways/${fixture.pathway.id}/enroll`)
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .set('idempotency-key', enrollmentKey)
+      .expect(201);
+    const enrollmentId = requiredString(
+      enrollmentResponse.body as unknown,
+      'id',
+    );
+    licensingEnrollmentIds.push(enrollmentId);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/licensing/pathways/${fixture.pathway.id}/enroll`)
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .set('idempotency-key', enrollmentKey)
+      .expect(201)
+      .expect((response) => {
+        expect(requiredString(response.body as unknown, 'id')).toBe(
+          enrollmentId,
+        );
+      });
+    await request(app.getHttpServer())
+      .post(`/api/v1/licensing/pathways/${fixture.pathway.id}/enroll`)
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .set('idempotency-key', randomUUID())
+      .expect(409);
+    await request(app.getHttpServer())
+      .get(`/api/v1/licensing/me/enrollments/${enrollmentId}`)
+      .set('authorization', `Bearer ${otherAccessToken}`)
+      .expect(404);
+
+    const versionTwo = await prisma.licencePathwayVersion.create({
+      data: {
+        pathwayId: fixture.pathway.id,
+        version: 2,
+        status: 'PUBLISHED',
+        sourceUrl: 'https://www.mewa.gov.sa/en/services/licensing-v2',
+        sourceTitle: 'Updated veterinarian licensing requirements',
+        reviewedAt: new Date(),
+        requirements: {
+          create: {
+            code: 'VETERINARY_DEGREE_V2',
+            titleEn: 'Updated veterinary degree',
+            titleAr: 'شهادة الطب البيطري المحدثة',
+            descriptionEn: 'Updated degree requirement.',
+            descriptionAr: 'متطلب الشهادة المحدث.',
+            position: 1,
+            required: true,
+            rule: {
+              kind: 'VERIFIED_CREDENTIAL',
+              credentialTypeCode: 'DEGREE',
+            },
+          },
+        },
+      },
+      include: { requirements: true },
+    });
+    licencePathwayVersionIds.push(versionTwo.id);
+    pathwayRequirementIds.push(...versionTwo.requirements.map(({ id }) => id));
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/licensing/me/enrollments/${enrollmentId}`)
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .expect(200)
+      .expect((response) => {
+        const body: unknown = response.body;
+        if (!isRecord(body) || !isRecord(body.pathwayVersion)) {
+          throw new Error('Expected owned pathway enrollment');
+        }
+        expect(body.pathwayVersion.version).toBe(1);
+        expect(requiredString(body, 'pathwayVersionId')).toBe(
+          fixture.version.id,
+        );
+      });
   });
 
   it('registers, authenticates, rotates a session, and creates a profile', async () => {
@@ -1621,6 +1926,7 @@ describe('VetLinX API (e2e)', () => {
             ...offerIds,
             ...employmentIds,
             ...licencePathwayIds,
+            ...licensingEnrollmentIds,
           ],
         },
       },
