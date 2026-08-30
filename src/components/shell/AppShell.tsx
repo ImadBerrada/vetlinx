@@ -9,6 +9,7 @@ import {
   FileBadge2,
   HelpCircle,
   Home,
+  Landmark,
   LogOut,
   Menu,
   ShieldCheck,
@@ -50,6 +51,7 @@ const professionalLinks = [
   { href: "/", label: "Overview", icon: Home },
   { href: "/onboarding", label: "Professional profile", icon: UserRound },
   { href: "/credentials", label: "Credentials", icon: WalletCards },
+  { href: "/licensing", label: "Licensing", icon: Landmark },
   { href: "/portfolio", label: "Portfolio & CV", icon: FileBadge2 },
   { href: "/jobs", label: "Jobs", icon: BriefcaseBusiness },
 ];
