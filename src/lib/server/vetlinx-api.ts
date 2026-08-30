@@ -367,6 +367,151 @@ export interface ApiVerificationReview extends ApiVerificationRequest {
   }>;
 }
 
+export interface ApiLicensingJurisdiction {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+}
+
+export interface ApiLicensingAuthority {
+  id?: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  websiteUrl: string;
+}
+
+export interface ApiLicenceType {
+  id?: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  professionalTitleCode: string;
+}
+
+export type ApiRequirementProgressState =
+  | "MISSING"
+  | "IN_PROGRESS"
+  | "SATISFIED"
+  | "NEEDS_REVIEW"
+  | "NOT_APPLICABLE";
+
+export interface ApiLicencePathwayRequirement {
+  id: string;
+  code: string;
+  titleEn: string;
+  titleAr: string;
+  descriptionEn: string;
+  descriptionAr: string;
+  position: number;
+  required: boolean;
+  rule?: {
+    kind: "VERIFIED_CREDENTIAL";
+    credentialTypeCode: string;
+    countryCode?: string;
+  };
+}
+
+export interface ApiLicencePathwayVersion {
+  id: string;
+  version: number;
+  status?: "DRAFT" | "IN_REVIEW" | "PUBLISHED" | "SUPERSEDED" | "WITHDRAWN";
+  effectiveFrom: string | null;
+  effectiveTo: string | null;
+  sourceUrl: string;
+  sourceTitle: string;
+  reviewedAt?: string | null;
+  requirements?: ApiLicencePathwayRequirement[];
+}
+
+export interface ApiLicencePathwaySummary {
+  id: string;
+  slug: string;
+  jurisdiction: Omit<ApiLicensingJurisdiction, "id">;
+  authority: ApiLicensingAuthority;
+  licenceType: ApiLicenceType;
+  versions: ApiLicencePathwayVersion[];
+}
+
+export interface ApiLicencePathwayDetail extends ApiLicencePathwaySummary {
+  active: boolean;
+  jurisdiction: ApiLicensingJurisdiction & { active?: boolean };
+  authority: ApiLicensingAuthority & { active?: boolean; jurisdictionId?: string };
+  licenceType: ApiLicenceType & { active?: boolean };
+}
+
+export interface ApiLicensingEligibilityRequirement
+  extends ApiLicencePathwayRequirement {
+  state: ApiRequirementProgressState;
+  credentialId?: string;
+  explanation: string;
+}
+
+export interface ApiLicensingReadiness {
+  required: number;
+  satisfied: number;
+  needsReview?: number;
+  remaining: number;
+  ready: boolean;
+}
+
+export interface ApiLicensingEligibility {
+  pathwayId: string;
+  pathwayVersionId: string;
+  version: number;
+  requirements: ApiLicensingEligibilityRequirement[];
+  summary: ApiLicensingReadiness;
+}
+
+export interface ApiRequirementProgress
+  extends Omit<ApiLicencePathwayRequirement, "rule"> {
+  state: ApiRequirementProgressState;
+  credentialId?: string;
+  note?: string;
+  evaluatedAt?: string;
+}
+
+export interface ApiExternalLicenceApplication {
+  id: string;
+  enrollmentId: string;
+  authorityReference: string;
+  submittedAt: string;
+  status: "DRAFT" | "SUBMITTED" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "WITHDRAWN";
+  verificationSource: "USER_REPORTED";
+  lastReportedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiPathwayEnrollment {
+  id: string;
+  professionalProfileId: string;
+  pathwayVersionId: string;
+  status: "ACTIVE" | "SUBMITTED_EXTERNALLY" | "APPROVED" | "REJECTED" | "WITHDRAWN";
+  startedAt: string;
+  submittedExternallyAt: string | null;
+  completedAt: string | null;
+  pathwayVersion: ApiLicencePathwayVersion & {
+    pathway: ApiLicencePathwayDetail;
+    requirements: ApiLicencePathwayRequirement[];
+  };
+  requirements: ApiRequirementProgress[];
+  externalApplication: ApiExternalLicenceApplication | null;
+  professionalLicence: unknown | null;
+  readiness: ApiLicensingReadiness;
+}
+
+export interface ApiLicensingReminderPreference {
+  id?: string;
+  accountId: string;
+  timeZone: string;
+  renewalEnabled: boolean;
+  leadDays: 30 | 60 | 90 | 120;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export function callApi(path: string, init?: RequestInit): Promise<Response> {
   return fetch(`${API_URL}${path}`, {
     ...init,
