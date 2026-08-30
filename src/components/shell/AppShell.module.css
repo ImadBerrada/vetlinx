@@ -6,3 +6,8 @@
 @media(max-width:480px){.titleBlock p{display:none}.topbar{gap:11px}.topIdentity{width:31px;height:31px}.content{padding-inline:11px}}
 .mobileActions{display:none}
 @media(max-width:860px){.mobileActions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px}.mobileActions>button,.mobileActions>a{min-height:40px}}
+:global([dir="rtl"]) .sidebar{inset:0 0 0 auto}
+:global([dir="rtl"]) .stage{margin-left:0;margin-right:240px}
+:global([dir="rtl"]) .navGroup a::before{left:auto;right:-16px}
+:global([dir="rtl"]) .workspaceMenu{left:auto;right:0}
+@media(max-width:860px){:global([dir="rtl"]) .sidebar{transform:translateX(100%)}:global([dir="rtl"]) .sidebarOpen{transform:none}:global([dir="rtl"]) .stage{margin-right:0}}

@@ -10,6 +10,7 @@ import {
   HelpCircle,
   Home,
   Landmark,
+  Languages,
   LogOut,
   Menu,
   ShieldCheck,
@@ -24,6 +25,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import type { ApiSystemRole } from "@/lib/server/vetlinx-api";
+import type { Locale } from "@/lib/i18n/locales";
 import type { ApiOrganizationMembershipSummary } from "@/lib/server/vetlinx-api";
 import {
   organizationIdFromWorkspace,
@@ -45,6 +47,7 @@ interface AppShellProps {
   actions?: ReactNode;
   children: ReactNode;
   scope?: "professional" | "employer" | "review";
+  locale?: Locale;
 }
 
 const professionalLinks = [
@@ -67,7 +70,7 @@ const reviewLinks = [
   { href: "/review/licensing", label: "Licensing pathways", icon: Landmark },
 ];
 
-export function AppShell({ title, description, actions, children, scope = "professional" }: AppShellProps) {
+export function AppShell({ title, description, actions, children, scope = "professional", locale = "en" }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -143,6 +146,15 @@ export function AppShell({ title, description, actions, children, scope = "profe
     router.refresh();
   }
 
+  async function switchLocale() {
+    const response = await fetch("/api/preferences/locale", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ locale: locale === "ar" ? "en" : "ar" }),
+    }).catch(() => null);
+    if (response?.ok) router.refresh();
+  }
+
   return (
     <div className={styles.shell}>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`} aria-label="Primary navigation">
@@ -168,6 +180,7 @@ export function AppShell({ title, description, actions, children, scope = "profe
         {scope === "review" && canReview ? <NavGroup label="Trust operations" links={reviewLinks} pathname={pathname} /> : null}
         <div className={styles.sidebarFoot}>
           <a href="mailto:support@vetlinx.com"><HelpCircle />Help & support</a>
+          <button onClick={switchLocale}><Languages />{locale === "ar" ? "English" : "العربية"}</button>
           <button onClick={logout}><LogOut />Sign out</button>
           <div className={styles.identity}><span>{initials}</span><div><strong>{session.profile?.displayName ?? "VetLinX member"}</strong><small>{session.account?.email ?? "Secure workspace"}</small></div></div>
         </div>

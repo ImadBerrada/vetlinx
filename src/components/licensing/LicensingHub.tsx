@@ -20,6 +20,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/shell/AppShell";
+import { licensingCopy } from "@/lib/i18n/licensing";
+import type { Locale } from "@/lib/i18n/locales";
 import type {
   ApiLicencePathwaySummary,
   ApiLicensingEligibility,
@@ -45,7 +47,8 @@ interface HubResponse<T> {
   value?: T;
 }
 
-export function LicensingHub() {
+export function LicensingHub({ locale }: { locale: Locale }) {
+  const copy = licensingCopy[locale];
   const router = useRouter();
   const [jurisdictions, setJurisdictions] = useState<ApiLicensingJurisdiction[]>([]);
   const [pathways, setPathways] = useState<ApiLicencePathwaySummary[]>([]);
@@ -179,20 +182,21 @@ export function LicensingHub() {
 
   return (
     <AppShell
-      title="Licensing pathways"
-      description="Use verified evidence to understand, prepare, and track your route to professional licensure."
+      title={copy.title}
+      description={copy.description}
+      locale={locale}
     >
       <div className={styles.hub}>
         <section className={styles.routeMap} aria-labelledby="licensing-route-title">
           <div className={styles.routeIntro}>
-            <span><Route />Your licensing route</span>
-            <h2 id="licensing-route-title">One evidence trail, from requirements to renewal.</h2>
-            <p>VetLinX guides your preparation and records what you report. Licensing decisions remain with the named authority.</p>
+            <span><Route />{copy.routeEyebrow}</span>
+            <h2 id="licensing-route-title">{copy.routeTitle}</h2>
+            <p>{copy.routeBody}</p>
           </div>
           <ol>
-            <li><span><MapPinned /></span><div><strong>Choose a governed pathway</strong><small>Review the jurisdiction, authority, and official source.</small></div></li>
-            <li><span><FileCheck2 /></span><div><strong>Reuse verified evidence</strong><small>See which credentials satisfy each published requirement.</small></div></li>
-            <li><span><BellRing /></span><div><strong>Track the external result</strong><small>Record your application honestly and plan renewal.</small></div></li>
+            <li><span><MapPinned /></span><div><strong>{copy.steps[0][0]}</strong><small>{copy.steps[0][1]}</small></div></li>
+            <li><span><FileCheck2 /></span><div><strong>{copy.steps[1][0]}</strong><small>{copy.steps[1][1]}</small></div></li>
+            <li><span><BellRing /></span><div><strong>{copy.steps[2][0]}</strong><small>{copy.steps[2][1]}</small></div></li>
           </ol>
         </section>
 
@@ -209,8 +213,8 @@ export function LicensingHub() {
             <div className={styles.primaryColumn}>
               <section className={styles.currentSection} aria-labelledby="current-pathways-title">
                 <div className={styles.sectionHeading}>
-                  <div><span>In progress</span><h2 id="current-pathways-title">Current pathways</h2></div>
-                  <small>{activeEnrollments.length ? `${activeEnrollments.length} active` : "Nothing started"}</small>
+                  <div><span>{copy.inProgress}</span><h2 id="current-pathways-title">{copy.currentPathways}</h2></div>
+                  <small>{activeEnrollments.length ? `${activeEnrollments.length} active` : copy.nothingStarted}</small>
                 </div>
                 {activeEnrollments.length ? (
                   <div className={styles.currentGrid}>
@@ -231,24 +235,24 @@ export function LicensingHub() {
                 ) : (
                   <div className={styles.emptyCurrent}>
                     <CircleDashed />
-                    <div><strong>No pathway started</strong><p>Choose a published pathway below to review its requirements before enrolling.</p></div>
+                    <div><strong>{copy.noPathway}</strong><p>{copy.noPathwayBody}</p></div>
                   </div>
                 )}
               </section>
 
               <section className={styles.catalogue} aria-labelledby="pathway-catalogue-title">
                 <div className={styles.catalogueHead}>
-                  <div><span>Official-source catalogue</span><h2 id="pathway-catalogue-title">Find a pathway</h2></div>
+                  <div><span>{copy.catalogue}</span><h2 id="pathway-catalogue-title">{copy.findPathway}</h2></div>
                   <div className={styles.filters}>
-                    <label>Jurisdiction
+                    <label>{copy.jurisdiction}
                       <select value={jurisdictionCode} onChange={(event) => setJurisdictionCode(event.target.value)}>
-                        <option value="">All jurisdictions</option>
+                        <option value="">{copy.allJurisdictions}</option>
                         {jurisdictions.map((jurisdiction) => <option key={jurisdiction.id} value={jurisdiction.code}>{jurisdiction.nameEn}</option>)}
                       </select>
                     </label>
-                    <label>Licence type
+                    <label>{copy.licenceType}
                       <select value={licenceTypeCode} onChange={(event) => setLicenceTypeCode(event.target.value)}>
-                        <option value="">All licence types</option>
+                        <option value="">{copy.allLicenceTypes}</option>
                         {licenceTypes.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
                       </select>
                     </label>
@@ -264,9 +268,9 @@ export function LicensingHub() {
                 ) : (
                   <div className={styles.emptyCatalogue}>
                     <BookOpenCheck />
-                    <h3>No published pathway matches these filters</h3>
-                    <p>Clear a filter or choose another jurisdiction. VetLinX only lists pathways backed by a published source.</p>
-                    <button type="button" onClick={() => { setJurisdictionCode(""); setLicenceTypeCode(""); }}>Clear filters</button>
+                    <h3>{copy.noMatches}</h3>
+                    <p>{copy.noMatchesBody}</p>
+                    <button type="button" onClick={() => { setJurisdictionCode(""); setLicenceTypeCode(""); }}>{copy.clearFilters}</button>
                   </div>
                 )}
               </section>
@@ -274,21 +278,21 @@ export function LicensingHub() {
 
             <aside className={styles.reminderPanel} aria-labelledby="renewal-reminders-title">
               <div className={styles.reminderIcon}><BellRing /></div>
-              <span>Licence continuity</span>
-              <h2 id="renewal-reminders-title">Renewal reminders</h2>
-              <p>Choose when VetLinX should remind you about verified professional licences with an expiry date.</p>
+              <span>{copy.continuity}</span>
+              <h2 id="renewal-reminders-title">{copy.reminders}</h2>
+              <p>{copy.remindersBody}</p>
               {preference ? (
                 <form onSubmit={saveReminder}>
                   <label className={styles.toggle}>
                     <input name="renewalEnabled" type="checkbox" defaultChecked={preference.renewalEnabled} />
                     <span aria-hidden="true" />
-                    Renewal reminders enabled
+                    {copy.remindersEnabled}
                   </label>
-                  <label>Time zone
+                  <label>{copy.timeZone}
                     <input name="timeZone" defaultValue={preference.timeZone} required />
                     <small>Use an IANA time zone, such as Asia/Dubai.</small>
                   </label>
-                  <label>Remind me before expiry
+                  <label>{copy.reminderLead}
                     <select name="leadDays" defaultValue={preference.leadDays}>
                       {[30, 60, 90, 120].map((days) => <option key={days} value={days}>{days} days</option>)}
                     </select>
@@ -296,11 +300,11 @@ export function LicensingHub() {
                   {reminderMessage ? <p className={styles.reminderMessage} role="status">{reminderMessage}</p> : null}
                   <button type="submit" disabled={savingReminder}>
                     {savingReminder ? <LoaderCircle className={styles.spinner} /> : <Check />}
-                    {savingReminder ? "Saving…" : "Save reminders"}
+                    {savingReminder ? "Saving…" : copy.saveReminders}
                   </button>
                 </form>
               ) : <p className={styles.unavailable}>Reminder settings are unavailable for this account.</p>}
-              <div className={styles.truthNote}><ShieldCheck /><p><strong>Authority decisions stay external.</strong> VetLinX never labels a user-reported application as authority verified.</p></div>
+              <div className={styles.truthNote}><ShieldCheck /><p><strong>{copy.authorityTruth}</strong> {copy.authorityTruthBody}</p></div>
             </aside>
           </div>
         )}
