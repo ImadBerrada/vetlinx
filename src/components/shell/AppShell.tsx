@@ -64,6 +64,7 @@ const employerLinks = [
 const reviewLinks = [
   { href: "/review", label: "Professional reviews", icon: ClipboardCheck },
   { href: "/review/organizations", label: "Organization reviews", icon: ShieldCheck },
+  { href: "/review/licensing", label: "Licensing pathways", icon: Landmark },
 ];
 
 export function AppShell({ title, description, actions, children, scope = "professional" }: AppShellProps) {
@@ -117,7 +118,7 @@ export function AppShell({ title, description, actions, children, scope = "profe
     return source.replace(/^dr\.?\s*/i, "").split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "VL";
   }, [session]);
   const roles = session.account?.roles ?? [];
-  const canReview = roles.some((role) => ["REVIEWER", "OPERATIONS_ADMIN", "PLATFORM_ADMIN"].includes(role));
+  const canReview = roles.some((role) => ["REVIEWER", "OPERATIONS_ADMIN", "PLATFORM_ADMIN", "LICENSING_CURATOR", "LICENSING_REVIEWER"].includes(role));
   const activeOrganizationId = organizationIdFromWorkspace(activeWorkspace);
   const activeOrganization = organizations.find((item) => item.organization.id === activeOrganizationId);
   const currentWorkspace = scope === "review"
@@ -200,12 +201,15 @@ function humanizeRole(role: string) {
 }
 
 function NavGroup({ label, links, pathname }: { label: string; links: typeof professionalLinks; pathname: string }) {
+  const activeHref = links
+    .filter(({ href }) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)))
+    .sort((left, right) => right.href.length - left.href.length)[0]?.href;
   return (
     <section className={styles.navGroup}>
       <p>{label}</p>
       <nav>
         {links.map(({ href, label: itemLabel, icon: Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+          const active = href === activeHref;
           return <Link key={href} href={href} className={active ? styles.active : ""} aria-current={active ? "page" : undefined}><Icon />{itemLabel}</Link>;
         })}
       </nav>

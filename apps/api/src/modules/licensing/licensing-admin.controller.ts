@@ -2,12 +2,14 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +22,7 @@ import {
 import { RequireSystemRoles } from '../identity/required-roles.decorator';
 import { SystemRolesGuard } from '../identity/system-roles.guard';
 import {
+  AdminPathwaySearchQueryDto,
   CreateLicencePathwayDto,
   CreateLicenceTypeDto,
   CreateLicensingAuthorityDto,
@@ -36,6 +39,16 @@ import { LicensingService } from './licensing.service';
 @Controller({ path: 'licensing/admin', version: '1' })
 export class LicensingAdminController {
   constructor(private readonly licensing: LicensingService) {}
+
+  @Get('pathways')
+  listPathways(@Query() query: AdminPathwaySearchQueryDto) {
+    return this.licensing.listAdminPathways(query);
+  }
+
+  @Get('pathways/:pathwayId')
+  getPathway(@Param('pathwayId', new ParseUUIDPipe()) pathwayId: string) {
+    return this.licensing.getAdminPathway(pathwayId);
+  }
 
   @Post('jurisdictions')
   createJurisdiction(

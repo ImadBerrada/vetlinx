@@ -23,6 +23,7 @@ import {
 } from '../professionals/professionals.public';
 import { NotificationsService } from '../notifications/notifications.service';
 import type {
+  AdminPathwaySearchQueryDto,
   CreateLicencePathwayDto,
   CreateLicenceTypeDto,
   CreateLicensingAuthorityDto,
@@ -84,6 +85,48 @@ export class LicensingService implements LicensingPublicApi {
       select: { id: true, code: true, nameEn: true, nameAr: true },
       orderBy: { nameEn: 'asc' },
     });
+  }
+
+  listAdminPathways(query: AdminPathwaySearchQueryDto) {
+    return this.prisma.licencePathway.findMany({
+      where: {
+        jurisdiction: { code: query.jurisdictionCode },
+        licenceType: { code: query.licenceTypeCode },
+        versions: query.status ? { some: { status: query.status } } : undefined,
+      },
+      include: {
+        jurisdiction: true,
+        authority: true,
+        licenceType: true,
+        versions: {
+          where: query.status ? { status: query.status } : undefined,
+          orderBy: { version: 'desc' },
+          include: {
+            requirements: { orderBy: { position: 'asc' } },
+          },
+        },
+      },
+      orderBy: [{ jurisdiction: { nameEn: 'asc' } }, { updatedAt: 'desc' }],
+    });
+  }
+
+  async getAdminPathway(pathwayId: string) {
+    const pathway = await this.prisma.licencePathway.findUnique({
+      where: { id: pathwayId },
+      include: {
+        jurisdiction: true,
+        authority: true,
+        licenceType: true,
+        versions: {
+          orderBy: { version: 'desc' },
+          include: {
+            requirements: { orderBy: { position: 'asc' } },
+          },
+        },
+      },
+    });
+    if (!pathway) throw new NotFoundException('Licence pathway not found');
+    return pathway;
   }
 
   listPathways(query: PathwaySearchQueryDto) {

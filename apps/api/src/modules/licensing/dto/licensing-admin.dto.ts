@@ -3,6 +3,7 @@ import {
   ArrayMinSize,
   IsBoolean,
   IsInt,
+  IsIn,
   IsOptional,
   IsString,
   IsUrl,
@@ -227,4 +228,20 @@ export class UpdatePathwayVersionDto {
   @ValidateNested({ each: true })
   @Type(() => PathwayRequirementDto)
   requirements?: PathwayRequirementDto[];
+}
+
+export class AdminPathwaySearchQueryDto {
+  @IsOptional()
+  @Transform(trimUpper)
+  @Matches(/^[A-Z]{2}$/)
+  jurisdictionCode?: string;
+
+  @IsOptional()
+  @Transform(trimUpper)
+  @Matches(/^[A-Z0-9][A-Z0-9_-]*$/)
+  licenceTypeCode?: string;
+
+  @IsOptional()
+  @IsIn(['DRAFT', 'IN_REVIEW', 'PUBLISHED', 'SUPERSEDED', 'WITHDRAWN'])
+  status?: 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED' | 'SUPERSEDED' | 'WITHDRAWN';
 }

@@ -483,6 +483,29 @@ describe('VetLinX API (e2e)', () => {
     pathwayRequirementIds.push(...requirements.map(({ id }) => id));
 
     await request(app.getHttpServer())
+      .get('/api/v1/licensing/admin/pathways?status=DRAFT')
+      .set('authorization', `Bearer ${curatorAccessToken}`)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toEqual(
+          expect.arrayContaining([expect.objectContaining({ id: pathwayId })]),
+        );
+      });
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/licensing/admin/pathways/${pathwayId}`)
+      .set('authorization', `Bearer ${curatorAccessToken}`)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toMatchObject({
+          id: pathwayId,
+          versions: [
+            expect.objectContaining({ id: pathwayVersionId, status: 'DRAFT' }),
+          ],
+        });
+      });
+
+    await request(app.getHttpServer())
       .post(`/api/v1/licensing/admin/versions/${pathwayVersionId}/publish`)
       .set('authorization', `Bearer ${curatorAccessToken}`)
       .set('idempotency-key', randomUUID())

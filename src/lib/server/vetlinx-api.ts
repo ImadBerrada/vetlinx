@@ -9,7 +9,13 @@ export interface ApiAccount {
   roles: ApiSystemRole[];
 }
 
-export type ApiSystemRole = "PROFESSIONAL" | "REVIEWER" | "OPERATIONS_ADMIN" | "PLATFORM_ADMIN";
+export type ApiSystemRole =
+  | "PROFESSIONAL"
+  | "REVIEWER"
+  | "OPERATIONS_ADMIN"
+  | "PLATFORM_ADMIN"
+  | "LICENSING_CURATOR"
+  | "LICENSING_REVIEWER";
 
 export interface ApiAuthenticationResult {
   accessToken: string;
@@ -439,6 +445,20 @@ export interface ApiLicencePathwayDetail extends ApiLicencePathwaySummary {
   jurisdiction: ApiLicensingJurisdiction & { active?: boolean };
   authority: ApiLicensingAuthority & { active?: boolean; jurisdictionId?: string };
   licenceType: ApiLicenceType & { active?: boolean };
+}
+
+export interface ApiAdminLicencePathway extends ApiLicencePathwayDetail {
+  createdAt: string;
+  updatedAt: string;
+  versions: Array<
+    ApiLicencePathwayVersion & {
+      status: "DRAFT" | "IN_REVIEW" | "PUBLISHED" | "SUPERSEDED" | "WITHDRAWN";
+      reviewedByAccountId?: string | null;
+      createdAt?: string;
+      updatedAt?: string;
+      requirements: ApiLicencePathwayRequirement[];
+    }
+  >;
 }
 
 export interface ApiLicensingEligibilityRequirement

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import path from "node:path";
 
 test("licensing mutations reject cross-origin requests", async ({ request }) => {
@@ -252,6 +253,51 @@ test("professional starts a pathway, links evidence, and resumes it", async ({
   }
 });
 
+test("curator drafts while reviewer publishes a pathway", async ({ browser }, testInfo) => {
+  const pathwayId = "33333333-3333-4333-8333-333333333333";
+  const curatorContext = await browser.newContext();
+  const curator = await curatorContext.newPage();
+  await mockTrustSession(curator, "LICENSING_CURATOR");
+  await curator.route("**/api/review/licensing/pathways", (route) =>
+    route.fulfill({ json: { pathways: [adminPathwayFixture("DRAFT")] } }),
+  );
+  await curator.goto("/review/licensing");
+  await curator.getByRole("button", { name: "Create pathway" }).click();
+  await expect(curator.getByRole("dialog", { name: "Create licensing pathway" })).toBeVisible();
+  await expect(curator.getByRole("button", { name: "Publish pathway" })).toHaveCount(0);
+
+  const reviewerContext = await browser.newContext();
+  const reviewer = await reviewerContext.newPage();
+  await mockTrustSession(reviewer, "LICENSING_REVIEWER");
+  await reviewer.route(`**/api/review/licensing/pathways/${pathwayId}`, (route) =>
+    route.fulfill({ json: { pathway: adminPathwayFixture("IN_REVIEW") } }),
+  );
+  await reviewer.route("**/api/review/licensing/versions/*/publish", (route) =>
+    route.fulfill({
+      json: {
+        id: "44444444-4444-4444-8444-444444444444",
+        status: "PUBLISHED",
+        version: 1,
+      },
+    }),
+  );
+  await reviewer.goto(`/review/licensing/pathways/${pathwayId}`);
+  await reviewer.getByRole("button", { name: "Publish pathway" }).click();
+  await expect(reviewer.getByText("Published version 1")).toBeVisible();
+  if (process.env.VETLINX_VISUAL_DIR) {
+    await reviewer.screenshot({
+      path: path.join(
+        process.env.VETLINX_VISUAL_DIR,
+        `licensing-review-${testInfo.project.name}.png`,
+      ),
+      fullPage: true,
+    });
+  }
+
+  await curatorContext.close();
+  await reviewerContext.close();
+});
+
 function pathwayFixture() {
   return {
     id: "33333333-3333-4333-8333-333333333333",
@@ -350,5 +396,45 @@ function enrollmentFixture(linked: boolean) {
       remaining: linked ? 0 : 1,
       ready: linked,
     },
+  };
+}
+
+async function mockTrustSession(
+  page: Page,
+  role: "LICENSING_CURATOR" | "LICENSING_REVIEWER",
+) {
+  await page.route("**/api/session/me", (route) =>
+    route.fulfill({
+      json: {
+        account: { email: `${role.toLowerCase()}@vetlinx.test`, roles: [role] },
+        profile: null,
+      },
+    }),
+  );
+  await page.route("**/api/organizations", (route) =>
+    route.fulfill({ json: { organizations: [] } }),
+  );
+}
+
+function adminPathwayFixture(status: "DRAFT" | "IN_REVIEW" | "PUBLISHED") {
+  const pathway = pathwayFixture();
+  return {
+    ...pathway,
+    createdAt: "2026-08-30T08:00:00.000Z",
+    updatedAt: "2026-08-30T08:00:00.000Z",
+    versions: pathway.versions.map((version) => ({
+      ...version,
+      requirements: version.requirements?.map((requirement) => ({
+        ...requirement,
+        rule: {
+          kind: "VERIFIED_CREDENTIAL",
+          credentialTypeCode: "DEGREE",
+        },
+      })),
+      status,
+      reviewedByAccountId: null,
+      createdAt: "2026-08-30T08:00:00.000Z",
+      updatedAt: "2026-08-30T08:00:00.000Z",
+    })),
   };
 }
