@@ -22,6 +22,10 @@ import {
   type ProfessionalsPublicApi,
 } from '../professionals/professionals.public';
 import {
+  LICENSING_PUBLIC_API,
+  type LicensingPublicApi,
+} from '../licensing/licensing.public';
+import {
   PRIVATE_FILE_STORAGE,
   type PrivateFileStorage,
 } from '../../platform/files/private-file-storage.port';
@@ -57,6 +61,8 @@ export class VerificationService {
     @Inject(PROFESSIONALS_PUBLIC_API)
     private readonly professionals: ProfessionalsPublicApi,
     @Inject(PRIVATE_FILE_STORAGE) private readonly storage: PrivateFileStorage,
+    @Inject(LICENSING_PUBLIC_API)
+    private readonly licensing: LicensingPublicApi,
   ) {}
 
   async listMine(accountId: string) {
@@ -503,6 +509,14 @@ export class VerificationService {
           reason,
           changes: { status: { from: 'SUBMITTED', to: action } },
         });
+        if (action === 'VERIFIED') {
+          await this.licensing.projectVerifiedCredentialInTransaction(
+            transaction,
+            current.credentialId,
+            reviewerAccountId,
+            correlationId,
+          );
+        }
       }
       const recipient = await transaction.professionalProfile.findUniqueOrThrow(
         {

@@ -69,6 +69,7 @@ enum NotificationKind {
   OFFER_UPDATED
   EMPLOYMENT_CONFIRMED
   EMPLOYMENT_ENDED
+  LICENCE_RENEWAL_DUE
 
   @@schema("notifications")
 }

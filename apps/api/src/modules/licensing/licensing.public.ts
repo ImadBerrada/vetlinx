@@ -15,4 +15,11 @@ export interface LicensingPublicApi {
     accountId: string,
     enrollmentId: string,
   ): Promise<LicensingReadiness | null>;
+  projectVerifiedCredentialInTransaction(
+    transaction: Prisma.TransactionClient,
+    credentialId: string,
+    actorId: string,
+    correlationId: string,
+  ): Promise<string | null>;
 }
+import type { Prisma } from '../../generated/prisma/client';

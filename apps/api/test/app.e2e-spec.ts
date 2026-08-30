@@ -9,6 +9,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { AuditService } from './../src/modules/audit/audit.service';
+import { LicensingService } from './../src/modules/licensing/licensing.service';
 import { PrismaService } from './../src/platform/persistence/prisma.service';
 import {
   EVENT_PUBLISHER,
@@ -34,6 +35,7 @@ describe('VetLinX API (e2e)', () => {
   jest.setTimeout(30_000);
   let app: INestApplication<App>;
   let audit: AuditService;
+  let licensing: LicensingService;
   let events: EventPublisher;
   let prisma: PrismaService;
   let evidenceStorage: PrivateFileStorage;
@@ -59,6 +61,7 @@ describe('VetLinX API (e2e)', () => {
   const licencePathwayVersionIds: string[] = [];
   const pathwayRequirementIds: string[] = [];
   const licensingEnrollmentIds: string[] = [];
+  const professionalLicenceIds: string[] = [];
 
   async function availableJurisdictionCode() {
     const candidates = [
@@ -140,6 +143,7 @@ describe('VetLinX API (e2e)', () => {
     );
     await app.init();
     audit = app.get(AuditService);
+    licensing = app.get(LicensingService);
     events = app.get<EventPublisher>(EVENT_PUBLISHER);
     prisma = app.get(PrismaService);
     evidenceStorage = app.get<PrivateFileStorage>(PRIVATE_FILE_STORAGE);
@@ -729,6 +733,24 @@ describe('VetLinX API (e2e)', () => {
           },
         },
       });
+      const issuedLicenceRequirement =
+        await transaction.pathwayRequirement.create({
+          data: {
+            pathwayVersionId: version.id,
+            code: 'ISSUED_PROFESSIONAL_LICENCE',
+            titleEn: 'Issued professional licence',
+            titleAr: 'ترخيص مهني صادر',
+            descriptionEn:
+              'Link the licence issued by the external authority when available.',
+            descriptionAr: 'اربط الترخيص الصادر من الجهة الخارجية عند توفره.',
+            position: 2,
+            required: false,
+            rule: {
+              kind: 'VERIFIED_CREDENTIAL',
+              credentialTypeCode: 'PROFESSIONAL_LICENCE',
+            },
+          },
+        });
       return {
         jurisdiction,
         authority,
@@ -736,6 +758,7 @@ describe('VetLinX API (e2e)', () => {
         pathway,
         version,
         requirement,
+        issuedLicenceRequirement,
       };
     });
     licensingJurisdictionIds.push(fixture.jurisdiction.id);
@@ -743,7 +766,10 @@ describe('VetLinX API (e2e)', () => {
     licenceTypeIds.push(fixture.licenceType.id);
     licencePathwayIds.push(fixture.pathway.id);
     licencePathwayVersionIds.push(fixture.version.id);
-    pathwayRequirementIds.push(fixture.requirement.id);
+    pathwayRequirementIds.push(
+      fixture.requirement.id,
+      fixture.issuedLicenceRequirement.id,
+    );
 
     const ownerRegistration = await request(app.getHttpServer())
       .post('/api/v1/auth/register')
@@ -823,12 +849,14 @@ describe('VetLinX API (e2e)', () => {
         if (!isRecord(body) || !Array.isArray(body.requirements)) {
           throw new Error('Expected eligibility requirements');
         }
-        expect(body.requirements).toEqual([
-          expect.objectContaining({
-            code: 'VETERINARY_DEGREE',
-            state: 'MISSING',
-          }),
-        ]);
+        expect(body.requirements).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              code: 'VETERINARY_DEGREE',
+              state: 'MISSING',
+            }),
+          ]),
+        );
       });
 
     const enrollmentKey = randomUUID();
@@ -942,6 +970,166 @@ describe('VetLinX API (e2e)', () => {
       }),
     ).toBe(1);
 
+    const externalApplicationKey = randomUUID();
+    await request(app.getHttpServer())
+      .post(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/external-application`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .set('idempotency-key', externalApplicationKey)
+      .send({
+        authorityReference: `MEWA-REF-${suffix}`,
+        submittedAt: '2026-08-30',
+        status: 'SUBMITTED',
+      })
+      .expect(201)
+      .expect((response) => {
+        expect(
+          requiredString(response.body as unknown, 'verificationSource'),
+        ).toBe('USER_REPORTED');
+      });
+    await request(app.getHttpServer())
+      .post(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/external-application`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .set('idempotency-key', externalApplicationKey)
+      .send({
+        authorityReference: `MEWA-REF-${suffix}`,
+        submittedAt: '2026-08-30',
+        status: 'SUBMITTED',
+      })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post(`/api/v1/licensing/me/enrollments/${enrollmentId}/approve`)
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .patch('/api/v1/licensing/me/reminder-preferences')
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({
+        timeZone: 'Asia/Dubai',
+        renewalEnabled: true,
+        leadDays: 90,
+      })
+      .expect(200);
+    const issuedCredential = await request(app.getHttpServer())
+      .post('/api/v1/credentials/me')
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({
+        typeCode: 'PROFESSIONAL_LICENCE',
+        title: `MEWA-REF-${suffix}`,
+        issuingOrganization: 'Ministry of Environment Water and Agriculture',
+        countryCode: jurisdictionCode,
+        issueDate: '2026-08-30',
+        expiryDate: '2026-11-28',
+      })
+      .expect(201);
+    const issuedCredentialId = requiredString(
+      issuedCredential.body as unknown,
+      'id',
+    );
+    credentialIds.push(issuedCredentialId);
+    await request(app.getHttpServer())
+      .put(
+        `/api/v1/licensing/me/enrollments/${enrollmentId}/requirements/${fixture.issuedLicenceRequirement.id}/credential`,
+      )
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({ credentialId: issuedCredentialId })
+      .expect(200);
+    await prisma.credential.update({
+      where: { id: issuedCredentialId },
+      data: { status: 'VERIFIED' },
+    });
+
+    const professionalLicenceId = await licensing.projectVerifiedCredential(
+      issuedCredentialId,
+      ownerAccountId,
+      randomUUID(),
+    );
+    expect(professionalLicenceId).toBeTruthy();
+    if (!professionalLicenceId) {
+      throw new Error('Expected professional licence projection');
+    }
+    professionalLicenceIds.push(professionalLicenceId);
+    await licensing.projectVerifiedCredential(
+      issuedCredentialId,
+      ownerAccountId,
+      randomUUID(),
+    );
+
+    expect(
+      await prisma.professionalLicence.count({
+        where: { id: professionalLicenceId, enrollmentId },
+      }),
+    ).toBe(1);
+    expect(
+      await prisma.outboxEvent.count({
+        where: {
+          aggregateId: professionalLicenceId,
+          name: 'ProfessionalLicenceProjected',
+        },
+      }),
+    ).toBe(1);
+    expect(
+      await prisma.outboxEvent.count({
+        where: {
+          aggregateId: professionalLicenceId,
+          name: 'LicenceRenewalDue',
+        },
+      }),
+    ).toBe(1);
+    expect(
+      await prisma.notification.count({
+        where: {
+          recipientAccountId: ownerAccountId,
+          kind: 'LICENCE_RENEWAL_DUE',
+          resourceId: professionalLicenceId,
+        },
+      }),
+    ).toBe(1);
+    expect(
+      await prisma.pathwayEnrollment.findUniqueOrThrow({
+        where: { id: enrollmentId },
+        select: { status: true },
+      }),
+    ).toEqual({ status: 'APPROVED' });
+
+    await prisma.notification.deleteMany({
+      where: {
+        recipientAccountId: ownerAccountId,
+        kind: 'LICENCE_RENEWAL_DUE',
+        resourceId: professionalLicenceId,
+      },
+    });
+    await prisma.outboxEvent.deleteMany({
+      where: {
+        aggregateId: professionalLicenceId,
+        name: 'LicenceRenewalDue',
+      },
+    });
+    await request(app.getHttpServer())
+      .patch('/api/v1/licensing/me/reminder-preferences')
+      .set('authorization', `Bearer ${ownerAccessToken}`)
+      .send({
+        timeZone: 'Asia/Dubai',
+        renewalEnabled: false,
+        leadDays: 90,
+      })
+      .expect(200);
+    await expect(
+      licensing.projectRenewalReminders(new Date('2026-08-30T12:00:00.000Z')),
+    ).resolves.toEqual(expect.objectContaining({ created: 0 }));
+    expect(
+      await prisma.notification.count({
+        where: {
+          recipientAccountId: ownerAccountId,
+          kind: 'LICENCE_RENEWAL_DUE',
+        },
+      }),
+    ).toBe(0);
+
     await prisma.credential.update({
       where: { id: ownerCredentialId },
       data: { status: 'REVOKED' },
@@ -991,19 +1179,34 @@ describe('VetLinX API (e2e)', () => {
         );
       });
 
+    const progressEvents = await prisma.outboxEvent.findMany({
+      where: {
+        aggregateId: enrollmentId,
+        name: 'RequirementProgressChanged',
+      },
+      select: { payload: true },
+    });
     expect(
-      await prisma.outboxEvent.count({
-        where: {
-          aggregateId: enrollmentId,
-          name: 'RequirementProgressChanged',
+      progressEvents.filter(
+        ({ payload }) =>
+          isRecord(payload) && payload.requirementId === fixture.requirement.id,
+      ),
+    ).toHaveLength(4);
+    const degreeProgress = await prisma.requirementProgress.findUniqueOrThrow({
+      where: {
+        enrollmentId_requirementId: {
+          enrollmentId,
+          requirementId: fixture.requirement.id,
         },
-      }),
-    ).toBe(4);
+      },
+      select: { id: true },
+    });
     expect(
       await prisma.auditEvent.count({
         where: {
           actorId: ownerAccountId,
           action: 'licensing.requirement_progress.changed',
+          resourceId: degreeProgress.id,
         },
       }),
     ).toBe(4);
@@ -2026,6 +2229,9 @@ describe('VetLinX API (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.professionalLicence.deleteMany({
+      where: { id: { in: professionalLicenceIds } },
+    });
     await prisma.requirementProgress.deleteMany({
       where: { enrollmentId: { in: licensingEnrollmentIds } },
     });
@@ -2072,6 +2278,7 @@ describe('VetLinX API (e2e)', () => {
             ...employmentIds,
             ...licencePathwayIds,
             ...licensingEnrollmentIds,
+            ...professionalLicenceIds,
           ],
         },
       },

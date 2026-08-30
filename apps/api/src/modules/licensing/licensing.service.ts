@@ -21,6 +21,7 @@ import {
   PROFESSIONALS_PUBLIC_API,
   type ProfessionalsPublicApi,
 } from '../professionals/professionals.public';
+import { NotificationsService } from '../notifications/notifications.service';
 import type {
   CreateLicencePathwayDto,
   CreateLicenceTypeDto,
@@ -30,12 +31,18 @@ import type {
   PathwayRequirementDto,
   UpdatePathwayVersionDto,
 } from './dto/licensing-admin.dto';
-import type { PathwaySearchQueryDto } from './dto/licensing-professional.dto';
+import type {
+  CreateExternalLicenceApplicationDto,
+  PathwaySearchQueryDto,
+  UpdateExternalLicenceApplicationDto,
+  UpdateLicensingReminderPreferencesDto,
+} from './dto/licensing-professional.dto';
 import type {
   LicensingPublicApi,
   LicensingReadiness,
 } from './licensing.public';
 import {
+  assertEnrollmentTransition,
   assertPathwayVersionTransition,
   evaluateRequirement,
 } from './licensing-rules';
@@ -68,6 +75,7 @@ export class LicensingService implements LicensingPublicApi {
     private readonly credentials: CredentialsPublicApi,
     @Inject(PROFESSIONALS_PUBLIC_API)
     private readonly professionals: ProfessionalsPublicApi,
+    private readonly notifications: NotificationsService,
   ) {}
 
   listJurisdictions() {
@@ -437,6 +445,502 @@ export class LicensingService implements LicensingPublicApi {
       note?.trim() || 'Professional marked this requirement as in progress.',
       correlationId,
     );
+  }
+
+  async createExternalApplication(
+    accountId: string,
+    enrollmentId: string,
+    dto: CreateExternalLicenceApplicationDto,
+    idempotencyKey: string,
+    correlationId: string,
+  ) {
+    const operation = 'create-external-application';
+    return this.idempotent(
+      accountId,
+      operation,
+      idempotencyKey,
+      { enrollmentId, ...dto },
+      (resourceId) =>
+        this.prisma.externalLicenceApplication.findUniqueOrThrow({
+          where: { id: resourceId },
+        }),
+      async (transaction, requestHash) => {
+        const current = await transaction.pathwayEnrollment.findFirst({
+          where: { id: enrollmentId, professional: { accountId } },
+          select: { id: true, status: true },
+        });
+        if (!current) {
+          throw new NotFoundException('Pathway enrollment not found');
+        }
+        if (current.status !== 'ACTIVE') {
+          throw new ConflictException(
+            'Only an active enrollment can be submitted externally',
+          );
+        }
+        const readiness = await this.findReadiness(accountId, enrollmentId);
+        if (!readiness?.ready) {
+          throw new ConflictException(
+            'All required pathway evidence must be satisfied before submission',
+          );
+        }
+        const existing =
+          await transaction.externalLicenceApplication.findUnique({
+            where: { enrollmentId },
+          });
+        if (existing) {
+          throw new ConflictException(
+            'An external application already exists for this enrollment',
+          );
+        }
+        const occurredAt = new Date();
+        const application = await transaction.externalLicenceApplication.create(
+          {
+            data: {
+              enrollmentId,
+              authorityReference: dto.authorityReference.trim(),
+              submittedAt: this.parseDate(dto.submittedAt),
+              status: dto.status,
+              verificationSource: 'USER_REPORTED',
+              lastReportedAt: occurredAt,
+            },
+          },
+        );
+        await transaction.pathwayEnrollment.update({
+          where: { id: enrollmentId },
+          data: {
+            status: 'SUBMITTED_EXTERNALLY',
+            submittedExternallyAt: occurredAt,
+          },
+        });
+        await this.audit.recordInTransaction(transaction, {
+          actorId: accountId,
+          action: 'licensing.external_application.reported',
+          resourceType: 'external_licence_application',
+          resourceId: application.id,
+          occurredAt: occurredAt.toISOString(),
+          correlationId,
+          changes: {
+            enrollmentId,
+            verificationSource: 'USER_REPORTED',
+            status: { to: dto.status },
+          },
+        });
+        await this.outbox.enqueue(transaction, [
+          {
+            id: randomUUID(),
+            name: 'ExternalLicenceApplicationReported',
+            version: 1,
+            occurredAt: occurredAt.toISOString(),
+            aggregateId: enrollmentId,
+            correlationId,
+            payload: {
+              enrollmentId,
+              externalApplicationId: application.id,
+              authorityReference: application.authorityReference,
+              status: application.status,
+              verificationSource: application.verificationSource,
+            },
+          },
+        ]);
+        await this.saveReceipt(
+          transaction,
+          accountId,
+          operation,
+          idempotencyKey,
+          requestHash,
+          application.id,
+          201,
+        );
+        return application;
+      },
+    );
+  }
+
+  async updateExternalApplication(
+    accountId: string,
+    enrollmentId: string,
+    dto: UpdateExternalLicenceApplicationDto,
+    correlationId: string,
+  ) {
+    const enrollment = await this.prisma.pathwayEnrollment.findFirst({
+      where: { id: enrollmentId, professional: { accountId } },
+      include: { externalApplication: true },
+    });
+    if (!enrollment?.externalApplication) {
+      throw new NotFoundException('External application not found');
+    }
+    if (enrollment.status !== 'SUBMITTED_EXTERNALLY') {
+      throw new ConflictException(
+        'External application can no longer be user-updated',
+      );
+    }
+    const occurredAt = new Date();
+    return this.prisma.$transaction(async (transaction) => {
+      const updated = await transaction.externalLicenceApplication.update({
+        where: { id: enrollment.externalApplication!.id },
+        data: {
+          authorityReference: dto.authorityReference?.trim(),
+          submittedAt: dto.submittedAt
+            ? this.parseDate(dto.submittedAt)
+            : undefined,
+          status: dto.status,
+          lastReportedAt: occurredAt,
+        },
+      });
+      if (dto.status === 'REJECTED') {
+        await transaction.pathwayEnrollment.update({
+          where: { id: enrollmentId },
+          data: { status: 'REJECTED', completedAt: occurredAt },
+        });
+      }
+      await this.audit.recordInTransaction(transaction, {
+        actorId: accountId,
+        action: 'licensing.external_application.updated',
+        resourceType: 'external_licence_application',
+        resourceId: updated.id,
+        occurredAt: occurredAt.toISOString(),
+        correlationId,
+        changes: {
+          verificationSource: 'USER_REPORTED',
+          status: {
+            from: enrollment.externalApplication!.status,
+            to: updated.status,
+          },
+        },
+      });
+      await this.outbox.enqueue(transaction, [
+        {
+          id: randomUUID(),
+          name: 'ExternalLicenceApplicationUpdated',
+          version: 1,
+          occurredAt: occurredAt.toISOString(),
+          aggregateId: enrollmentId,
+          correlationId,
+          payload: {
+            enrollmentId,
+            externalApplicationId: updated.id,
+            status: updated.status,
+            verificationSource: updated.verificationSource,
+          },
+        },
+      ]);
+      return updated;
+    });
+  }
+
+  async withdrawEnrollment(
+    accountId: string,
+    enrollmentId: string,
+    idempotencyKey: string,
+    correlationId: string,
+  ) {
+    const operation = 'withdraw-enrollment';
+    const enrollment = await this.idempotent(
+      accountId,
+      operation,
+      idempotencyKey,
+      { enrollmentId },
+      (resourceId) =>
+        this.prisma.pathwayEnrollment.findUniqueOrThrow({
+          where: { id: resourceId },
+        }),
+      async (transaction, requestHash) => {
+        const current = await transaction.pathwayEnrollment.findFirst({
+          where: { id: enrollmentId, professional: { accountId } },
+          include: { externalApplication: true },
+        });
+        if (!current) {
+          throw new NotFoundException('Pathway enrollment not found');
+        }
+        try {
+          assertEnrollmentTransition(current.status, 'WITHDRAWN');
+        } catch (error) {
+          throw new ConflictException(
+            error instanceof Error ? error.message : 'Invalid transition',
+          );
+        }
+        const occurredAt = new Date();
+        const updated = await transaction.pathwayEnrollment.update({
+          where: { id: enrollmentId },
+          data: { status: 'WITHDRAWN', completedAt: occurredAt },
+        });
+        if (current.externalApplication) {
+          await transaction.externalLicenceApplication.update({
+            where: { id: current.externalApplication.id },
+            data: { status: 'WITHDRAWN', lastReportedAt: occurredAt },
+          });
+        }
+        await this.audit.recordInTransaction(transaction, {
+          actorId: accountId,
+          action: 'licensing.pathway_enrollment.withdrawn',
+          resourceType: 'pathway_enrollment',
+          resourceId: enrollmentId,
+          occurredAt: occurredAt.toISOString(),
+          correlationId,
+          changes: { status: { from: current.status, to: 'WITHDRAWN' } },
+        });
+        await this.outbox.enqueue(transaction, [
+          {
+            id: randomUUID(),
+            name: 'PathwayEnrollmentWithdrawn',
+            version: 1,
+            occurredAt: occurredAt.toISOString(),
+            aggregateId: enrollmentId,
+            correlationId,
+            payload: { enrollmentId },
+          },
+        ]);
+        await this.saveReceipt(
+          transaction,
+          accountId,
+          operation,
+          idempotencyKey,
+          requestHash,
+          enrollmentId,
+          200,
+        );
+        return updated;
+      },
+    );
+    return this.getOwnedEnrollment(accountId, enrollment.id);
+  }
+
+  async getReminderPreferences(accountId: string) {
+    const preference = await this.prisma.licensingReminderPreference.findUnique(
+      {
+        where: { accountId },
+      },
+    );
+    return (
+      preference ?? {
+        accountId,
+        timeZone: 'UTC',
+        renewalEnabled: true,
+        leadDays: 90,
+      }
+    );
+  }
+
+  async updateReminderPreferences(
+    accountId: string,
+    dto: UpdateLicensingReminderPreferencesDto,
+    correlationId: string,
+  ) {
+    this.assertTimeZone(dto.timeZone);
+    const previous = await this.prisma.licensingReminderPreference.findUnique({
+      where: { accountId },
+    });
+    const updated = await this.prisma.licensingReminderPreference.upsert({
+      where: { accountId },
+      create: { accountId, ...dto },
+      update: dto,
+    });
+    await this.audit.record({
+      actorId: accountId,
+      action: 'licensing.reminder_preferences.updated',
+      resourceType: 'licensing_reminder_preference',
+      resourceId: updated.id,
+      occurredAt: new Date().toISOString(),
+      correlationId,
+      changes: {
+        from: previous
+          ? {
+              timeZone: previous.timeZone,
+              renewalEnabled: previous.renewalEnabled,
+              leadDays: previous.leadDays,
+            }
+          : null,
+        to: dto,
+      },
+    });
+    return updated;
+  }
+
+  projectVerifiedCredential(
+    credentialId: string,
+    actorId: string,
+    correlationId: string,
+  ) {
+    return this.prisma.$transaction((transaction) =>
+      this.projectVerifiedCredentialInTransaction(
+        transaction,
+        credentialId,
+        actorId,
+        correlationId,
+      ),
+    );
+  }
+
+  async projectVerifiedCredentialInTransaction(
+    transaction: Prisma.TransactionClient,
+    credentialId: string,
+    actorId: string,
+    correlationId: string,
+  ): Promise<string | null> {
+    const credential = await transaction.credential.findUnique({
+      where: { id: credentialId },
+      select: {
+        id: true,
+        typeCode: true,
+        status: true,
+        expiryDate: true,
+        professional: { select: { accountId: true } },
+        requirementProgress: {
+          select: {
+            enrollment: {
+              select: {
+                id: true,
+                status: true,
+                externalApplication: true,
+                pathwayVersion: {
+                  select: {
+                    pathway: {
+                      select: { authorityId: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (
+      !credential ||
+      credential.typeCode !== 'PROFESSIONAL_LICENCE' ||
+      credential.status !== 'VERIFIED'
+    ) {
+      return null;
+    }
+    const linked = credential.requirementProgress.find(
+      ({ enrollment }) =>
+        enrollment.status === 'SUBMITTED_EXTERNALLY' &&
+        enrollment.externalApplication !== null,
+    );
+    if (!linked?.enrollment.externalApplication) return null;
+    const externalApplication = linked.enrollment.externalApplication;
+
+    const existing = await transaction.professionalLicence.findUnique({
+      where: { credentialId },
+      include: {
+        enrollment: true,
+        credential: true,
+      },
+    });
+    if (existing) {
+      await this.ensureRenewalDueInTransaction(
+        transaction,
+        {
+          id: existing.id,
+          enrollmentId: existing.enrollmentId,
+          recipientAccountId: credential.professional.accountId,
+          expiryDate: existing.credential.expiryDate,
+        },
+        new Date(),
+      );
+      return existing.id;
+    }
+
+    const enrollment = linked.enrollment;
+    try {
+      assertEnrollmentTransition(enrollment.status, 'APPROVED');
+    } catch (error) {
+      throw new ConflictException(
+        error instanceof Error ? error.message : 'Invalid transition',
+      );
+    }
+    const occurredAt = new Date();
+    const licence = await transaction.professionalLicence.create({
+      data: {
+        credentialId,
+        enrollmentId: enrollment.id,
+        authorityId: enrollment.pathwayVersion.pathway.authorityId,
+        licenceNumber: externalApplication.authorityReference,
+        status: 'ACTIVE',
+      },
+    });
+    await transaction.externalLicenceApplication.update({
+      where: { id: externalApplication.id },
+      data: { status: 'APPROVED', lastReportedAt: occurredAt },
+    });
+    await transaction.pathwayEnrollment.update({
+      where: { id: enrollment.id },
+      data: { status: 'APPROVED', completedAt: occurredAt },
+    });
+    await this.audit.recordInTransaction(transaction, {
+      actorId,
+      action: 'licensing.professional_licence.projected',
+      resourceType: 'professional_licence',
+      resourceId: licence.id,
+      occurredAt: occurredAt.toISOString(),
+      correlationId,
+      changes: {
+        credentialId,
+        enrollmentId: enrollment.id,
+        status: { to: 'ACTIVE' },
+      },
+    });
+    await this.outbox.enqueue(transaction, [
+      {
+        id: randomUUID(),
+        name: 'ProfessionalLicenceProjected',
+        version: 1,
+        occurredAt: occurredAt.toISOString(),
+        aggregateId: licence.id,
+        correlationId,
+        payload: {
+          licenceId: licence.id,
+          credentialId,
+          enrollmentId: enrollment.id,
+          authorityId: licence.authorityId,
+          status: licence.status,
+        },
+      },
+    ]);
+    await this.ensureRenewalDueInTransaction(
+      transaction,
+      {
+        id: licence.id,
+        enrollmentId: enrollment.id,
+        recipientAccountId: credential.professional.accountId,
+        expiryDate: credential.expiryDate,
+      },
+      occurredAt,
+    );
+    return licence.id;
+  }
+
+  async projectRenewalReminders(asOf = new Date()) {
+    const licences = await this.prisma.professionalLicence.findMany({
+      where: { status: 'ACTIVE' },
+      select: {
+        id: true,
+        enrollmentId: true,
+        credential: {
+          select: {
+            expiryDate: true,
+            professional: { select: { accountId: true } },
+          },
+        },
+      },
+    });
+    let created = 0;
+    for (const licence of licences) {
+      const result = await this.prisma.$transaction((transaction) =>
+        this.ensureRenewalDueInTransaction(
+          transaction,
+          {
+            id: licence.id,
+            enrollmentId: licence.enrollmentId,
+            recipientAccountId: licence.credential.professional.accountId,
+            expiryDate: licence.credential.expiryDate,
+          },
+          asOf,
+        ),
+      );
+      if (result) created += 1;
+    }
+    return { evaluated: licences.length, created };
   }
 
   createJurisdiction(
@@ -1192,6 +1696,104 @@ export class LicensingService implements LicensingPublicApi {
     });
   }
 
+  private async ensureRenewalDueInTransaction(
+    transaction: Prisma.TransactionClient,
+    licence: {
+      id: string;
+      enrollmentId: string;
+      recipientAccountId: string;
+      expiryDate: Date | null;
+    },
+    asOf: Date,
+  ) {
+    if (!licence.expiryDate) return false;
+    const preference = await transaction.licensingReminderPreference.findUnique(
+      {
+        where: { accountId: licence.recipientAccountId },
+      },
+    );
+    const renewalEnabled = preference?.renewalEnabled ?? true;
+    if (!renewalEnabled) return false;
+    const timeZone = preference?.timeZone ?? 'UTC';
+    const leadDays = preference?.leadDays ?? 90;
+    const expiryDate = licence.expiryDate.toISOString().slice(0, 10);
+    const expiryDay = this.dateStringEpoch(expiryDate);
+    const currentDay = this.localCalendarDayEpoch(asOf, timeZone);
+    const daysUntilExpiry = Math.round(
+      (expiryDay - currentDay) / (24 * 60 * 60 * 1000),
+    );
+    if (daysUntilExpiry < 0 || daysUntilExpiry > leadDays) return false;
+
+    const pathwayRoute = `/licensing/enrollments/${licence.enrollmentId}`;
+    const notification = await this.notifications.ensureLicenceRenewalDue(
+      transaction,
+      {
+        recipientAccountId: licence.recipientAccountId,
+        licenceId: licence.id,
+        expiryDate,
+        pathwayRoute,
+      },
+    );
+    const existingEvent = await transaction.outboxEvent.findFirst({
+      where: { name: 'LicenceRenewalDue', aggregateId: licence.id },
+      select: { id: true },
+    });
+    if (!existingEvent) {
+      const occurredAt = new Date();
+      await this.outbox.enqueue(transaction, [
+        {
+          id: randomUUID(),
+          name: 'LicenceRenewalDue',
+          version: 1,
+          occurredAt: occurredAt.toISOString(),
+          aggregateId: licence.id,
+          correlationId: randomUUID(),
+          payload: {
+            licenceId: licence.id,
+            expiryDate,
+            pathwayRoute,
+          },
+        },
+      ]);
+    }
+    return notification.created || !existingEvent;
+  }
+
+  private localCalendarDayEpoch(date: Date, timeZone: string) {
+    let formatter: Intl.DateTimeFormat;
+    try {
+      formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    } catch {
+      formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    }
+    const parts = Object.fromEntries(
+      formatter
+        .formatToParts(date)
+        .filter(({ type }) => type !== 'literal')
+        .map(({ type, value }) => [type, value]),
+    );
+    return Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+    );
+  }
+
+  private dateStringEpoch(value: string) {
+    const [year, month, day] = value.split('-').map(Number);
+    return Date.UTC(year, month - 1, day);
+  }
+
   private findPublicPathway(pathwayId: string) {
     const effective = this.effectiveVersionWhere();
     return this.prisma.licencePathway.findFirst({
@@ -1245,6 +1847,10 @@ export class LicensingService implements LicensingPublicApi {
       requirementProgress: {
         orderBy: { requirement: { position: 'asc' as const } },
         include: { requirement: true },
+      },
+      externalApplication: true,
+      professionalLicence: {
+        include: { credential: true, authority: true },
       },
     } as const;
   }
@@ -1423,5 +2029,17 @@ export class LicensingService implements LicensingPublicApi {
 
   private dateOnly(value: Date | null) {
     return value?.toISOString().slice(0, 10) ?? null;
+  }
+
+  private parseDate(value: string) {
+    return new Date(`${value.slice(0, 10)}T00:00:00.000Z`);
+  }
+
+  private assertTimeZone(timeZone: string) {
+    try {
+      new Intl.DateTimeFormat('en', { timeZone }).format(new Date());
+    } catch {
+      throw new BadRequestException('A valid IANA time zone is required');
+    }
   }
 }

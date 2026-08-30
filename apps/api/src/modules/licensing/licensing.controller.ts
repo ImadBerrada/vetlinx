@@ -21,8 +21,11 @@ import {
   type AuthenticatedRequest,
 } from '../identity/access-token.guard';
 import {
+  CreateExternalLicenceApplicationDto,
   LinkRequirementCredentialDto,
   PathwaySearchQueryDto,
+  UpdateExternalLicenceApplicationDto,
+  UpdateLicensingReminderPreferencesDto,
   UpdateRequirementProgressDto,
 } from './dto/licensing-professional.dto';
 import { LicensingService } from './licensing.service';
@@ -141,6 +144,77 @@ export class LicensingController {
       enrollmentId,
       requirementId,
       dto.note,
+      this.correlationId(request),
+    );
+  }
+
+  @Post('me/enrollments/:enrollmentId/external-application')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  createExternalApplication(
+    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Body() dto: CreateExternalLicenceApplicationDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.licensing.createExternalApplication(
+      request.user.accountId,
+      enrollmentId,
+      dto,
+      this.requireIdempotencyKey(idempotencyKey),
+      this.correlationId(request),
+    );
+  }
+
+  @Patch('me/enrollments/:enrollmentId/external-application')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  updateExternalApplication(
+    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Body() dto: UpdateExternalLicenceApplicationDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.licensing.updateExternalApplication(
+      request.user.accountId,
+      enrollmentId,
+      dto,
+      this.correlationId(request),
+    );
+  }
+
+  @Post('me/enrollments/:enrollmentId/withdraw')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  withdrawEnrollment(
+    @Param('enrollmentId', new ParseUUIDPipe()) enrollmentId: string,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.licensing.withdrawEnrollment(
+      request.user.accountId,
+      enrollmentId,
+      this.requireIdempotencyKey(idempotencyKey),
+      this.correlationId(request),
+    );
+  }
+
+  @Get('me/reminder-preferences')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  getReminderPreferences(@Req() request: AuthenticatedRequest) {
+    return this.licensing.getReminderPreferences(request.user.accountId);
+  }
+
+  @Patch('me/reminder-preferences')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  updateReminderPreferences(
+    @Body() dto: UpdateLicensingReminderPreferencesDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.licensing.updateReminderPreferences(
+      request.user.accountId,
+      dto,
       this.correlationId(request),
     );
   }
