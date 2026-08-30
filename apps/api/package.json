@@ -24,7 +24,8 @@
     "db:studio": "prisma studio",
     "role:manage": "node scripts/manage-system-role.cjs",
     "seed:access": "node scripts/seed-access-accounts.cjs",
-    "test:seed": "node --test scripts/seed-access-accounts.test.cjs"
+    "test:seed": "node --test scripts/seed-access-accounts.test.cjs",
+    "perf:licensing": "node scripts/check-licensing-pilot-performance.cjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

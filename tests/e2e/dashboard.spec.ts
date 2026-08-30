@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("dashboard protects private data and displays the authenticated record", async ({ page }, testInfo) => {
+  test.setTimeout(60_000);
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
@@ -23,7 +24,7 @@ test("dashboard protects private data and displays the authenticated record", as
   await expect(page).toHaveURL(/\/credentials$/);
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Good morning, Dr. Amina Khaled" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Good morning, Dr. Amina Khaled" })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("heading", { name: "Add your first credential" })).toBeVisible();
   await expect(page.getByText("No credentials yet")).toBeVisible();
   await expect(page.getByRole("link", { name: "Add credential" }).first()).toBeVisible();

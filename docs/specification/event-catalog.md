@@ -35,9 +35,11 @@ These names define the approved integration vocabulary. They are implemented onl
 |---|---|---|
 | `LicencePathwayPublished` | Licensing | Search, notifications, audit analytics |
 | `LicencePathwaySuperseded` | Licensing | Active-enrollment review, notifications |
-| `PathwayEnrollmentStarted` | Licensing | Professional dashboard, analytics |
-| `RequirementProgressChanged` | Licensing | Readiness projection, notifications |
-| `ExternalApplicationRecorded` | Licensing | Professional dashboard |
+| `PathwayEnrollmentStarted` v1 | Licensing | Professional dashboard, analytics |
+| `PathwayEnrollmentWithdrawn` v1 | Licensing | Professional dashboard, analytics |
+| `RequirementProgressChanged` v1 | Licensing | Readiness projection, notifications |
+| `ExternalLicenceApplicationReported` v1 | Licensing | Professional dashboard |
+| `LicencePathwaySubmitted` v1 | Licensing | Reviewer operations, audit analytics |
 | `LicenceRenewalDue` | Licensing | Notifications, portfolio |
 | `LearningProductPublished` | Learning | Catalogue search, notifications |
 | `EnrollmentCreated` | Learning | Provider workspace, professional dashboard |
@@ -49,3 +51,5 @@ These names define the approved integration vocabulary. They are implemented onl
 | `CpdRecordCreated` | Learning | Portfolio, licensing readiness |
 
 The MVP writes events durably but does not yet run a distributed broker. A future relay can claim unprocessed outbox rows and publish to Kafka/SNS/SQS without changing producers.
+
+The Phase 2A implementation uses the exact v1 names above. `ExternalLicenceApplicationReported` deliberately encodes that the record is user-reported; it replaces the earlier planned `ExternalApplicationRecorded` vocabulary before any external consumer was released.

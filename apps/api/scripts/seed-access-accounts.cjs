@@ -10,6 +10,8 @@ const REQUIRED_PERSONAS = [
   'ORGANIZATION_OWNER',
   'ORGANIZATION_RECRUITER',
   'TRUST_REVIEWER',
+  'LICENSING_CURATOR',
+  'LICENSING_REVIEWER',
   'PLATFORM_ADMINISTRATOR',
 ];
 
@@ -41,6 +43,18 @@ const ACCESS_ACCOUNTS = [
     systemRoles: ['PROFESSIONAL', 'REVIEWER'],
   },
   {
+    persona: 'LICENSING_CURATOR',
+    email: 'licensing-curator@vetlinx.local',
+    landingRoute: '/review/licensing',
+    systemRoles: ['PROFESSIONAL', 'LICENSING_CURATOR'],
+  },
+  {
+    persona: 'LICENSING_REVIEWER',
+    email: 'licensing-reviewer@vetlinx.local',
+    landingRoute: '/review/licensing',
+    systemRoles: ['PROFESSIONAL', 'LICENSING_REVIEWER'],
+  },
+  {
     persona: 'PLATFORM_ADMINISTRATOR',
     email: 'admin@vetlinx.local',
     landingRoute: '/review',
@@ -51,6 +65,8 @@ const ACCESS_ACCOUNTS = [
 const IDS = {
   professionalProfile: '81000000-0000-4000-8000-000000000001',
   professionalCredential: '81000000-0000-4000-8000-000000000002',
+  degreeCredential: '81000000-0000-4000-8000-000000000003',
+  experienceCredential: '81000000-0000-4000-8000-000000000004',
   organization: '82000000-0000-4000-8000-000000000001',
   organizationVerification: '82000000-0000-4000-8000-000000000002',
 };
@@ -88,7 +104,7 @@ async function upsertAccount(client, account, passwordHash) {
   await client.query(
     `DELETE FROM identity.account_system_roles
      WHERE account_id = $1
-       AND role IN ('PROFESSIONAL', 'REVIEWER', 'OPERATIONS_ADMIN', 'PLATFORM_ADMIN')`,
+       AND role IN ('PROFESSIONAL', 'REVIEWER', 'LICENSING_CURATOR', 'LICENSING_REVIEWER', 'OPERATIONS_ADMIN', 'PLATFORM_ADMIN')`,
     [accountId],
   );
   for (const role of account.systemRoles) {
@@ -147,6 +163,131 @@ async function seedProfessionalProfile(client, accountId) {
        updated_at = NOW()`,
     [IDS.professionalCredential, IDS.professionalProfile],
   );
+
+  const evidence = [
+    [IDS.degreeCredential, 'DEGREE', 'Doctor of Veterinary Medicine', 'Cairo University', '2019-06-30'],
+    [IDS.experienceCredential, 'EXPERIENCE', 'Veterinary Clinical Experience', 'VetLinX Veterinary Hospital', '2020-01-15'],
+  ];
+  for (const [id, typeCode, title, issuer, issueDate] of evidence) {
+    await client.query(
+      `INSERT INTO credentials.credentials
+         (id, professional_profile_id, type_code, title, issuing_organization,
+          country_code, issue_date, status, submitted_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'AE', $6::date, 'VERIFIED', NOW(), NOW())
+       ON CONFLICT (id) DO UPDATE SET
+         professional_profile_id = EXCLUDED.professional_profile_id,
+         type_code = EXCLUDED.type_code,
+         title = EXCLUDED.title,
+         issuing_organization = EXCLUDED.issuing_organization,
+         country_code = EXCLUDED.country_code,
+         issue_date = EXCLUDED.issue_date,
+         status = EXCLUDED.status,
+         submitted_at = EXCLUDED.submitted_at,
+         updated_at = NOW()`,
+      [id, IDS.professionalProfile, typeCode, title, issuer, issueDate],
+    );
+  }
+}
+
+async function seedLicensingPilot(client, accountIds) {
+  const jurisdiction = await client.query(
+    `INSERT INTO licensing.jurisdictions (id, code, name_en, name_ar, active, updated_at)
+     VALUES ($1, 'AE', 'United Arab Emirates', 'الإمارات العربية المتحدة', true, NOW())
+     ON CONFLICT (code) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, active = true, updated_at = NOW()
+     RETURNING id`,
+    ['83000000-0000-4000-8000-000000000001'],
+  );
+  const jurisdictionId = jurisdiction.rows[0].id;
+  const authority = await client.query(
+    `INSERT INTO licensing.authorities (id, jurisdiction_id, code, name_en, name_ar, website_url, active, updated_at)
+     VALUES ($1, $2, 'MOCCAE', 'Ministry of Climate Change and Environment', 'وزارة التغير المناخي والبيئة', 'https://moccae.gov.ae', true, NOW())
+     ON CONFLICT (jurisdiction_id, code) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, website_url = EXCLUDED.website_url, active = true, updated_at = NOW()
+     RETURNING id`,
+    ['83000000-0000-4000-8000-000000000002', jurisdictionId],
+  );
+  const authorityId = authority.rows[0].id;
+  const licenceType = await client.query(
+    `INSERT INTO licensing.licence_types (id, code, name_en, name_ar, professional_title_code, active, updated_at)
+     VALUES ($1, 'VETERINARIAN', 'Veterinary professional licence', 'ترخيص مزاولة مهنة الطب البيطري', 'VETERINARIAN', true, NOW())
+     ON CONFLICT (code) DO UPDATE SET name_en = EXCLUDED.name_en, name_ar = EXCLUDED.name_ar, professional_title_code = EXCLUDED.professional_title_code, active = true, updated_at = NOW()
+     RETURNING id`,
+    ['83000000-0000-4000-8000-000000000003'],
+  );
+  const licenceTypeId = licenceType.rows[0].id;
+  const pathway = await client.query(
+    `INSERT INTO licensing.licence_pathways (id, jurisdiction_id, authority_id, licence_type_id, slug, active, updated_at)
+     VALUES ($1, $2, $3, $4, 'uae-veterinary-professional-pilot', true, NOW())
+     ON CONFLICT (jurisdiction_id, authority_id, licence_type_id, slug) DO UPDATE SET active = true, updated_at = NOW()
+     RETURNING id`,
+    ['83000000-0000-4000-8000-000000000004', jurisdictionId, authorityId, licenceTypeId],
+  );
+  const pathwayId = pathway.rows[0].id;
+  const version = await client.query(
+    `INSERT INTO licensing.licence_pathway_versions
+       (id, pathway_id, version, status, effective_from, source_url, source_title, reviewed_at, reviewed_by_account_id, updated_at)
+     VALUES ($1, $2, 1, 'PUBLISHED', DATE '2025-01-01', $3, $4, NOW(), $5, NOW())
+     ON CONFLICT (pathway_id, version) DO UPDATE SET
+       status = 'PUBLISHED', effective_from = EXCLUDED.effective_from, effective_to = NULL,
+       source_url = EXCLUDED.source_url, source_title = EXCLUDED.source_title,
+       reviewed_at = EXCLUDED.reviewed_at, reviewed_by_account_id = EXCLUDED.reviewed_by_account_id, updated_at = NOW()
+     RETURNING id`,
+    [
+      '83000000-0000-4000-8000-000000000005',
+      pathwayId,
+      'https://www.moccae.gov.ae/Handlers/DownloadPDF.ashx?id=67407',
+      'MOCCAE: Issue a license to practice the profession for veterinarians and assistant vets',
+      accountIds.get('LICENSING_REVIEWER'),
+    ],
+  );
+  const versionId = version.rows[0].id;
+  const requirements = [
+    {
+      id: '83000000-0000-4000-8000-000000000006', code: 'VETERINARY_DEGREE', position: 1,
+      titleEn: 'Verified veterinary degree', titleAr: 'شهادة الطب البيطري الموثقة',
+      descriptionEn: 'Provide verified evidence of the veterinary qualification required for the profession.',
+      descriptionAr: 'قدّم دليلاً موثقاً على المؤهل البيطري المطلوب لمزاولة المهنة.',
+      credentialTypeCode: 'DEGREE', credentialId: IDS.degreeCredential,
+    },
+    {
+      id: '83000000-0000-4000-8000-000000000007', code: 'PROFESSIONAL_EXPERIENCE', position: 2,
+      titleEn: 'Verified professional experience', titleAr: 'الخبرة المهنية الموثقة',
+      descriptionEn: 'Provide verified professional experience evidence for the applicable licensing classification.',
+      descriptionAr: 'قدّم دليلاً موثقاً على الخبرة المهنية المناسبة لفئة الترخيص.',
+      credentialTypeCode: 'EXPERIENCE', credentialId: IDS.experienceCredential,
+    },
+  ];
+  for (const requirement of requirements) {
+    const saved = await client.query(
+      `INSERT INTO licensing.pathway_requirements
+         (id, pathway_version_id, code, title_en, title_ar, description_en, description_ar, position, required, rule, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9::jsonb, NOW())
+       ON CONFLICT (pathway_version_id, code) DO UPDATE SET
+         title_en = EXCLUDED.title_en, title_ar = EXCLUDED.title_ar,
+         description_en = EXCLUDED.description_en, description_ar = EXCLUDED.description_ar,
+         position = EXCLUDED.position, required = true, rule = EXCLUDED.rule, updated_at = NOW()
+       RETURNING id`,
+      [requirement.id, versionId, requirement.code, requirement.titleEn, requirement.titleAr, requirement.descriptionEn, requirement.descriptionAr, requirement.position, JSON.stringify({ kind: 'VERIFIED_CREDENTIAL', credentialTypeCode: requirement.credentialTypeCode })],
+    );
+    requirement.savedId = saved.rows[0].id;
+  }
+  const enrollment = await client.query(
+    `INSERT INTO licensing.pathway_enrollments (id, professional_profile_id, pathway_version_id, status, started_at, updated_at)
+     VALUES ($1, $2, $3, 'ACTIVE', NOW(), NOW())
+     ON CONFLICT (professional_profile_id, pathway_version_id) DO UPDATE SET status = 'ACTIVE', updated_at = NOW()
+     RETURNING id`,
+    ['83000000-0000-4000-8000-000000000008', IDS.professionalProfile, versionId],
+  );
+  for (const requirement of requirements) {
+    await client.query(
+      `INSERT INTO licensing.requirement_progress
+         (id, enrollment_id, requirement_id, state, linked_credential_id, note, evaluated_at, updated_at)
+       VALUES ($1, $2, $3, 'SATISFIED', $4, 'Local pilot evidence fixture; not an authority decision.', NOW(), NOW())
+       ON CONFLICT (enrollment_id, requirement_id) DO UPDATE SET
+         state = 'SATISFIED', linked_credential_id = EXCLUDED.linked_credential_id,
+         note = EXCLUDED.note, evaluated_at = NOW(), updated_at = NOW()`,
+      [randomUUID(), enrollment.rows[0].id, requirement.savedId, requirement.credentialId],
+    );
+  }
 }
 
 async function seedOrganization(client, accountIds) {
@@ -226,6 +367,7 @@ async function seedAccessAccounts() {
     }
     await seedProfessionalProfile(client, accountIds.get('VETERINARIAN'));
     await seedOrganization(client, accountIds);
+    await seedLicensingPilot(client, accountIds);
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');

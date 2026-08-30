@@ -11,8 +11,9 @@ VetLinX is a verified veterinary career platform. This repository implements the
 - Structured jobs, verified-candidate discovery, applications, interviews, offers, and employment confirmation.
 - Append-only audit history, durable outbox events, notifications, health checks, OpenAPI, and module manifest.
 - Responsive veterinarian, employer, and reviewer workspaces with explicit empty/error/loading states.
+- Governed licensing pathways with sourced immutable versions, private evidence readiness, honest external-application tracking, curator/reviewer separation, and English/Arabic RTL workflows.
 
-No demo identities are seeded. New users register through the product; privileged reviewer roles are granted through the audited role-management script.
+Production contains no demo identities. New users register through the product; privileged reviewer roles are granted through the audited role-management script. An explicit production-guarded local seed is available for disposable development and pilot validation only.
 
 ## Architecture
 
@@ -59,6 +60,8 @@ The project intentionally contains no shared login credentials. Register a norma
 npm --prefix apps/api run role:manage -- grant you@example.com REVIEWER "Local reviewer access"
 ```
 
+For a disposable local environment, `npm run db:seed:access` creates repeatable access personas plus one clearly labelled UAE licensing pilot. These fixtures are not authority approval and must never be seeded into production. The printed credentials are local-only. Validate catalogue performance with `npm --prefix apps/api run perf:licensing` while the API is running.
+
 ## Verification
 
 ```powershell
@@ -87,3 +90,4 @@ The API container applies committed migrations before starting. PostgreSQL and u
 - [State transitions](docs/specification/state-transitions.md)
 - [Event catalog](docs/specification/event-catalog.md)
 - [Release checklist](docs/operations/release-checklist.md)
+- [Licensing pilot validation](docs/operations/licensing-pilot-validation.md)

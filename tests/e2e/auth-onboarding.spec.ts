@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("veterinarian can create an account, build a profile, and sign back in", async ({ page }) => {
+test("veterinarian can create an account, build a profile, and sign back in", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
-  const email = `sara.${Date.now()}@vetlinx.test`;
+  const email = `sara.${testInfo.project.name}.${Date.now()}@vetlinx.test`;
   const password = "Verified-Career-Record-42";
   const consoleErrors: string[] = [];
   page.on("console", (message) => {

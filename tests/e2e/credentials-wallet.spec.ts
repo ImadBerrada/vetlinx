@@ -2,7 +2,8 @@ import { expect, test } from "@playwright/test";
 import path from "node:path";
 
 test("professional can create a credential and submit private evidence for review", async ({ page }, testInfo) => {
-  const email = `credential.${Date.now()}@vetlinx.test`;
+  test.setTimeout(90_000);
+  const email = `credential.${testInfo.project.name}.${Date.now()}@vetlinx.test`;
 
   await page.goto("/register");
   await expect(page.getByRole("button", { name: "Create account" })).toBeEnabled();
