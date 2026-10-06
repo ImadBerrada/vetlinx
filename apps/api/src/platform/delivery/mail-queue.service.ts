@@ -23,6 +23,10 @@ export interface QueuedEmail {
 export class MailQueueService {
   constructor(private readonly config: ConfigService) {}
 
+  isEnabled() {
+    return this.config.get<string>('MAIL_TRANSPORT', 'capture') !== 'disabled';
+  }
+
   private key() {
     const configured = this.config.get<string>('DELIVERY_ENCRYPTION_KEY');
     if (configured) return Buffer.from(configured, 'hex');
@@ -72,6 +76,7 @@ export class MailQueueService {
     transaction: Prisma.TransactionClient,
     message: QueuedEmail,
   ): Promise<void> {
+    if (!this.isEnabled()) return;
     await transaction.emailDelivery.createMany({
       data: [
         {

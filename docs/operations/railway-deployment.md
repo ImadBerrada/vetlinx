@@ -9,8 +9,8 @@ Public web domain: `https://web-production-c7d10.up.railway.app`.
 | Service | Source root | Container command | Networking / storage |
 | --- | --- | --- | --- |
 | web | `/` | `node server.js` | Public HTTPS, port 3000; private API connection |
-| api | `/apps/api` | `node dist/src/main.js` | Private port 4000; volume at `/app/var/evidence` |
-| worker | `/apps/api` | `node dist/src/worker.js` | Private; shared PostgreSQL queue |
+| api | `/apps/api` | `/usr/local/bin/vetlinx-entrypoint node dist/src/main.js` | Private port 4000; volume at `/app/var/evidence` |
+| worker | `/apps/api` | `/usr/local/bin/vetlinx-entrypoint node dist/src/worker.js` | Private; shared PostgreSQL queue |
 | Postgres | Railway PostgreSQL image | Image default | Private database; persistent database volume |
 
 Web, API and worker use the Dockerfiles in their source roots. The API's
@@ -35,18 +35,25 @@ API:
 - `EVIDENCE_STORAGE_PATH=/app/var/evidence`, `RAILWAY_RUN_UID=0`.
 - `TRUST_PROXY=false`: the API is reached through the web server privately.
 - Independently generated `JWT_ACCESS_SECRET` and `DELIVERY_ENCRYPTION_KEY`.
-- `MAIL_TRANSPORT=smtp`, a verified `MAIL_FROM`, and working `SMTP_HOST`,
-  `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` settings.
+- `MAIL_TRANSPORT=disabled`, as explicitly requested for this deployment.
+  SMTP credentials are not required in this mode.
 
 Worker:
 
-- `NODE_ENV=production`, `MAIL_TRANSPORT=smtp`, `ENABLE_API_DOCS=false`.
+- `NODE_ENV=production`, `MAIL_TRANSPORT=disabled`, `ENABLE_API_DOCS=false`.
 - Same private PostgreSQL URL as API.
 - Reference API's `JWT_ACCESS_SECRET`, `DELIVERY_ENCRYPTION_KEY`,
-  `FRONTEND_ORIGIN`, and email configuration. Never generate a different
+  `FRONTEND_ORIGIN`. Never generate a different
   encryption key for the worker.
 
-Configure SMTP values securely in Railway; do not put credentials in this
+Email is disabled: no new email jobs are created, existing eligible jobs are
+cancelled with their bodies purged, and verification/recovery requests return
+an explicit unavailable response. Registration, login, in-app notifications,
+MFA and other worker tasks remain active. Unverified addresses remain
+unverified; disabling email does not bypass account or credential checks.
+
+To enable email later, configure SMTP values securely in Railway and set
+`MAIL_TRANSPORT=smtp` on both API and worker; do not put credentials in this
 document, repository, CLI output, or build arguments. Shared environment
 variables need explicit `${{shared.VARIABLE_NAME}}` references on API; worker
 can then reference `${{api.VARIABLE_NAME}}`. Port 465 uses `SMTP_SECURE=true`;
@@ -55,7 +62,9 @@ port 587 uses `SMTP_SECURE=false` with required STARTTLS.
 Railway mounts volumes as root. The API container entrypoint initializes the
 evidence directory when launched with `RAILWAY_RUN_UID=0`, then drops to the
 unprivileged `node` user before running application commands. Existing files
-are not recursively reassigned. Keep one API replica while using local private
+are not recursively reassigned. Railway start-command overrides replace image
+entrypoints, so the explicit API/worker commands above include the launcher.
+Keep one API replica while using local private
 file storage; use a shared storage adapter before horizontal scaling.
 
 ## Releases and verification
@@ -74,9 +83,10 @@ integration is unavailable.
 Check the public landing page, professional and pet-owner registration/login
 pages, public directory and protected-route behavior. Verify private API
 database health, all committed migrations, worker heartbeat, and volume
-permissions. Test SMTP authentication/TLS without sending unsolicited mail;
-complete email verification and password-reset tests with an authorized
-recipient before inviting users.
+permissions. Confirm disabled recovery reports an unavailable response and
+creates no mail jobs. Before enabling email, test SMTP authentication/TLS
+without sending unsolicited mail and complete verification/reset tests with
+an authorized recipient.
 
 Back up PostgreSQL and the evidence volume together, following the operations
 runbook. Do not copy local test accounts into production. Production privileged

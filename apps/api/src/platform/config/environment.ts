@@ -66,7 +66,7 @@ class EnvironmentVariables {
   )
   ENABLE_API_DOCS = true;
 
-  @Matches(/^(capture|smtp)$/)
+  @Matches(/^(capture|smtp|disabled)$/)
   MAIL_TRANSPORT = 'capture';
 
   @IsString()
@@ -114,13 +114,19 @@ export function validateEnvironment(config: Record<string, unknown>) {
 
   if (
     validated.NODE_ENV === EnvironmentName.Production &&
-    (validated.MAIL_TRANSPORT !== 'smtp' ||
-      !validated.SMTP_HOST ||
-      !validated.DELIVERY_ENCRYPTION_KEY ||
-      validated.MAIL_FROM.includes('@localhost'))
+    !validated.DELIVERY_ENCRYPTION_KEY
+  ) {
+    throw new Error('DELIVERY_ENCRYPTION_KEY is required in production');
+  }
+
+  if (
+    validated.NODE_ENV === EnvironmentName.Production &&
+    (validated.MAIL_TRANSPORT === 'capture' ||
+      (validated.MAIL_TRANSPORT === 'smtp' &&
+        (!validated.SMTP_HOST || validated.MAIL_FROM.includes('@localhost'))))
   ) {
     throw new Error(
-      'Production requires SMTP delivery, a configured sender and DELIVERY_ENCRYPTION_KEY',
+      'Production email requires SMTP delivery and a configured sender; use MAIL_TRANSPORT=disabled to turn email off',
     );
   }
 

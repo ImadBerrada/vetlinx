@@ -1,6 +1,37 @@
 import { validateEnvironment } from './environment';
 
 describe('validateEnvironment', () => {
+  const production = {
+    NODE_ENV: 'production',
+    JWT_ACCESS_SECRET: 'test-production-secret-with-more-than-32-characters',
+    DELIVERY_ENCRYPTION_KEY: 'a1'.repeat(32),
+  };
+
+  it('allows explicitly disabled production email without SMTP credentials', () => {
+    expect(
+      validateEnvironment({ ...production, MAIL_TRANSPORT: 'disabled' })
+        .MAIL_TRANSPORT,
+    ).toBe('disabled');
+  });
+
+  it('still rejects production capture and incomplete SMTP configuration', () => {
+    for (const MAIL_TRANSPORT of ['capture', 'smtp']) {
+      expect(() =>
+        validateEnvironment({ ...production, MAIL_TRANSPORT }),
+      ).toThrow('Production email requires');
+    }
+  });
+
+  it('requires the production encryption key even when email is disabled', () => {
+    expect(() =>
+      validateEnvironment({
+        ...production,
+        DELIVERY_ENCRYPTION_KEY: undefined,
+        MAIL_TRANSPORT: 'disabled',
+      }),
+    ).toThrow('DELIVERY_ENCRYPTION_KEY is required');
+  });
+
   it('provides safe local defaults', () => {
     expect(validateEnvironment({})).toMatchObject({
       NODE_ENV: 'development',

@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -42,6 +43,7 @@ export class IdentitySecurityService {
   ) {}
 
   async requestPasswordReset(emailInput: string, correlationId: string) {
+    this.requireEmailDelivery();
     const startedAt = performance.now();
     try {
       const account = await this.prisma.account.findUnique({
@@ -62,6 +64,7 @@ export class IdentitySecurityService {
   }
 
   async requestEmailVerification(accountId: string, correlationId: string) {
+    this.requireEmailDelivery();
     await this.issue(accountId, 'EMAIL_VERIFY', correlationId);
     return {
       message:
@@ -69,11 +72,23 @@ export class IdentitySecurityService {
     };
   }
 
-  security(accountId: string) {
-    return this.prisma.account.findUniqueOrThrow({
+  async security(accountId: string) {
+    const account = await this.prisma.account.findUniqueOrThrow({
       where: { id: accountId },
       select: { email: true, emailVerifiedAt: true },
     });
+    return {
+      ...account,
+      emailDeliveryEnabled:
+        this.config.get<string>('MAIL_TRANSPORT') !== 'disabled',
+    };
+  }
+
+  private requireEmailDelivery() {
+    if (this.config.get<string>('MAIL_TRANSPORT') === 'disabled')
+      throw new ServiceUnavailableException(
+        'Email delivery is currently disabled. Email verification and password recovery are unavailable.',
+      );
   }
 
   async completePasswordReset(

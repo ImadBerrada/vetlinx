@@ -251,6 +251,47 @@ describeWorker(
       expect(await prisma.emailDelivery.count()).toBe(1);
     });
 
+    it('cancels old mail and avoids new email while keeping worker housekeeping healthy when delivery is disabled', async () => {
+      const old = await enqueue();
+      const config = module.get(ConfigService);
+      const previous = config.get<string>('MAIL_TRANSPORT', 'capture');
+      config.set('MAIL_TRANSPORT', 'disabled');
+      try {
+        await prisma.$transaction((tx) =>
+          queue.enqueue(tx, {
+            idempotencyKey: 'fixture:disabled',
+            to: 'recipient@worker.test',
+            subject: 'Disabled',
+            text: 'Must never be queued',
+            sensitive: true,
+          }),
+        );
+        await worker.tick();
+        expect(send).not.toHaveBeenCalled();
+        expect(await prisma.emailDelivery.count()).toBe(1);
+        expect(
+          await prisma.emailDelivery.findUniqueOrThrow({
+            where: { id: old.id },
+          }),
+        ).toMatchObject({
+          state: 'CANCELLED',
+          sentAt: null,
+          encryptedText: null,
+          lastError: 'MAIL_DELIVERY_DISABLED',
+        });
+        expect(
+          await prisma.workerHeartbeat.findUniqueOrThrow({
+            where: { name: 'delivery' },
+          }),
+        ).toMatchObject({
+          lastError: null,
+          lastSucceededAt: expect.any(Date) as unknown,
+        });
+      } finally {
+        config.set('MAIL_TRANSPORT', previous);
+      }
+    });
+
     it('bounds expired booking-hold cleanup and preserves booked snapshots and recent holds', async () => {
       const booked = await appointment();
       const service = await prisma.clinicService.create({

@@ -1,14 +1,17 @@
 import {
   type INestApplication,
   Logger,
+  ServiceUnavailableException,
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { AuthTokenService } from '../src/modules/identity/auth-token.service';
+import { IdentitySecurityService } from '../src/modules/identity-security/identity-security.service';
 import {
   NOTIFICATIONS_PUBLIC_API,
   type NotificationsPublicApi,
@@ -44,6 +47,51 @@ describe('Identity recovery, email verification and session security', () => {
   let verificationToken: string;
   const http = () => app.getHttpServer() as Parameters<typeof request>[0];
   const bearer = () => `Bearer ${token}`;
+
+  it('disables recovery and verification without issuing tokens or claiming email was sent', async () => {
+    const config = app.get(ConfigService);
+    const previous = config.get<string>('MAIL_TRANSPORT', 'capture');
+    const tokenCount = await prisma.securityToken.count();
+    const mailCount = emails.length;
+    config.set('MAIL_TRANSPORT', 'disabled');
+    try {
+      const responses = [];
+      const recovery = app.get(IdentitySecurityService);
+      for (const email of [
+        fixtureEmail,
+        `missing-${randomUUID()}@identity-security.test`,
+      ]) {
+        const response = await recovery
+          .requestPasswordReset(email, randomUUID())
+          .catch((error: unknown) => {
+            if (!(error instanceof ServiceUnavailableException)) throw error;
+            expect(error.getStatus()).toBe(503);
+            return error.getResponse();
+          });
+        responses.push(response);
+      }
+      expect(responses[0]).toEqual(responses[1]);
+      const verification = await request(http())
+        .post('/api/v1/auth/email-verification/request')
+        .set('authorization', bearer())
+        .expect(503);
+      expect(verification.body as unknown).toMatchObject({
+        message: expect.stringContaining('disabled') as unknown,
+      });
+      const status = await request(http())
+        .get('/api/v1/auth/security')
+        .set('authorization', bearer())
+        .expect(200);
+      expect(status.body as unknown).toMatchObject({
+        emailDeliveryEnabled: false,
+        emailVerifiedAt: null,
+      });
+      expect(await prisma.securityToken.count()).toBe(tokenCount);
+      expect(emails.length).toBe(mailCount);
+    } finally {
+      config.set('MAIL_TRANSPORT', previous);
+    }
+  });
 
   beforeAll(async () => {
     const fixture = await Test.createTestingModule({ imports: [AppModule] })

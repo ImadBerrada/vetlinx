@@ -190,7 +190,9 @@ export class DeliveryWorkerService {
         const reminder = email.idempotencyKey.startsWith(
           'appointment-reminder:',
         );
+        const disabled = !this.mail.isEnabled();
         const canDeliver =
+          !disabled &&
           !expired &&
           !stale &&
           (await this.notifications.canDeliverEmail({
@@ -213,6 +215,7 @@ export class DeliveryWorkerService {
               encryptedText: null,
               leaseId: null,
               leasedUntil: null,
+              lastError: disabled ? 'MAIL_DELIVERY_DISABLED' : null,
             },
           });
           continue;
