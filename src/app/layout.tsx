@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VetLinX — Professional workspace",
-  description: "Your verified veterinary career, connected.",
+  title: "VetLinX — Veterinary care & careers",
+  description: "Care for your pets, build your veterinary career, and connect with verified organizations.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

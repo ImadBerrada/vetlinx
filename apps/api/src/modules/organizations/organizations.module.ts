@@ -5,10 +5,15 @@ import { OrganizationReviewController } from './organization-review.controller';
 import { OrganizationsController } from './organizations.controller';
 import { ORGANIZATIONS_PUBLIC_API } from './organizations.public';
 import { OrganizationsService } from './organizations.service';
+import { ClinicsController } from './clinics.controller';
 
 @Module({
   imports: [IdentityModule, PrivateFilesModule],
-  controllers: [OrganizationsController, OrganizationReviewController],
+  controllers: [
+    OrganizationsController,
+    OrganizationReviewController,
+    ClinicsController,
+  ],
   providers: [
     OrganizationsService,
     { provide: ORGANIZATIONS_PUBLIC_API, useExisting: OrganizationsService },

@@ -14,6 +14,8 @@ Prove the first trusted career loop:
 
 ## Included
 
+The 2026-09-30 B2C extension adds owner/pet identities and appointment requests to this boundary; see [B2C foundation](specification/b2c-foundation.md). Clinical records and paid services retain their existing exclusions.
+
 - Account registration, authentication, recovery, and session management.
 - Veterinarian profile, education, experience, specialties, species, and languages.
 - Credentials wallet, licences, secure evidence files, and verification history.
@@ -23,6 +25,7 @@ Prove the first trusted career loop:
 - Jobs, applications, interviews, offers, employment, and status histories.
 - Notifications, taxonomy, country configuration, audit, and operational health.
 - English and Arabic-ready interfaces, including RTL foundations.
+- General account onboarding, pet-owner profiles, private pets, opt-in verified clinic discovery, and clinic-confirmed appointment requests.
 
 ## Explicitly excluded from MVP
 

@@ -23,7 +23,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import type { ApiEmployment, ApiInterview, ApiJob, ApiJobApplication, ApiJobOffer } from "@/lib/server/vetlinx-api";
 import styles from "./ProfessionalJobs.module.css";
 
-export function ProfessionalJobs() {
+export function ProfessionalJobs({ initialTab = "discover" }: { initialTab?: "discover" | "applications" }) {
   const router = useRouter();
   const [jobs, setJobs] = useState<ApiJob[]>([]);
   const [applications, setApplications] = useState<ApiJobApplication[]>([]);
@@ -31,7 +31,7 @@ export function ProfessionalJobs() {
   const [offers, setOffers] = useState<ApiJobOffer[]>([]);
   const [employments, setEmployments] = useState<ApiEmployment[]>([]);
   const [selected, setSelected] = useState<ApiJob | null>(null);
-  const [tab, setTab] = useState<"discover" | "applications">("discover");
+  const tab = initialTab;
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
@@ -200,7 +200,7 @@ export function ProfessionalJobs() {
     );
   return (
     <>
-      <AppShell title="Veterinary roles" description="Find verified roles, understand your eligibility, and track every application.">
+      <AppShell title={initialTab === "applications" ? "My applications" : "Veterinary roles"} description="Find verified roles, understand your eligibility, and track every application.">
         {message ? (
           <div className={styles.notice}>
             {message}
@@ -225,13 +225,13 @@ export function ProfessionalJobs() {
         <div className={styles.tabs}>
           <button
             className={tab === "discover" ? styles.active : ""}
-            onClick={() => setTab("discover")}
+            onClick={() => router.push("/jobs")}
           >
             Discover jobs <span>{jobs.length}</span>
           </button>
           <button
             className={tab === "applications" ? styles.active : ""}
-            onClick={() => setTab("applications")}
+            onClick={() => router.push("/applications")}
           >
             My applications <span>{applications.length}</span>
           </button>

@@ -1555,6 +1555,7 @@ export class RecruitmentService {
       .findMany({
         where: {
           status: { in: ['DRAFT', 'ACTIVE'] },
+          visibility: 'PUBLIC',
           ...(query.countryCode
             ? { countryCode: query.countryCode.toUpperCase() }
             : {}),
@@ -1572,6 +1573,7 @@ export class RecruitmentService {
           displayName: true,
           countryCode: true,
           status: true,
+          contactVisibility: true,
           account: { select: { email: true } },
         },
         orderBy: { displayName: 'asc' },
@@ -1582,6 +1584,14 @@ export class RecruitmentService {
           where: {
             professionalProfileId: { in: profiles.map((item) => item.id) },
             status: 'VERIFIED',
+            OR: [
+              { expiryDate: null },
+              {
+                expiryDate: {
+                  gte: new Date(new Date().toISOString().slice(0, 10)),
+                },
+              },
+            ],
             ...(query.credentialType
               ? { typeCode: query.credentialType.toUpperCase() }
               : {}),
@@ -1603,8 +1613,11 @@ export class RecruitmentService {
             credential,
           ]);
         return profiles
-          .map((profile) => ({
+          .map(({ account, contactVisibility, ...profile }) => ({
             ...profile,
+            account: {
+              email: contactVisibility === 'PRIVATE' ? null : account.email,
+            },
             verifiedCredentials: grouped.get(profile.id) ?? [],
           }))
           .filter((profile) => profile.verifiedCredentials.length > 0);

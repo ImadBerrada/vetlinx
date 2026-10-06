@@ -4,9 +4,9 @@ import path from "node:path";
 test("professional can create a credential and submit private evidence for review", async ({ page }, testInfo) => {
   const email = `credential.${Date.now()}@vetlinx.test`;
 
-  await page.goto("/register");
+  await page.goto("/register?intent=professional");
   await expect(page.getByRole("button", { name: "Create account" })).toBeEnabled();
-  await page.getByLabel("Work email").fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill("Verified-Career-Record-42");
   await page.getByRole("button", { name: "Create account" }).click();
 

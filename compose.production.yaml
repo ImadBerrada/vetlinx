@@ -18,7 +18,7 @@ services:
     build:
       context: ./apps/api
     restart: unless-stopped
-    environment:
+    environment: &api_environment
       NODE_ENV: production
       PORT: 4000
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
@@ -29,12 +29,38 @@ services:
       EVIDENCE_STORAGE_PATH: /app/var/evidence
       TRUST_PROXY: ${TRUST_PROXY:-false}
       ENABLE_API_DOCS: ${ENABLE_API_DOCS:-false}
+      MAIL_TRANSPORT: smtp
+      MAIL_FROM: ${MAIL_FROM:?Set MAIL_FROM}
+      SMTP_HOST: ${SMTP_HOST:?Set SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      DELIVERY_ENCRYPTION_KEY: ${DELIVERY_ENCRYPTION_KEY:?Set DELIVERY_ENCRYPTION_KEY}
     command: ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/v1/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - vetlinx_evidence:/app/var/evidence
+
+  worker:
+    build:
+      context: ./apps/api
+    restart: unless-stopped
+    environment: *api_environment
+    command: ["node", "dist/src/worker.js"]
+    depends_on:
+      api:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
 
   web:
     build:

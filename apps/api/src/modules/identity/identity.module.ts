@@ -21,6 +21,12 @@ import { SystemRolesGuard } from './system-roles.guard';
     { provide: PASSWORD_HASHER, useExisting: Argon2PasswordHasher },
     { provide: IDENTITY_PUBLIC_API, useExisting: IdentityService },
   ],
-  exports: [JwtModule, AccessTokenGuard, SystemRolesGuard, IDENTITY_PUBLIC_API],
+  exports: [
+    JwtModule,
+    AccessTokenGuard,
+    SystemRolesGuard,
+    IDENTITY_PUBLIC_API,
+    PASSWORD_HASHER,
+  ],
 })
 export class IdentityModule {}

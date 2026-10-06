@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState, useSyncExternalStore } from "react";
 import styles from "./Auth.module.css";
+import { authEntryHref, withReturnTo, type AuthNavigationContext } from "@/lib/auth-navigation";
+import { writeWorkspacePreference } from "@/lib/workspace-preference";
 
 interface ErrorPayload {
   message?: string;
@@ -13,7 +15,7 @@ interface ErrorPayload {
 
 const subscribeToHydration = () => () => undefined;
 
-export function AuthForm({ mode }: { mode: "register" | "login" }) {
+export function AuthForm({ mode, navigation }: { mode: "register" | "login"; navigation: AuthNavigationContext }) {
   const router = useRouter();
   const registering = mode === "register";
   const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
@@ -48,15 +50,20 @@ export function AuthForm({ mode }: { mode: "register" | "login" }) {
       return;
     }
 
-    router.push(registering ? "/onboarding" : (body.next ?? "/"));
+    const { intent, returnTo } = navigation;
+    if (intent) writeWorkspacePreference(intent === "owner" ? "owner" : "personal");
+    const next = registering
+      ? withReturnTo(intent === "owner" ? "/owner/onboarding" : intent === "professional" ? "/onboarding" : "/get-started", returnTo)
+      : returnTo ?? (intent === "owner" ? "/owner" : intent === "professional" ? "/professional" : body.next === "/" ? "/professional" : body.next ?? "/get-started");
+    router.push(next);
   }
 
   return (
     <form className={styles.authForm} onSubmit={submit} noValidate>
       <h2>{registering ? "Create your account" : "Sign in to VetLinX"}</h2>
       <div className={styles.field}>
-        <label htmlFor="email">Work email</label>
-        <input id="email" name="email" type="email" autoComplete="email" placeholder="you@clinic.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "email-error" : undefined} />
+        <label htmlFor="email">Email</label>
+        <input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "email-error" : undefined} />
         {errors.email ? <p className={styles.fieldError} id="email-error">{errors.email[0]}</p> : null}
       </div>
       <div className={styles.field}>
@@ -69,6 +76,7 @@ export function AuthForm({ mode }: { mode: "register" | "login" }) {
         </div>
         {errors.password ? <p className={styles.fieldError} id="password-error">{errors.password[0]}</p> : registering ? <p className={styles.fieldHelp} id="password-help">Use at least 12 characters</p> : null}
       </div>
+      {!registering ? <Link className="vl-help" href="/forgot-password">Forgot your password?</Link> : null}
       {message ? <div className={styles.formError} role="alert">{message}</div> : null}
       <button className={styles.primaryButton} type="submit" disabled={!hydrated || pending}>
         {pending ? <LoaderCircle className={styles.spinner} aria-hidden="true" /> : null}
@@ -76,7 +84,7 @@ export function AuthForm({ mode }: { mode: "register" | "login" }) {
       </button>
       <p className={styles.switchMode}>
         {registering ? "Already have an account?" : "New to VetLinX?"}{" "}
-        <Link href={registering ? "/login" : "/register"}>{registering ? "Sign in" : "Create an account"}</Link>
+        <Link href={authEntryHref(registering ? "login" : "register", navigation)}>{registering ? "Sign in" : "Create an account"}</Link>
       </p>
     </form>
   );

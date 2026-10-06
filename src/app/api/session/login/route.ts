@@ -42,14 +42,16 @@ export async function POST(request: NextRequest) {
   }
 
   const authorization = { authorization: `Bearer ${session.accessToken}` };
-  const [profileResponse, organizationsResponse] = await Promise.all([
+  const [profileResponse, organizationsResponse, ownerResponse] = await Promise.all([
     callApi("/api/v1/professionals/me", { headers: authorization }),
     callApi("/api/v1/organizations/me", { headers: authorization }),
+    callApi("/api/v1/owners/me", { headers: authorization }),
   ]);
   const organizations = organizationsResponse.ok
     ? ((await readJson<ApiOrganizationMembershipSummary[]>(organizationsResponse)) ?? [])
     : [];
   const hasProfile = profileResponse.ok;
+  const hasOwner = ownerResponse.ok;
   const canReview = session.account.roles.some((role) =>
     ["REVIEWER", "OPERATIONS_ADMIN", "PLATFORM_ADMIN"].includes(role),
   );
@@ -59,7 +61,9 @@ export async function POST(request: NextRequest) {
     (item) => item.organization.id === preferredOrganizationId,
   );
   const next =
-    preference === "personal" && hasProfile
+    preference === "owner" && hasOwner
+      ? "/owner"
+      : preference === "personal" && hasProfile
       ? "/"
       : preference === "trust" && canReview
         ? "/review"
@@ -71,8 +75,10 @@ export async function POST(request: NextRequest) {
               ? "/review"
               : organizations.length
                 ? "/employer"
-                : "/onboarding";
+                : hasOwner ? "/owner" : "/get-started";
   const response = NextResponse.json({ account: session.account, next });
+  const selectedWorkspace = next === "/owner" ? "owner" : next === "/" ? "personal" : next === "/review" ? "trust" : next === "/employer" ? `organization:${preferredOrganization ? preferredOrganizationId : organizations[0]?.organization.id}` : null;
+  if (selectedWorkspace) response.cookies.set(WORKSPACE_PREFERENCE_COOKIE, selectedWorkspace, { path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 365 });
   setSessionCookies(response, session);
   return response;
 }

@@ -24,6 +24,7 @@ coverage/
 /apps/api/dist/
 /apps/api/var/
 /var/
+/backups/
 
 # misc
 .DS_Store

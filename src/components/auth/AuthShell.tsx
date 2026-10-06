@@ -17,11 +17,11 @@ export function AuthShell({ mode, children }: AuthShellProps) {
         <header><BrandMark /></header>
         <div className={styles.authContent}>
           <div className={styles.intro}>
-            <h1>{registering ? "Build a career record that proves itself." : "Welcome back to your professional record."}</h1>
+            <h1>{registering ? "Your career. Your pets. One trusted account." : "Welcome back to VetLinX."}</h1>
             <p>
               {registering
-                ? "Your qualifications, experience and opportunities — connected in one trusted professional identity."
-                : "Continue building the verified identity that connects your career, credentials and opportunities."}
+                ? "Build your professional identity, care for your pets, or do both. Choose your workspace after signing up."
+                : "Sign in to your professional, pet-owner, or organization workspace."}
             </p>
           </div>
           <EvidenceRail compact />

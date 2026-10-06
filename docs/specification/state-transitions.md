@@ -54,6 +54,29 @@ ACTIVE → ENDED with a valid end date
 
 Only the organization tied to the accepted offer can confirm employment. Confirmation atomically marks the application hired and publishes portfolio-update events.
 
+## Owner/clinic appointment requests
+
+```text
+REQUESTED → CONFIRMED | DECLINED | CANCELLED
+CONFIRMED → COMPLETED | CANCELLED
+Time proposal: pending → accepted | rejected | expired | cleared on cancellation
+```
+
+Only the requesting owner can accept/reject a clinic's versioned proposal. Acceptance confirms the proposed time; rejection/expiry preserve the original status/time. Confirmation/completion cannot bypass a live proposal. Terminal appointments cannot reopen, future visits cannot be completed, and stale versions cannot overwrite newer actions. Every decision retains the request snapshot and appends history/audit/outbox/notifications atomically. Times are UTC instants plus an IANA timezone, not capacity reservations.
+
+## Account security and delivery
+
+Recovery/verification tokens are purpose-bound, unused and unexpired before consumption. Password reset invalidates every session family and older access-token versions. A device logout revokes its entire family including rotated descendants; other families remain active.
+
+```text
+Delivery: PENDING → PROCESSING → DELIVERED | PENDING (backoff) | FAILED
+PROCESSING → CANCELLED when an email expires or its reminder becomes stale
+Expired lease: PROCESSING → PROCESSING under a new worker lease
+Administrator recovery: FAILED → PENDING (audited, eligible unexpired content only)
+```
+
+Delivered/cancelled email bodies are purged. SMTP delivery may repeat after an acknowledgement failure; it is not exactly-once.
+
 ## Phase 2 — Licence pathways
 
 ```text

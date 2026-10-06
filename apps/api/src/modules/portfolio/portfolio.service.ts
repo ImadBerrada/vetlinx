@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../platform/persistence/prisma.service';
+import type { Prisma } from '../../generated/prisma/client';
 
 @Injectable()
 export class PortfolioService {
@@ -77,6 +78,15 @@ export class PortfolioService {
   }
 
   private privateSelect() {
+    const credentialWhere: Prisma.CredentialWhereInput = {
+      status: 'VERIFIED',
+      OR: [
+        { expiryDate: null },
+        {
+          expiryDate: { gte: new Date(new Date().toISOString().slice(0, 10)) },
+        },
+      ],
+    };
     return {
       id: true,
       displayName: true,
@@ -94,7 +104,7 @@ export class PortfolioService {
       updatedAt: true,
       account: { select: { email: true } },
       credentials: {
-        where: { status: 'VERIFIED' as const },
+        where: credentialWhere,
         select: {
           id: true,
           typeCode: true,

@@ -7,6 +7,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { AppShell } from "@/components/shell/AppShell";
 import styles from "./Onboarding.module.css";
+import { writeWorkspacePreference } from "@/lib/workspace-preference";
+import { authNavigationContext } from "@/lib/auth-navigation";
 
 const countries = [
   { code: "AE", name: "United Arab Emirates" },
@@ -96,6 +98,7 @@ export function OnboardingScreen() {
       if (response.status === 401) router.replace("/login");
       return;
     }
+    writeWorkspacePreference("personal");
     if (mode === "edit") {
       setPending(false);
       setSaved(true);
@@ -103,7 +106,7 @@ export function OnboardingScreen() {
       window.dispatchEvent(new Event("vetlinx:session-changed"));
       router.refresh();
     } else {
-      router.push("/credentials");
+      router.push(authNavigationContext(window.location.search).returnTo ?? "/credentials");
     }
   }
 
@@ -173,7 +176,7 @@ export function OnboardingScreen() {
               {pending ? <LoaderCircle className={styles.spinner} aria-hidden="true" /> : null}
               {pending ? "Creating profile…" : "Create professional profile"}
             </button>
-            <Link className={styles.later} href="/">Finish later</Link>
+            <Link className={styles.later} href="/get-started">Choose another workspace</Link>
             <p className={styles.hint}>You can always update these details in your profile settings.</p>
           </form>
         </div>
@@ -184,7 +187,7 @@ export function OnboardingScreen() {
           <h2>Your career record in VetLinX</h2>
           <p className={styles.recordLead}>We build a verified record, step by step. You’re building a profile that grows with your career.</p>
           <ol className={styles.steps}>
-            <li className={styles.done}><span><Check aria-hidden="true" /></span><div><strong>Account</strong><small>Verified account</small></div></li>
+            <li className={styles.done}><span><Check aria-hidden="true" /></span><div><strong>Account</strong><small>Account created</small></div></li>
             <li className={styles.active}><span /><div><strong>Professional profile</strong><small>Add your professional identity</small></div></li>
             <li><span /><div><strong>Credentials</strong><small>Add licenses, certifications, and experience</small></div></li>
           </ol>

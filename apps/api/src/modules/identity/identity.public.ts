@@ -4,4 +4,7 @@ export type AccountStatus = 'pending' | 'active' | 'suspended' | 'closed';
 
 export interface IdentityPublicApi {
   getAccountStatus(accountId: string): Promise<AccountStatus | null>;
+  findEmailRecipients(
+    accountIds: string[],
+  ): Promise<Array<{ accountId: string; email: string }>>;
 }

@@ -16,10 +16,14 @@ Each module owns its persistence model and business rules. A module must not que
 | Notifications | Templates, delivery requests, preferences, delivery outcomes | `NotificationDelivered`, `NotificationFailed` |
 | Taxonomy | Countries, authorities, professional titles, specialties, species, controlled vocabulary | `TaxonomyChanged` |
 | Audit | Append-only security and business audit events | No domain events; receives all auditable actions |
+| Owners (B2C foundation) | Private owner profiles and pet identities in `owners` | `PetRegistered` |
+| Appointments (B2C foundation) | Request snapshots, sharing consent, proposals, status history and reminder markers in `appointments` | `AppointmentRequested`, `AppointmentStatusChanged`, `AppointmentTimeProposed`, `AppointmentTimeAccepted`, `AppointmentTimeProposalClosed` |
+| Identity security | Identity-owned recovery/verification tokens and session commands | `AccountPasswordReset`, `EmailVerified` |
+| Platform delivery | Encrypted email deliveries, event-consumer leases, heartbeat and retry state in `platform`; orchestrates public domain interfaces | No additional business events |
 | Licensing (Phase 2) | Jurisdictions, authorities, licence types, pathway versions, professional pathway enrollments and requirement progress | `LicencePathwayPublished`, `PathwayEnrollmentStarted`, `RequirementProgressChanged`, `LicenceRenewalDue` |
 | Learning (Phase 2) | Provider capability, learning products and versions, sessions, enrollments, progress, attendance, assessments, certificates and CPD | `LearningProductPublished`, `EnrollmentCreated`, `AttendanceConfirmed`, `CertificateIssued`, `CpdRecordCreated` |
-| Owners and Animals (Phase 3) | Owner profiles, animal identities, owner-animal relationships | `OwnerProfileCreated`, `AnimalRegistered`, `AnimalRelationshipChanged` |
-| Consent and Appointments (Phase 3) | Consent grants/withdrawals and appointment lifecycle | `ConsentGranted`, `ConsentWithdrawn`, `AppointmentConfirmed` |
+| Owner/Animal extensions (Phase 3) | Animal identifiers and owner/caretaker relationship history, extending the B2C foundation | `AnimalRegistered`, `AnimalRelationshipChanged` |
+| Consent/Appointment extensions (Phase 3) | Broader consent grants/withdrawals and facility schedules, extending request-scoped consent | `ConsentGranted`, `ConsentWithdrawn`, `AppointmentConfirmed` |
 | Clinical Records (Phase 4) | Encounters, observations, diagnoses, procedures, prescriptions, orders, results, reports, amendments | `EncounterCompleted`, `PrescriptionIssued`, `ClinicalRecordAmended` |
 | Billing and Entitlements (Phase 5) | Plans, entitlements, subscriptions, invoices, internal payment ledger | `EntitlementChanged`, `InvoiceIssued`, `PaymentRecorded` |
 | Intelligence (Phase 5) | Governed analytical projections, benchmark definitions, approved model outputs | `ProjectionRefreshed`, `BenchmarkPublished` |

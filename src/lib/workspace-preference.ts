@@ -3,6 +3,7 @@ export const WORKSPACE_PREFERENCE_COOKIE = "vetlinx_workspace";
 
 export type WorkspacePreference =
   | "personal"
+  | "owner"
   | "trust"
   | `organization:${string}`;
 
@@ -20,9 +21,8 @@ export function organizationIdFromWorkspace(
 export function readWorkspacePreference(): WorkspacePreference | null {
   if (typeof window === "undefined") return null;
   try {
-    return window.localStorage.getItem(
-      WORKSPACE_PREFERENCE_KEY,
-    ) as WorkspacePreference | null;
+    const preference = window.localStorage.getItem(WORKSPACE_PREFERENCE_KEY);
+    return preference === "personal" || preference === "owner" || preference === "trust" || Boolean(organizationIdFromWorkspace(preference)) ? preference as WorkspacePreference : null;
   } catch {
     return null;
   }

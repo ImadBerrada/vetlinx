@@ -2,6 +2,8 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
+import { RefreshCoordinator } from "./refresh-coordinator";
 import {
   callApi,
   readJson,
@@ -11,6 +13,8 @@ import {
 const ACCESS_COOKIE = "vetlinx_access";
 const REFRESH_COOKIE = "vetlinx_refresh";
 const THIRTY_DAYS = 60 * 60 * 24 * 30;
+const sessionRuntime = globalThis as typeof globalThis & { vetlinxRefreshCoordinator?: RefreshCoordinator<ApiAuthenticationResult | null> };
+const rotations = sessionRuntime.vetlinxRefreshCoordinator ??= new RefreshCoordinator<ApiAuthenticationResult | null>();
 
 const cookieBase = {
   httpOnly: true,
@@ -43,13 +47,15 @@ export async function refreshSession(): Promise<ApiAuthenticationResult | null> 
   const refreshToken = cookieStore.get(REFRESH_COOKIE)?.value;
   if (!refreshToken) return null;
 
-  const response = await callApi("/api/v1/auth/refresh", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
+  return rotations.run(createHash("sha256").update(refreshToken).digest("hex"), async () => {
+    const response = await callApi("/api/v1/auth/refresh", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!response.ok) return null;
+    return readJson<ApiAuthenticationResult>(response);
   });
-  if (!response.ok) return null;
-  return readJson<ApiAuthenticationResult>(response);
 }
 
 export interface AuthenticatedApiResult {

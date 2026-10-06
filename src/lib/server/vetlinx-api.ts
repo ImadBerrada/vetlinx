@@ -115,7 +115,10 @@ export interface ApiNotification {
     | "OFFER_RECEIVED"
     | "OFFER_UPDATED"
     | "EMPLOYMENT_CONFIRMED"
-    | "EMPLOYMENT_ENDED";
+    | "EMPLOYMENT_ENDED"
+    | "APPOINTMENT_REQUESTED"
+    | "APPOINTMENT_UPDATED"
+    | "APPOINTMENT_REMINDER";
   status: "UNREAD" | "READ";
   title: string;
   message: string;
@@ -182,7 +185,7 @@ export interface ApiCandidate {
   displayName: string;
   countryCode: string;
   status: string;
-  account: { email: string };
+  account: { email: string | null };
   verifiedCredentials: Array<{ id: string; typeCode: string; title: string; issuingOrganization: string; countryCode: string; expiryDate: string | null }>;
 }
 
@@ -260,8 +263,59 @@ export interface ApiOrganization {
   region: string | null;
   postalCode: string | null;
   status: ApiOrganizationStatus;
+  acceptsAppointmentRequests: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ApiOwnerProfile {
+  id: string;
+  displayName: string;
+  countryCode: string;
+  phone: string;
+}
+
+export interface ApiPet {
+  id: string;
+  name: string;
+  speciesCode: "DOG" | "CAT" | "BIRD" | "RABBIT" | "HORSE" | "OTHER";
+  breed: string | null;
+  sex: "FEMALE" | "MALE" | "UNKNOWN";
+  birthDate: string | null;
+}
+
+export interface ApiClinic {
+  id: string;
+  publicName: string | null;
+  legalName: string;
+  countryCode: string;
+  city: string | null;
+  addressLine1: string | null;
+  phone: string | null;
+  website: string | null;
+  type: "CLINIC" | "HOSPITAL";
+}
+
+export interface ApiAppointment {
+  id: string;
+  organizationId: string;
+  petId: string;
+  petName: string;
+  speciesCode: string;
+  ownerName: string;
+  contactPhone: string;
+  clinicName: string;
+  startsAt: string;
+  timeZone: string;
+  visitReason: string;
+  status: "REQUESTED" | "CONFIRMED" | "DECLINED" | "CANCELLED" | "COMPLETED";
+  responseNote: string | null;
+  proposedStartsAt: string | null;
+  proposedTimeZone: string | null;
+  proposalExpiresAt: string | null;
+  proposalVersion: number;
+  proposalReason: string | null;
+  history: Array<{ fromStatus: string | null; toStatus: string; reason: string | null; createdAt: string; action: string; proposedStartsAt: string | null; proposedTimeZone: string | null; proposalVersion: number | null; proposalExpiresAt: string | null }>;
 }
 
 export interface ApiOrganizationVerification {

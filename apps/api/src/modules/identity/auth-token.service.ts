@@ -13,7 +13,13 @@ export class AuthTokenService {
 
   async signAccessToken(account: AuthenticatedAccount): Promise<string> {
     return this.jwt.signAsync(
-      { sub: account.accountId, email: account.email, typ: 'access' },
+      {
+        sub: account.accountId,
+        email: account.email,
+        typ: 'access',
+        av: account.authVersion ?? 0,
+        sid: account.sessionFamilyId,
+      },
       {
         secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
         expiresIn: this.accessTokenTtlSeconds,

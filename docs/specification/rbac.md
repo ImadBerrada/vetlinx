@@ -23,6 +23,10 @@ Organization permissions are also constrained by active membership and organizat
 
 System roles currently used: `PROFESSIONAL`, `REVIEWER`, `OPERATIONS_ADMIN`, and `PLATFORM_ADMIN`. Organization roles currently used: `OWNER`, `ADMIN`, `RECRUITER`, and `STAFF`.
 
+## B2C authorization
+
+The implemented B2C foundation adds owner-scoped profiles and pet management. An owner can request/cancel only their own appointments. Verified clinic owners/admins/staff can manage requests scoped to their organization; recruiters cannot. Only clinic owners/admins can enable public appointment intake. See [B2C foundation](b2c-foundation.md).
+
 ## Phase 2 authorization extension
 
 Phase 2 adds capability assignments scoped to a verified organization. Provider and instructor access are not global login personas.

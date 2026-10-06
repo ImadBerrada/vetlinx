@@ -12,13 +12,13 @@ test("veterinarian can create an account, build a profile, and sign back in", as
   });
   page.on("pageerror", (error) => consoleErrors.push(error.message));
 
-  await page.goto("/register");
+  await page.goto("/register?intent=professional");
   await expect(page).toHaveTitle("Create your VetLinX account");
-  await expect(page.getByRole("heading", { name: "Build a career record that proves itself." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your career. Your pets. One trusted account." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create account" })).toBeEnabled();
   expect(consoleErrors).toEqual([]);
 
-  await page.getByLabel("Work email").fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill("too-short");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByText("Use at least 12 characters.")).toBeVisible();
@@ -36,13 +36,15 @@ test("veterinarian can create an account, build a profile, and sign back in", as
   await page.getByRole("button", { name: "Create professional profile" }).click();
   await expect(page).toHaveURL(/\/credentials$/);
   await expect(page.getByRole("heading", { name: "Credentials", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Add your first credential" })).toBeVisible();
+  await expect(page.getByText(email, { exact: true })).toHaveCount(1);
 
   await page.request.post("/api/session/logout");
   await page.goto("/login");
-  await page.getByLabel("Work email").fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/professional$/);
 
   await page.goto("/onboarding");
   await expect(page.getByRole("heading", { name: "Professional profile" })).toBeVisible();

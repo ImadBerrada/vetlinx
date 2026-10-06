@@ -26,7 +26,11 @@ import type {
   InviteOrganizationMemberDto,
   UpdateOrganizationDto,
 } from './dto/organization.dto';
-import type { OrganizationsPublicApi } from './organizations.public';
+import type {
+  ClinicSearch,
+  OrganizationsPublicApi,
+  PublicClinic,
+} from './organizations.public';
 
 const organizationSelect = {
   id: true,
@@ -42,6 +46,7 @@ const organizationSelect = {
   region: true,
   postalCode: true,
   status: true,
+  acceptsAppointmentRequests: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -73,6 +78,151 @@ export class OrganizationsService implements OrganizationsPublicApi {
     @Inject(OUTBOX_WRITER) private readonly outbox: OutboxWriter,
     @Inject(PRIVATE_FILE_STORAGE) private readonly storage: PrivateFileStorage,
   ) {}
+
+  listBookableClinics(query: ClinicSearch) {
+    return this.prisma.organization.findMany({
+      where: {
+        status: 'VERIFIED',
+        acceptsAppointmentRequests: true,
+        type: { in: ['CLINIC', 'HOSPITAL'] },
+        ...(query.countryCode
+          ? { countryCode: query.countryCode.toUpperCase() }
+          : {}),
+        ...(query.city
+          ? { city: { contains: query.city, mode: 'insensitive' as const } }
+          : {}),
+        ...(query.q
+          ? {
+              OR: [
+                {
+                  publicName: {
+                    contains: query.q,
+                    mode: 'insensitive' as const,
+                  },
+                },
+                {
+                  legalName: {
+                    contains: query.q,
+                    mode: 'insensitive' as const,
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
+      select: this.clinicSelect(),
+      orderBy: { legalName: 'asc' },
+      take: 50,
+    });
+  }
+
+  async findBookableClinic(
+    organizationId: string,
+  ): Promise<PublicClinic | null> {
+    const clinic = await this.prisma.organization.findFirst({
+      where: {
+        id: organizationId,
+        status: 'VERIFIED',
+        acceptsAppointmentRequests: true,
+        type: { in: ['CLINIC', 'HOSPITAL'] },
+      },
+      select: this.clinicSelect(),
+    });
+    return clinic
+      ? { ...clinic, type: clinic.type as 'CLINIC' | 'HOSPITAL' }
+      : null;
+  }
+
+  async setAppointmentRequests(
+    accountId: string,
+    organizationId: string,
+    enabled: boolean,
+    correlationId: string,
+  ) {
+    const { organization } = await this.requireManager(
+      accountId,
+      organizationId,
+    );
+    if (
+      enabled &&
+      (organization.status !== 'VERIFIED' ||
+        !['CLINIC', 'HOSPITAL'].includes(organization.type))
+    )
+      throw new ConflictException(
+        'Only verified clinics and hospitals can receive appointment requests',
+      );
+    if (enabled && (!organization.city || !organization.phone))
+      throw new ConflictException(
+        'A public city and phone number are required before enabling appointment requests',
+      );
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.organization.updateMany({
+        where: {
+          id: organizationId,
+          ...(enabled
+            ? { status: 'VERIFIED', type: { in: ['CLINIC', 'HOSPITAL'] } }
+            : {}),
+        },
+        data: { acceptsAppointmentRequests: enabled },
+      });
+      if (updated.count !== 1)
+        throw new ConflictException(
+          'Organization status changed. Refresh and try again.',
+        );
+      await this.audit.recordInTransaction(tx, {
+        actorId: accountId,
+        action: 'organization.appointment_requests.changed',
+        resourceType: 'organization',
+        resourceId: organizationId,
+        occurredAt: new Date().toISOString(),
+        correlationId,
+        changes: {
+          acceptsAppointmentRequests: {
+            from: organization.acceptsAppointmentRequests,
+            to: enabled,
+          },
+        },
+      });
+      await this.outbox.enqueue(tx, [
+        {
+          id: randomUUID(),
+          name: 'ClinicBookingAvailabilityChanged',
+          version: 1,
+          aggregateId: organizationId,
+          occurredAt: new Date().toISOString(),
+          correlationId,
+          payload: { organizationId, enabled },
+        },
+      ]);
+      return { enabled };
+    });
+  }
+
+  private clinicSelect() {
+    return {
+      id: true,
+      legalName: true,
+      publicName: true,
+      type: true,
+      countryCode: true,
+      city: true,
+      addressLine1: true,
+      phone: true,
+      website: true,
+    } as const;
+  }
+
+  async appointmentRecipients(organizationId: string) {
+    const members = await this.prisma.organizationMembership.findMany({
+      where: {
+        organizationId,
+        role: { in: ['OWNER', 'ADMIN', 'STAFF'] },
+        account: { status: 'ACTIVE' },
+      },
+      select: { accountId: true },
+    });
+    return members.map((member) => member.accountId);
+  }
 
   async findSummary(organizationId: string) {
     const organization = await this.prisma.organization.findUnique({
@@ -712,7 +862,24 @@ export class OrganizationsService implements OrganizationsPublicApi {
     return this.getReview(requestId);
   }
 
-  async readReviewEvidence(requestId: string, evidenceId: string) {
+  async readReviewEvidence(
+    requestId: string,
+    evidenceId: string,
+    reviewerAccountId: string,
+    roles: string[],
+    correlationId: string,
+  ) {
+    const review = await this.prisma.organizationVerificationRequest.findUnique(
+      { where: { id: requestId }, select: { assignedReviewerId: true } },
+    );
+    if (!review) throw new NotFoundException('Review not found');
+    if (
+      review.assignedReviewerId !== reviewerAccountId &&
+      !roles.includes('PLATFORM_ADMIN')
+    )
+      throw new ForbiddenException(
+        'Claim this review before opening private evidence',
+      );
     const evidence =
       await this.prisma.organizationVerificationEvidence.findFirst({
         where: { id: evidenceId, verificationRequestId: requestId },
@@ -731,6 +898,18 @@ export class OrganizationsService implements OrganizationsPublicApi {
     if (!file || file.validationStatus !== 'VALIDATED')
       throw new NotFoundException('Evidence file not available');
     try {
+      await this.audit.record({
+        actorId: reviewerAccountId,
+        action: 'organization.evidence.read',
+        resourceType: 'file_object',
+        resourceId: evidence.fileObjectId,
+        occurredAt: new Date().toISOString(),
+        correlationId,
+        reason:
+          review.assignedReviewerId === reviewerAccountId
+            ? 'Assigned reviewer evidence access'
+            : 'Platform administrator evidence access',
+      });
       return {
         buffer: await this.storage.read(file.objectKey),
         mediaType: file.mediaType,

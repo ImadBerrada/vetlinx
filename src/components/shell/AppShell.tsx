@@ -3,6 +3,8 @@
 import {
   BriefcaseBusiness,
   Building2,
+  CalendarDays,
+  PawPrint,
   Check,
   ChevronsUpDown,
   ClipboardCheck,
@@ -12,6 +14,7 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
+  Settings,
   UserRound,
   WalletCards,
   X,
@@ -19,7 +22,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import type { ApiSystemRole } from "@/lib/server/vetlinx-api";
@@ -36,6 +39,8 @@ import styles from "./AppShell.module.css";
 interface SessionSummary {
   account?: { email: string; roles: ApiSystemRole[] };
   profile?: { displayName: string } | null;
+  owner?: { displayName: string } | null;
+  organizations?: ApiOrganizationMembershipSummary[];
 }
 
 interface AppShellProps {
@@ -43,15 +48,16 @@ interface AppShellProps {
   description?: string;
   actions?: ReactNode;
   children: ReactNode;
-  scope?: "professional" | "employer" | "review";
+  scope?: "professional" | "employer" | "review" | "owner";
 }
 
 const professionalLinks = [
-  { href: "/", label: "Overview", icon: Home },
+  { href: "/professional", label: "Home", icon: Home },
   { href: "/onboarding", label: "Professional profile", icon: UserRound },
   { href: "/credentials", label: "Credentials", icon: WalletCards },
   { href: "/portfolio", label: "Portfolio & CV", icon: FileBadge2 },
   { href: "/jobs", label: "Jobs", icon: BriefcaseBusiness },
+  { href: "/applications", label: "My applications", icon: ClipboardCheck },
 ];
 
 const employerLinks = [
@@ -64,6 +70,12 @@ const reviewLinks = [
   { href: "/review/organizations", label: "Organization reviews", icon: ShieldCheck },
 ];
 
+const ownerLinks = [
+  { href: "/owner", label: "My pets & appointments", icon: PawPrint },
+  { href: "/clinics", label: "Find a clinic", icon: Building2 },
+  { href: "/owner/onboarding", label: "Owner profile", icon: UserRound },
+];
+
 export function AppShell({ title, description, actions, children, scope = "professional" }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -72,27 +84,40 @@ export function AppShell({ title, description, actions, children, scope = "profe
   const [session, setSession] = useState<SessionSummary>({});
   const [organizations, setOrganizations] = useState<ApiOrganizationMembershipSummary[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspacePreference>("personal");
+  const workspaceButton = useRef<HTMLButtonElement>(null);
+  const mobileWorkspaceButton = useRef<HTMLButtonElement>(null);
+  const workspaceMenu = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!workspaceOpen) return;
+    workspaceMenu.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setWorkspaceOpen(false);
+      if (window.matchMedia("(max-width: 860px)").matches) {
+        setMenuOpen(false);
+        mobileWorkspaceButton.current?.focus();
+      } else workspaceButton.current?.focus();
+    }
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [workspaceOpen]);
 
   useEffect(() => {
     let active = true;
     function loadSession() {
-      Promise.all([
-        fetch("/api/session/me", { cache: "no-store" }),
-        fetch("/api/organizations", { cache: "no-store" }),
-      ])
-        .then(async ([sessionResponse, organizationsResponse]) => {
+      fetch("/api/session/me", { cache: "no-store" })
+        .then(async (sessionResponse) => {
           if (!sessionResponse.ok) return;
           const body = (await sessionResponse.json()) as SessionSummary;
-          const organizationBody = organizationsResponse.ok
-            ? ((await organizationsResponse.json()) as { organizations?: ApiOrganizationMembershipSummary[] })
-            : {};
           if (!active) return;
-          const memberships = organizationBody.organizations ?? [];
+          const memberships = body.organizations ?? [];
           setSession(body);
           setOrganizations(memberships);
           const stored = readWorkspacePreference();
           const storedOrganizationId = organizationIdFromWorkspace(stored);
-          if (scope === "review") setActiveWorkspace("trust");
+          if (scope === "owner") setActiveWorkspace("owner");
+          else if (scope === "review") setActiveWorkspace("trust");
           else if (scope === "employer") {
             const selected = memberships.find((item) => item.organization.id === storedOrganizationId) ?? memberships[0];
             setActiveWorkspace(selected ? organizationWorkspace(selected.organization.id) : "personal");
@@ -111,20 +136,24 @@ export function AppShell({ title, description, actions, children, scope = "profe
   }, [scope]);
 
   const initials = useMemo(() => {
-    const source = session.profile?.displayName ?? session.account?.email ?? "VetLinX";
+    const source = (scope === "owner" ? session.owner?.displayName : session.profile?.displayName) ?? session.account?.email ?? "VetLinX";
     return source.replace(/^dr\.?\s*/i, "").split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "VL";
-  }, [session]);
+  }, [session, scope]);
   const roles = session.account?.roles ?? [];
   const canReview = roles.some((role) => ["REVIEWER", "OPERATIONS_ADMIN", "PLATFORM_ADMIN"].includes(role));
   const activeOrganizationId = organizationIdFromWorkspace(activeWorkspace);
   const activeOrganization = organizations.find((item) => item.organization.id === activeOrganizationId);
-  const currentWorkspace = scope === "review"
+  const currentWorkspace = scope === "owner"
+    ? { label: "Pet owner", detail: session.owner?.displayName ?? "Set up your profile", icon: PawPrint }
+    : scope === "review"
     ? { label: "Trust operations", detail: "Reviewer", icon: ShieldCheck }
     : scope === "employer"
       ? { label: activeOrganization ? activeOrganization.organization.publicName ?? activeOrganization.organization.legalName : "Organization workspace", detail: activeOrganization ? humanizeRole(activeOrganization.role) : "Create or join", icon: Building2 }
-      : { label: session.profile?.displayName ?? "Personal workspace", detail: "Professional", icon: UserRound };
+      : { label: "Professional", detail: session.profile?.displayName ?? "Set up your profile", icon: UserRound };
   const CurrentWorkspaceIcon = currentWorkspace.icon;
   const canRecruit = Boolean(activeOrganization && ["OWNER", "ADMIN", "RECRUITER"].includes(activeOrganization.role));
+  const canCare = Boolean(activeOrganization && ["CLINIC", "HOSPITAL"].includes(activeOrganization.organization.type) && ["OWNER", "ADMIN", "STAFF"].includes(activeOrganization.role));
+  const organizationLinks = [employerLinks[0], ...(canRecruit ? [employerLinks[1]] : []), ...(canCare ? [{ href: "/employer/appointments", label: "Appointments", icon: CalendarDays }] : [])];
 
   function selectWorkspace(preference: WorkspacePreference, href: string) {
     writeWorkspacePreference(preference);
@@ -142,41 +171,53 @@ export function AppShell({ title, description, actions, children, scope = "profe
 
   return (
     <div className={styles.shell}>
+      <a className="vl-skip-link" href="#workspace-content">Skip to main content</a>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`} aria-label="Primary navigation">
         <div className={styles.brandRow}><BrandMark inverse /><button onClick={() => setMenuOpen(false)} aria-label="Close navigation"><X /></button></div>
         <div className={styles.workspacePicker}>
-          <button className={styles.workspaceButton} type="button" aria-expanded={workspaceOpen} onClick={() => setWorkspaceOpen((open) => !open)}>
+          <button ref={workspaceButton} className={styles.workspaceButton} type="button" aria-label={`Switch workspace: ${currentWorkspace.label}`} aria-controls="workspace-switcher" aria-expanded={workspaceOpen} onClick={() => setWorkspaceOpen((open) => !open)}>
             <span className={styles.workspaceIcon}><CurrentWorkspaceIcon /></span>
             <span><strong>{currentWorkspace.label}</strong><small>{currentWorkspace.detail}</small></span>
             <ChevronsUpDown />
           </button>
-          {workspaceOpen ? <div className={styles.workspaceMenu} role="menu" aria-label="Switch workspace">
-            <WorkspaceOption active={scope === "professional"} icon={UserRound} label={session.profile?.displayName ?? "Personal workspace"} detail={session.profile ? "Professional" : "Setup required"} onSelect={() => selectWorkspace("personal", session.profile ? "/" : "/onboarding")} />
+          {workspaceOpen ? <div id="workspace-switcher" ref={workspaceMenu} className={styles.workspaceMenu} role="menu" aria-label="Switch workspace" onKeyDown={(event) => {
+            if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
+            const current = items.indexOf(document.activeElement as HTMLButtonElement);
+            const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+            items[next]?.focus();
+          }}>
+            <WorkspaceOption active={scope === "professional"} icon={UserRound} label="Professional" detail={session.profile?.displayName ?? "Set up"} onSelect={() => selectWorkspace("personal", session.profile ? "/professional" : "/onboarding")} />
+            <WorkspaceOption active={scope === "owner"} icon={PawPrint} label="Pet owner" detail={session.owner?.displayName ?? "Set up"} onSelect={() => selectWorkspace("owner", session.owner ? "/owner" : "/owner/onboarding")} />
             {organizations.map((membership) => {
               const label = membership.organization.publicName ?? membership.organization.legalName;
               return <WorkspaceOption key={membership.organization.id} active={scope === "employer" && membership.organization.id === activeOrganizationId} icon={Building2} label={label} detail={humanizeRole(membership.role)} onSelect={() => selectWorkspace(organizationWorkspace(membership.organization.id), "/employer")} />;
             })}
-            {!organizations.length ? <WorkspaceOption active={false} icon={Building2} label="Organization workspace" detail="Create or join" onSelect={() => selectWorkspace("personal", "/employer")} /> : null}
+            <WorkspaceOption active={false} icon={Building2} label="Add or join an organization" detail="Organization workspace" onSelect={() => selectWorkspace("personal", "/employer")} />
             {canReview ? <WorkspaceOption active={scope === "review"} icon={ShieldCheck} label="Trust operations" detail="Reviewer" onSelect={() => selectWorkspace("trust", "/review")} /> : null}
           </div> : null}
         </div>
         {scope === "professional" ? <NavGroup label="Professional" links={professionalLinks} pathname={pathname} /> : null}
-        {scope === "employer" ? <NavGroup label="Employer" links={canRecruit ? employerLinks : employerLinks.slice(0, 1)} pathname={pathname} /> : null}
+        {scope === "owner" ? <NavGroup label="Pet care" links={ownerLinks} pathname={pathname} /> : null}
+        {scope === "employer" ? <NavGroup label="Organization" links={organizationLinks} pathname={pathname} /> : null}
         {scope === "review" && canReview ? <NavGroup label="Trust operations" links={reviewLinks} pathname={pathname} /> : null}
         <div className={styles.sidebarFoot}>
+          <Link href="/settings/security"><Settings />Settings & security</Link>
           <a href="mailto:support@vetlinx.com"><HelpCircle />Help & support</a>
           <button onClick={logout}><LogOut />Sign out</button>
-          <div className={styles.identity}><span>{initials}</span><div><strong>{session.profile?.displayName ?? "VetLinX member"}</strong><small>{session.account?.email ?? "Secure workspace"}</small></div></div>
+          <div className={styles.identity}><span>{initials}</span><div><strong>{(scope === "owner" ? session.owner?.displayName : session.profile?.displayName) ?? session.owner?.displayName ?? "VetLinX member"}</strong><small>{session.account?.email ?? "Secure workspace"}</small></div></div>
         </div>
       </aside>
       {menuOpen ? <button className={styles.scrim} onClick={() => setMenuOpen(false)} aria-label="Close navigation" /> : null}
       <div className={styles.stage}>
         <header className={styles.topbar}>
           <button className={styles.menuButton} onClick={() => setMenuOpen(true)} aria-label="Open navigation"><Menu /></button>
+          <button ref={mobileWorkspaceButton} className={styles.mobileWorkspaceButton} aria-label={`Switch workspace: ${currentWorkspace.label}`} aria-expanded={workspaceOpen} aria-controls="workspace-switcher" onClick={() => { setMenuOpen(true); setWorkspaceOpen(true); }}><CurrentWorkspaceIcon /><span>{currentWorkspace.label}</span><ChevronsUpDown /></button>
           <div className={styles.titleBlock}><h1>{title}</h1>{description ? <p>{description}</p> : null}</div>
           <div className={styles.topActions}>{actions}<NotificationCenter /><span className={styles.topIdentity}>{initials}</span></div>
         </header>
-        <main className={styles.content}>
+        <main id="workspace-content" tabIndex={-1} className={styles.content}>
           {actions ? <div className={styles.mobileActions}>{actions}</div> : null}
           {children}
         </main>
@@ -203,7 +244,7 @@ function NavGroup({ label, links, pathname }: { label: string; links: typeof pro
       <p>{label}</p>
       <nav>
         {links.map(({ href, label: itemLabel, icon: Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+          const active = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`) && !links.some((link) => link.href !== href && (pathname === link.href || pathname.startsWith(`${link.href}/`))));
           return <Link key={href} href={href} className={active ? styles.active : ""} aria-current={active ? "page" : undefined}><Icon />{itemLabel}</Link>;
         })}
       </nav>

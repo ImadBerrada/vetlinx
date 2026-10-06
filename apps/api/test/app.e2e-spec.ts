@@ -200,7 +200,7 @@ describe('VetLinX API (e2e)', () => {
       .get('/api/v1/auth/me')
       .set('authorization', `Bearer ${accessToken}`)
       .expect(200)
-      .expect({ accountId, email, roles: ['PROFESSIONAL'] });
+      .expect({ accountId, email, emailVerifiedAt: null, roles: [] });
 
     const profileResponse = await request(app.getHttpServer())
       .post('/api/v1/professionals/me')
@@ -453,6 +453,13 @@ describe('VetLinX API (e2e)', () => {
       .expect(409);
 
     await request(app.getHttpServer())
+      .get(
+        `/api/v1/verification-reviews/${verificationRequestId}/evidence/${evidenceId}`,
+      )
+      .set('authorization', `Bearer ${reviewerToken}`)
+      .expect(403);
+
+    await request(app.getHttpServer())
       .post(`/api/v1/verification-reviews/${verificationRequestId}/start`)
       .set('authorization', `Bearer ${reviewerToken}`)
       .expect(200)
@@ -615,6 +622,13 @@ describe('VetLinX API (e2e)', () => {
       .expect(403);
 
     await request(app.getHttpServer())
+      .get(
+        `/api/v1/organization-reviews/${organizationVerificationRequestId}/evidence/${organizationEvidenceId}`,
+      )
+      .set('authorization', `Bearer ${reviewerToken}`)
+      .expect(403);
+
+    await request(app.getHttpServer())
       .post(
         `/api/v1/organization-reviews/${organizationVerificationRequestId}/start`,
       )
@@ -740,6 +754,10 @@ describe('VetLinX API (e2e)', () => {
       },
     });
     credentialIds.push(candidateCredential.id);
+    await prisma.professionalProfile.update({
+      where: { id: candidateProfileId },
+      data: { visibility: 'PUBLIC', contactVisibility: 'VERIFIED_EMPLOYERS' },
+    });
 
     const jobResponse = await request(app.getHttpServer())
       .post(`/api/v1/organizations/${organizationId}/jobs`)

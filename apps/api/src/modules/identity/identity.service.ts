@@ -34,6 +34,21 @@ export class IdentityService {
     return account ? (account.status.toLowerCase() as AccountStatus) : null;
   }
 
+  async findEmailRecipients(accountIds: string[]) {
+    const accounts = await this.prisma.account.findMany({
+      where: {
+        id: { in: accountIds },
+        status: 'ACTIVE',
+        emailVerifiedAt: { not: null },
+      },
+      select: { id: true, email: true },
+    });
+    return accounts.map((account) => ({
+      accountId: account.id,
+      email: account.email,
+    }));
+  }
+
   async getCurrentAccount(accountId: string) {
     const account = await this.prisma.account.findUnique({
       where: { id: accountId },
@@ -41,6 +56,7 @@ export class IdentityService {
         id: true,
         email: true,
         status: true,
+        emailVerifiedAt: true,
         systemRoles: { select: { role: true }, orderBy: { role: 'asc' } },
       },
     });
@@ -50,6 +66,7 @@ export class IdentityService {
     return {
       accountId: account.id,
       email: account.email,
+      emailVerifiedAt: account.emailVerifiedAt,
       roles: account.systemRoles.map(({ role }) => role),
     };
   }
@@ -73,13 +90,6 @@ export class IdentityService {
       await this.prisma.$transaction(async (transaction) => {
         await transaction.account.create({
           data: { id, email, passwordHash, status: 'ACTIVE' },
-        });
-        await transaction.accountSystemRole.create({
-          data: {
-            accountId: id,
-            role: 'PROFESSIONAL',
-            grantedBy: 'registration',
-          },
         });
         await transaction.refreshSession.create({
           data: {
@@ -118,7 +128,14 @@ export class IdentityService {
       throw error;
     }
 
-    return this.authenticationResult(id, email, 'ACTIVE', refresh.token);
+    return this.authenticationResult(
+      id,
+      email,
+      'ACTIVE',
+      refresh.token,
+      0,
+      refreshFamilyId,
+    );
   }
 
   async login(
@@ -142,6 +159,17 @@ export class IdentityService {
     const refreshFamilyId = randomUUID();
     const occurredAt = new Date();
     await this.prisma.$transaction(async (transaction) => {
+      await transaction.$queryRaw`SELECT id FROM identity.accounts WHERE id = ${account.id}::uuid FOR UPDATE`;
+      const locked = await transaction.account.findUnique({
+        where: { id: account.id },
+      });
+      if (
+        !locked ||
+        locked.status !== 'ACTIVE' ||
+        locked.passwordHash !== account.passwordHash ||
+        locked.authVersion !== account.authVersion
+      )
+        throw new UnauthorizedException('Invalid email or password');
       await transaction.refreshSession.create({
         data: {
           accountId: account.id,
@@ -167,6 +195,8 @@ export class IdentityService {
       account.email,
       account.status,
       refresh.token,
+      account.authVersion,
+      refreshFamilyId,
     );
   }
 
@@ -180,6 +210,12 @@ export class IdentityService {
     const now = new Date();
 
     const account = await this.prisma.$transaction(async (transaction) => {
+      const initial = await transaction.refreshSession.findUnique({
+        where: { tokenHash },
+        select: { accountId: true },
+      });
+      if (!initial) return null;
+      await transaction.$queryRaw`SELECT id FROM identity.accounts WHERE id = ${initial.accountId}::uuid FOR UPDATE`;
       const current = await transaction.refreshSession.findUnique({
         where: { tokenHash },
         include: { account: true },
@@ -231,7 +267,7 @@ export class IdentityService {
         occurredAt: now.toISOString(),
         correlationId: metadata.correlationId,
       });
-      return current.account;
+      return { ...current.account, sessionFamilyId: current.familyId };
     });
 
     if (!account) throw new UnauthorizedException('Invalid refresh token');
@@ -241,6 +277,8 @@ export class IdentityService {
       account.email,
       account.status,
       replacement.token,
+      account.authVersion,
+      account.sessionFamilyId,
     );
   }
 
@@ -249,13 +287,19 @@ export class IdentityService {
     const session = await this.prisma.refreshSession.findUnique({
       where: { tokenHash },
     });
-    if (!session || session.revokedAt) return;
+    if (!session) return;
 
     await this.prisma.$transaction(async (transaction) => {
-      await transaction.refreshSession.updateMany({
-        where: { id: session.id, revokedAt: null },
+      await transaction.$queryRaw`SELECT id FROM identity.accounts WHERE id = ${session.accountId}::uuid FOR UPDATE`;
+      const revoked = await transaction.refreshSession.updateMany({
+        where: {
+          accountId: session.accountId,
+          familyId: session.familyId,
+          revokedAt: null,
+        },
         data: { revokedAt: new Date() },
       });
+      if (!revoked.count) return;
       await this.audit.recordInTransaction(transaction, {
         actorId: session.accountId,
         action: 'identity.session.revoked',
@@ -272,6 +316,8 @@ export class IdentityService {
     email: string,
     status: string,
     refreshToken: string,
+    authVersion: number,
+    sessionFamilyId: string,
   ): Promise<AuthenticationResult> {
     const assignments = await this.prisma.accountSystemRole.findMany({
       where: { accountId: id },
@@ -279,7 +325,12 @@ export class IdentityService {
       orderBy: { role: 'asc' },
     });
     return {
-      accessToken: await this.tokens.signAccessToken({ accountId: id, email }),
+      accessToken: await this.tokens.signAccessToken({
+        accountId: id,
+        email,
+        authVersion,
+        sessionFamilyId,
+      }),
       refreshToken,
       tokenType: 'Bearer',
       expiresIn: this.tokens.accessTokenTtlSeconds,

@@ -16,6 +16,10 @@ import { PortfolioModule } from './modules/portfolio/portfolio.module';
 import { validateEnvironment } from './platform/config/environment';
 import { EventsModule } from './platform/events/events.module';
 import { PersistenceModule } from './platform/persistence/persistence.module';
+import { OwnersModule } from './modules/owners/owners.module';
+import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { DeliveryModule } from './platform/delivery/delivery.module';
+import { IdentitySecurityModule } from './modules/identity-security/identity-security.module';
 
 @Module({
   imports: [
@@ -29,9 +33,11 @@ import { PersistenceModule } from './platform/persistence/persistence.module';
     }),
     PersistenceModule,
     EventsModule,
+    DeliveryModule,
     HealthModule,
     PlatformModule,
     IdentityModule,
+    IdentitySecurityModule,
     ProfessionalsModule,
     CredentialsModule,
     VerificationModule,
@@ -39,6 +45,8 @@ import { PersistenceModule } from './platform/persistence/persistence.module';
     OrganizationsModule,
     RecruitmentModule,
     PortfolioModule,
+    OwnersModule,
+    AppointmentsModule,
     AuditModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

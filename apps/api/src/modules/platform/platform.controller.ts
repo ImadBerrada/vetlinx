@@ -7,9 +7,12 @@ const modules = [
   { key: 'organizations', stage: 'foundation', deployment: 'api' },
   { key: 'credentials', stage: 'foundation', deployment: 'api' },
   { key: 'verification', stage: 'foundation', deployment: 'api' },
-  { key: 'recruitment', stage: 'planned', deployment: 'api' },
-  { key: 'employment', stage: 'planned', deployment: 'api' },
-  { key: 'portfolio', stage: 'planned', deployment: 'api' },
+  { key: 'recruitment', stage: 'foundation', deployment: 'api' },
+  { key: 'employment', stage: 'foundation', deployment: 'api' },
+  { key: 'portfolio', stage: 'foundation', deployment: 'api' },
+  { key: 'owners', stage: 'foundation', deployment: 'api' },
+  { key: 'appointments', stage: 'foundation', deployment: 'api' },
+  { key: 'notifications', stage: 'foundation', deployment: 'api' },
   { key: 'audit', stage: 'foundation', deployment: 'api' },
 ] as const;
 

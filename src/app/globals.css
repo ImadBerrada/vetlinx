@@ -19,6 +19,10 @@
   --radius-sm: 6px;
   --radius-md: 8px;
   --shadow-focus: 0 0 0 3px rgba(10,143,122,.16);
+  --text-body: 1rem;
+  --text-small: .875rem;
+  --control-height: 44px;
+  --space-field: .5rem;
 }
 
 * { box-sizing: border-box; }
@@ -32,6 +36,16 @@ body {
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
 ::selection { background: #b8eee2; color: #063d34; }
-:focus-visible { outline: 3px solid rgba(10, 168, 132, .32); outline-offset: 2px; }
+:focus-visible { outline: 3px solid #08705f; outline-offset: 3px; }
 a{color:inherit}
+.vl-skip-link{position:fixed;inset-block-start:8px;inset-inline-start:8px;z-index:200;padding:12px 18px;background:var(--surface);color:var(--navy);border:2px solid var(--teal-dark);border-radius:var(--radius-sm);transform:translateY(-160%)}
+.vl-skip-link:focus{transform:none}
+.vl-button{min-height:var(--control-height);display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);font-size:var(--text-small);font-weight:600;text-decoration:none;cursor:pointer}
+.vl-button-primary{background:var(--teal-dark);border-color:var(--teal-dark);color:white}
+.vl-button:disabled{opacity:.6;cursor:not-allowed}
+.vl-field{display:grid;gap:var(--space-field);font-size:var(--text-small)}
+.vl-field input,.vl-field select,.vl-field textarea{min-height:var(--control-height);padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);font-size:var(--text-body);width:100%;min-width:0}
+.vl-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:var(--radius-sm);font-size:var(--text-small);font-weight:600;background:var(--surface-subtle)}
+.vl-panel{padding:20px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface)}
+.vl-help{font-size:var(--text-small);line-height:1.5;color:var(--muted)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

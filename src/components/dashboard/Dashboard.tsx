@@ -22,6 +22,7 @@ import styles from "./dashboard.module.css";
 interface MeResponse {
   account?: { email: string; roles: ApiSystemRole[] };
   profile?: { id: string; displayName: string; countryCode: string } | null;
+  owner?: { id: string } | null;
 }
 
 export function Dashboard() {
@@ -48,7 +49,8 @@ export function Dashboard() {
         jobsResponse.json() as Promise<{ jobs?: ApiJob[] }>,
       ]);
       if (!active) return;
-      if (!meResponse.ok || !me.account) return router.replace("/login");
+      if (meResponse.status === 401) return router.replace("/login?intent=professional&returnTo=%2Fprofessional");
+      if (!meResponse.ok || !me.account) throw new Error("Your account could not be loaded.");
       if (!me.profile) return router.replace("/onboarding");
       setProfile(me.profile);
       if (credentialsResponse.ok) setCredentials(wallet.credentials ?? []);
@@ -59,7 +61,7 @@ export function Dashboard() {
     return () => { active = false; };
   }, [router]);
 
-  const verifiedCredentials = credentials.filter((item) => item.status === "VERIFIED");
+  const verifiedCredentials = credentials.filter((item) => item.status === "VERIFIED" && (!item.expiryDate || item.expiryDate.slice(0, 10) >= new Date().toISOString().slice(0, 10)));
   const pendingCredentials = credentials.filter((item) => item.status === "SUBMITTED");
   const completion = useMemo(() => {
     if (!portfolio) return 0;
@@ -70,21 +72,23 @@ export function Dashboard() {
     ? { title: "Add your first credential", copy: "Employers can only rely on qualifications supported by evidence.", href: "/credentials", label: "Add credential" }
     : pendingCredentials.length
       ? { title: "Track your evidence review", copy: `${pendingCredentials.length} credential${pendingCredentials.length === 1 ? " is" : "s are"} waiting for a verification decision.`, href: "/credentials", label: "View review status" }
+      : !verifiedCredentials.length
+        ? { title: "Review your credential status", copy: "Check evidence requests and validity before publishing verified claims.", href: "/credentials", label: "Review credentials" }
       : completion < 100
         ? { title: "Complete your professional story", copy: "Add your headline, summary, specialties, and languages so employers understand your fit.", href: "/portfolio", label: "Complete portfolio" }
         : { title: "Find your next verified role", copy: "Your record is ready to use in applications to verified organizations.", href: "/jobs", label: "Explore roles" };
 
   if (loading) return <main className={styles.loading}><LoaderCircle />Preparing your trusted record…</main>;
-  if (!profile) return null;
+  if (!profile) return message ? <main className={styles.loading}><p role="alert">{message}</p><button onClick={() => window.location.reload()}>Try again</button></main> : null;
 
   return (
-    <AppShell title={`Good morning, ${profile.displayName}`} description="Your verified career record and the next action that strengthens it.">
+    <AppShell title={`Hello, ${profile.displayName}`} description="Your professional workspace: credentials, portfolio, and career opportunities.">
       {message ? <div className={styles.notice} role="status">{message}</div> : null}
       <section className={styles.trustRail} aria-label="Trust record">
         <TrustStep icon={UserRound} label="Profile completion" value={`${completion}% complete`} href="/portfolio" complete={completion === 100} />
-        <TrustStep icon={ShieldCheck} label="Verified credentials" value={`${verifiedCredentials.length} verified`} href="/credentials" complete={verifiedCredentials.length > 0} />
+        <TrustStep icon={ShieldCheck} label="Current verified credentials" value={`${verifiedCredentials.length} current`} href="/credentials" complete={verifiedCredentials.length > 0} />
         <TrustStep icon={BriefcaseBusiness} label="Confirmed employment" value={`${portfolio?.trust.verifiedEmploymentCount ?? 0} confirmed`} href="/portfolio" complete={(portfolio?.trust.verifiedEmploymentCount ?? 0) > 0} />
-        <TrustStep icon={FileBadge2} label="Public portfolio" value={portfolio?.visibility === "PRIVATE" ? "Private" : humanize(portfolio?.visibility ?? "PRIVATE")} href="/portfolio" complete={portfolio?.visibility !== "PRIVATE"} />
+        <TrustStep icon={FileBadge2} label="Public portfolio" value={portfolio?.visibility === "PRIVATE" ? "Private" : humanize(portfolio?.visibility ?? "PRIVATE")} href="/portfolio" complete={Boolean(portfolio && portfolio.visibility !== "PRIVATE")} />
       </section>
 
       <section className={styles.nextAction}>
@@ -99,12 +103,12 @@ export function Dashboard() {
             <header><h2>Recent credentials</h2><Link href="/credentials">View all<ArrowRight /></Link></header>
             {credentials.length ? <div className={styles.table} role="table" aria-label="Recent credentials">
               <div className={styles.tableHead} role="row"><span>Credential</span><span>Issued by</span><span>Status</span><span>Expiry</span></div>
-              {credentials.slice(0, 5).map((credential) => <Link href="/credentials" key={credential.id} className={styles.tableRow} role="row"><span><strong>{credential.title}</strong><small>{credential.typeCode.replaceAll("_", " ")}</small></span><span>{credential.issuingOrganization}</span><Status value={credential.status} /><span>{credential.expiryDate ? new Date(credential.expiryDate).toLocaleDateString() : "—"}</span></Link>)}
+              {credentials.slice(0, 5).map((credential) => <Link href="/credentials" key={credential.id} className={styles.tableRow} role="row"><span><strong>{credential.title}</strong><small>{credential.typeCode.replaceAll("_", " ")}</small></span><span>{credential.issuingOrganization}</span><Status value={credential.status === "VERIFIED" && credential.expiryDate && credential.expiryDate.slice(0, 10) < new Date().toISOString().slice(0, 10) ? "EXPIRED" : credential.status} /><span>{credential.expiryDate ? new Date(credential.expiryDate).toLocaleDateString() : "—"}</span></Link>)}
             </div> : <Empty icon={WalletCards} title="No credentials yet" copy="Add a degree, licence, or certification to begin your verified record." action="Add credential" href="/credentials" />}
           </section>
 
           <section className={styles.panel}>
-            <header><h2>Recommended roles</h2><Link href="/jobs">View all jobs<ArrowRight /></Link></header>
+            <header><h2>Latest roles</h2><Link href="/jobs">View all jobs<ArrowRight /></Link></header>
             {jobs.length ? <div className={styles.jobs}>{jobs.slice(0, 3).map((job) => <Link href={`/jobs?job=${job.id}`} key={job.id}><span><BriefcaseBusiness /></span><div><strong>{job.title}</strong><p>{job.organization?.publicName ?? job.organization?.legalName ?? "Verified organization"}</p></div><small><MapPin />{[job.city, job.countryCode].filter(Boolean).join(", ")}</small><ArrowRight /></Link>)}</div> : <Empty icon={BriefcaseBusiness} title="No verified roles available" copy="Published roles from verified organizations will appear here." action="Open jobs" href="/jobs" />}
           </section>
         </div>
@@ -112,7 +116,7 @@ export function Dashboard() {
         <section className={`${styles.panel} ${styles.activity}`}>
           <header><h2>Career activity</h2><span>Evidence-backed</span></header>
           <ol>
-            {verifiedCredentials.slice(0, 4).map((credential) => <Activity key={credential.id} complete title={`${credential.title} verified`} detail={credential.issuingOrganization} date={credential.issueDate} />)}
+            {verifiedCredentials.slice(0, 4).map((credential) => <Activity key={credential.id} complete title={`${credential.title} · current verified credential`} detail={`${credential.issuingOrganization} · Issued`} date={credential.issueDate} />)}
             {portfolio?.employments.slice(0, 3).map((employment) => <Activity key={employment.id} complete title={`${employment.title} confirmed`} detail={employment.organization.publicName ?? employment.organization.legalName} date={employment.startDate} />)}
             {!verifiedCredentials.length && !portfolio?.employments.length ? <li className={styles.activityEmpty}><CircleDashed /><div><strong>Your trust timeline starts here</strong><p>Verified credentials and confirmed employment will appear automatically.</p></div></li> : null}
           </ol>

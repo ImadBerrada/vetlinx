@@ -110,10 +110,14 @@ export class OrganizationReviewController {
   async evidence(
     @Param('requestId', new ParseUUIDPipe()) requestId: string,
     @Param('evidenceId', new ParseUUIDPipe()) evidenceId: string,
+    @Req() request: AuthenticatedRequest,
   ) {
     const evidence = await this.organizations.readReviewEvidence(
       requestId,
       evidenceId,
+      request.user.accountId,
+      request.user.roles ?? [],
+      this.correlationId(request),
     );
     return new StreamableFile(evidence.buffer, {
       type: evidence.mediaType,

@@ -5,6 +5,7 @@ import {
   IsInt,
   IsString,
   IsBoolean,
+  IsOptional,
   IsUrl,
   Matches,
   Max,
@@ -64,6 +65,33 @@ class EnvironmentVariables {
     ({ value }) => value === undefined || value === true || value === 'true',
   )
   ENABLE_API_DOCS = true;
+
+  @Matches(/^(capture|smtp)$/)
+  MAIL_TRANSPORT = 'capture';
+
+  @IsString()
+  MAIL_CAPTURE_PATH = './var/mail';
+
+  @IsString()
+  MAIL_FROM = 'VetLinX <no-reply@localhost>';
+
+  @IsOptional()
+  @Matches(/^[a-fA-F0-9]{64}$/)
+  DELIVERY_ENCRYPTION_KEY?: string;
+
+  @IsOptional() @IsString() SMTP_HOST?: string;
+  @IsOptional() @IsString() SMTP_USER?: string;
+  @IsOptional() @IsString() SMTP_PASSWORD?: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  @Type(() => Number)
+  SMTP_PORT = 587;
+
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true')
+  SMTP_SECURE = false;
 }
 
 export function validateEnvironment(config: Record<string, unknown>) {
@@ -82,6 +110,18 @@ export function validateEnvironment(config: Record<string, unknown>) {
       'local-development-secret-change-before-production-123456'
   ) {
     throw new Error('JWT_ACCESS_SECRET must be changed in production');
+  }
+
+  if (
+    validated.NODE_ENV === EnvironmentName.Production &&
+    (validated.MAIL_TRANSPORT !== 'smtp' ||
+      !validated.SMTP_HOST ||
+      !validated.DELIVERY_ENCRYPTION_KEY ||
+      validated.MAIL_FROM.includes('@localhost'))
+  ) {
+    throw new Error(
+      'Production requires SMTP delivery, a configured sender and DELIVERY_ENCRYPTION_KEY',
+    );
   }
 
   return validated;

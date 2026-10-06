@@ -7,12 +7,12 @@ test("dashboard protects private data and displays the authenticated record", as
   });
 
   await page.goto("/");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Care for your pets. Build your career." })).toBeVisible();
   errors.length = 0;
 
   const email = `dashboard-${testInfo.project.name}-${Date.now()}@example.test`;
-  await page.goto("/register");
-  await page.getByLabel("Work email").fill(email);
+  await page.goto("/register?intent=professional");
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill("VetLinX!2026Secure");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page).toHaveURL(/\/onboarding$/);
@@ -23,7 +23,8 @@ test("dashboard protects private data and displays the authenticated record", as
   await expect(page).toHaveURL(/\/credentials$/);
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Good morning, Dr. Amina Khaled" })).toBeVisible();
+  await expect(page).toHaveURL(/\/professional$/);
+  await expect(page.getByRole("heading", { name: "Hello, Dr. Amina Khaled" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Add your first credential" })).toBeVisible();
   await expect(page.getByText("No credentials yet")).toBeVisible();
   await expect(page.getByRole("link", { name: "Add credential" }).first()).toBeVisible();

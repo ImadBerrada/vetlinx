@@ -123,13 +123,26 @@ export class ProfessionalsService {
   ) {
     const existing = await this.prisma.professionalProfile.findUnique({
       where: { accountId },
-      select: { id: true, publicSlug: true, visibility: true },
+      select: { id: true, publicSlug: true, visibility: true, status: true },
     });
     if (!existing)
       throw new NotFoundException('Professional profile not found');
     if (dto.visibility && dto.visibility !== 'PRIVATE') {
+      if (existing.status === 'SUSPENDED')
+        throw new ConflictException('A suspended profile cannot be published');
       const verifiedCredential = await this.prisma.credential.findFirst({
-        where: { professionalProfileId: existing.id, status: 'VERIFIED' },
+        where: {
+          professionalProfileId: existing.id,
+          status: 'VERIFIED',
+          OR: [
+            { expiryDate: null },
+            {
+              expiryDate: {
+                gte: new Date(new Date().toISOString().slice(0, 10)),
+              },
+            },
+          ],
+        },
         select: { id: true },
       });
       if (!verifiedCredential)
@@ -153,6 +166,9 @@ export class ProfessionalsService {
             ? { summary: dto.summary.trim() || null }
             : {}),
           ...(dto.visibility ? { visibility: dto.visibility } : {}),
+          ...(dto.visibility && dto.visibility !== 'PRIVATE'
+            ? { status: 'ACTIVE' }
+            : {}),
           ...(dto.contactVisibility
             ? { contactVisibility: dto.contactVisibility }
             : {}),

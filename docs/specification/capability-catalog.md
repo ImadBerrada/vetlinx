@@ -83,11 +83,11 @@ This catalogue normalizes the concepts in `VetLinX (2).pdf`. It describes produc
 
 | Capability | Phase | Notes |
 |---|---:|---|
-| Owner profile | 3 | Purpose-limited personal and contact data. |
-| Animal identity | 3 | Species, breed, demographics, identifiers, ownership history. |
+| Owner profile | Current | Private owner contact profile in the B2C foundation. |
+| Animal identity | Current/3 | Pet name, species, breed, sex, birth date, and archiving now; identifiers and ownership history later. |
 | Owner-animal relationship | 3 | Ownership/caretaker roles and effective dates. |
-| Consent and authorization | 3 | Purpose, scope, beneficiary, expiry, withdrawal, audit. |
-| Appointment and visit intake | 3 | Facility, service, practitioner, reason, status. |
+| Consent and authorization | Current/3 | Explicit request-scoped contact/pet sharing now; broader grants, expiry, withdrawal, and record sharing later. |
+| Appointment and visit intake | Current/3 | Verified clinic directory, owner requests, clinic decisions, cancellation, and history now; facility/service/practitioner schedules later. |
 | Minimal encounter | 3 | Encounter identity, practitioner, facility, animal, timing, summary. |
 | Record sharing | 4 | Consent-based, audited, source-preserving access. |
 
@@ -151,7 +151,7 @@ Ultrasound (B-mode, M-mode, color Doppler, spectral Doppler, 3D, 4D), radiograph
 
 | Capability | Phase | Notes |
 |---|---:|---|
-| Persona-aware workspace switcher | Current | Personal, organization, and trust workspaces. |
+| Persona-aware workspace switcher | Current | Professional, pet-owner, organization, and trust workspaces. |
 | Notifications | Current | Actionable, contextual, and permission-safe. |
 | Network and search | 2/5 | Professional connections and governed cross-domain search. |
 | Settings and help | Current enhancement | Security, privacy, language, accessibility, support. |

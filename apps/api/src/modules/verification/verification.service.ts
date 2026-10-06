@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -573,7 +574,25 @@ export class VerificationService {
     return this.getReview(requestId);
   }
 
-  async readReviewEvidence(requestId: string, evidenceId: string) {
+  async readReviewEvidence(
+    requestId: string,
+    evidenceId: string,
+    reviewerAccountId: string,
+    roles: string[],
+    correlationId: string,
+  ) {
+    const review = await this.prisma.verificationRequest.findUnique({
+      where: { id: requestId },
+      select: { assignedReviewerId: true },
+    });
+    if (!review) throw new NotFoundException('Review not found');
+    if (
+      review.assignedReviewerId !== reviewerAccountId &&
+      !roles.includes('PLATFORM_ADMIN')
+    )
+      throw new ForbiddenException(
+        'Claim this review before opening private evidence',
+      );
     const evidence = await this.prisma.verificationEvidence.findFirst({
       where: { id: evidenceId, verificationRequestId: requestId },
       select: { fileObjectId: true },
@@ -592,6 +611,18 @@ export class VerificationService {
       throw new NotFoundException('Evidence file not available');
     }
     try {
+      await this.audit.record({
+        actorId: reviewerAccountId,
+        action: 'verification.evidence.read',
+        resourceType: 'file_object',
+        resourceId: evidence.fileObjectId,
+        occurredAt: new Date().toISOString(),
+        correlationId,
+        reason:
+          review.assignedReviewerId === reviewerAccountId
+            ? 'Assigned reviewer evidence access'
+            : 'Platform administrator evidence access',
+      });
       return {
         buffer: await this.storage.read(file.objectKey),
         mediaType: file.mediaType,

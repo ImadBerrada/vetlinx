@@ -5,6 +5,8 @@ Events are stored in the PostgreSQL outbox with an aggregate ID, event type, sch
 | Event | Producer | Intended consumers |
 |---|---|---|
 | `AccountRegistered` | Identity | Notifications, analytics |
+| `AccountPasswordReset` | Identity security | Security analytics |
+| `EmailVerified` | Identity security | Contact readiness |
 | `ProfessionalProfileCreated` | Professionals | Search, analytics |
 | `ProfessionalProfileUpdated` | Professionals | Search, portfolio |
 | `CredentialCreated` | Credentials | Portfolio |
@@ -26,6 +28,13 @@ Events are stored in the PostgreSQL outbox with an aggregate ID, event type, sch
 | `EmploymentActivated` | Recruitment | Portfolio, analytics |
 | `EmploymentEnded` | Recruitment | Portfolio, analytics |
 | `ProfessionalPortfolioUpdated` | Recruitment/Professionals | Portfolio projection, search |
+| `PetRegistered` | Owners | Owner projections, analytics |
+| `ClinicBookingAvailabilityChanged` | Organizations | Public clinic directory |
+| `AppointmentRequested` | Appointments | Clinic intake, notifications |
+| `AppointmentStatusChanged` | Appointments | Owner/clinic projections, notifications |
+| `AppointmentTimeProposed` | Appointments | Owner action and notifications |
+| `AppointmentTimeAccepted` | Appointments | Owner/clinic projections, notifications |
+| `AppointmentTimeProposalClosed` | Appointments | Owner/clinic projections, notifications |
 
 ## Planned Phase 2 events
 
@@ -48,4 +57,4 @@ These names define the approved integration vocabulary. They are implemented onl
 | `CertificateRevoked` | Learning | CPD, portfolio, licensing readiness, notifications |
 | `CpdRecordCreated` | Learning | Portfolio, licensing readiness |
 
-The MVP writes events durably but does not yet run a distributed broker. A future relay can claim unprocessed outbox rows and publish to Kafka/SNS/SQS without changing producers.
+The separate delivery worker now consumes version-1 appointment events and `CredentialVerified`, `CredentialRejected`, `VerificationInformationRequested` to enqueue verified-recipient email from existing in-app notices. Event delivery and outbox acknowledgement commit together; retries/dead letters are stored separately. All other events/versions remain pending until their intended handler exists. This is a local notification consumer, not a distributed broker or a broadcast acknowledgement of every intended consumer. A future relay requires per-consumer acknowledgement semantics.

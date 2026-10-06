@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 test("professional controls a private portfolio and exports an ATS CV", async ({ page }, testInfo) => {
   const email = `portfolio-${testInfo.project.name}-${Date.now()}@vetlinx.test`;
-  await page.goto("/register");
-  await page.getByLabel("Work email").fill(email);
+  await page.goto("/register?intent=professional");
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill("Verified-Career-Record-42");
   await page.getByRole("button", { name: "Create account" }).click();
   await page.getByLabel("Professional name").fill("Dr. Nadia Mansour");

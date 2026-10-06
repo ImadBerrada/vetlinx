@@ -3,6 +3,8 @@ import type { SystemRole } from '../../generated/prisma/enums';
 export interface AuthenticatedAccount {
   accountId: string;
   email: string;
+  authVersion?: number;
+  sessionFamilyId?: string;
   roles?: SystemRole[];
 }
 
