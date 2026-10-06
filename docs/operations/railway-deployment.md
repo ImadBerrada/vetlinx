@@ -82,6 +82,12 @@ GitHub autodeploys require the repository integration to have access to
 when connecting the repository. Source uploads are usable even when that
 integration is unavailable.
 
+The services are connected to this GitHub repository. During initial rollout,
+the latest web release was triggered explicitly with `railway redeploy
+--service web --from-source --yes`. Use the same command with the target
+service for controlled later releases until automatic webhook deployment has
+been verified.
+
 Check the public landing page, professional and pet-owner registration/login
 pages, public directory and protected-route behavior. Verify private API
 database health, all committed migrations, worker heartbeat, and volume
