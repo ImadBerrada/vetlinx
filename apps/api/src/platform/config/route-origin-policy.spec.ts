@@ -7,6 +7,41 @@ const mutation = (headers: Record<string, string>) =>
   });
 
 describe('same-origin browser mutation policy', () => {
+  it('uses the configured HTTPS origin behind an HTTP proxy without trusting forwarded hosts', () => {
+    const proxied = (origin: string) =>
+      new Request('http://web.railway.internal:3000/api/session/register', {
+        method: 'POST',
+        headers: {
+          origin,
+          'x-forwarded-host': 'attacker.example',
+          'x-forwarded-proto': 'https',
+        },
+      });
+    expect(
+      isSameOriginMutation(
+        proxied('https://vetlinx.example'),
+        'https://vetlinx.example',
+      ),
+    ).toBe(true);
+    expect(
+      isSameOriginMutation(
+        proxied('https://attacker.example'),
+        'https://vetlinx.example',
+      ),
+    ).toBe(false);
+  });
+
+  it('fails closed when the configured public origin is invalid', () => {
+    for (const origin of ['not a URL', '', 'file:///etc/passwd']) {
+      expect(
+        isSameOriginMutation(
+          mutation({ origin: 'https://vetlinx.example' }),
+          origin,
+        ),
+      ).toBe(false);
+    }
+  });
+
   it('accepts an exact browser origin and rejects a foreign or opaque origin', () => {
     expect(
       isSameOriginMutation(mutation({ origin: 'https://vetlinx.example' })),

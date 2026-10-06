@@ -26,6 +26,8 @@ Web:
 
 - `NODE_ENV=production`, `PORT=3000`.
 - `VETLINX_API_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:4000`.
+- `VETLINX_PUBLIC_ORIGIN=https://web-production-c7d10.up.railway.app` so
+  browser mutation checks use the public HTTPS origin behind Railway's proxy.
 
 API:
 
