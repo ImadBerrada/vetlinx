@@ -19,6 +19,9 @@ import {
   AppointmentDecisionDto,
   AppointmentProposalDto,
   AppointmentProposalResponseDto,
+  AppointmentRescheduleResponseDto,
+  AppointmentVersionDto,
+  AppointmentCancelDto,
   RequestAppointmentDto,
 } from './appointments.dto';
 import { AppointmentsService } from './appointments.service';
@@ -45,10 +48,82 @@ export class AppointmentsController {
   @Post(':appointmentId/cancel') cancel(
     @Param('appointmentId', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
+    @Body() dto: AppointmentCancelDto,
   ) {
     return this.appointments.cancelMine(
       request.user.accountId,
       id,
+      this.correlation(request),
+      dto.proposalVersion,
+    );
+  }
+  @Post(':appointmentId/reschedule') requestReschedule(
+    @Param('appointmentId', new ParseUUIDPipe()) id: string,
+    @Body() dto: AppointmentProposalDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.appointments.requestReschedule(
+      request.user.accountId,
+      id,
+      dto,
+      this.correlation(request),
+    );
+  }
+  @Post(':appointmentId/reschedule/withdraw') withdrawReschedule(
+    @Param('appointmentId', new ParseUUIDPipe()) id: string,
+    @Body() dto: AppointmentProposalResponseDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.appointments.withdrawReschedule(
+      request.user.accountId,
+      id,
+      dto,
+      this.correlation(request),
+    );
+  }
+  @Post('organizations/:organizationId/:appointmentId/reschedule/accept')
+  acceptReschedule(
+    @Param('organizationId', new ParseUUIDPipe()) organizationId: string,
+    @Param('appointmentId', new ParseUUIDPipe()) id: string,
+    @Body() dto: AppointmentRescheduleResponseDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.appointments.respondToReschedule(
+      request.user.accountId,
+      organizationId,
+      id,
+      dto,
+      true,
+      this.correlation(request),
+    );
+  }
+  @Post('organizations/:organizationId/:appointmentId/reschedule/decline')
+  declineReschedule(
+    @Param('organizationId', new ParseUUIDPipe()) organizationId: string,
+    @Param('appointmentId', new ParseUUIDPipe()) id: string,
+    @Body() dto: AppointmentRescheduleResponseDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.appointments.respondToReschedule(
+      request.user.accountId,
+      organizationId,
+      id,
+      dto,
+      false,
+      this.correlation(request),
+    );
+  }
+  @Post('organizations/:organizationId/:appointmentId/check-in') checkIn(
+    @Param('organizationId', new ParseUUIDPipe()) organizationId: string,
+    @Param('appointmentId', new ParseUUIDPipe()) id: string,
+    @Body() dto: AppointmentVersionDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.appointments.checkIn(
+      request.user.accountId,
+      organizationId,
+      id,
+      dto,
       this.correlation(request),
     );
   }

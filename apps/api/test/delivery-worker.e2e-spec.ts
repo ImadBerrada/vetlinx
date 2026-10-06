@@ -251,6 +251,97 @@ describeWorker(
       expect(await prisma.emailDelivery.count()).toBe(1);
     });
 
+    it('bounds expired booking-hold cleanup and preserves booked snapshots and recent holds', async () => {
+      const booked = await appointment();
+      const service = await prisma.clinicService.create({
+        data: {
+          organizationId: booked.organizationId,
+          name: 'Worker service',
+          description: 'Worker fixture',
+          durationMinutes: 30,
+          active: true,
+        },
+      });
+      const slot = await prisma.appointmentSlot.create({
+        data: {
+          serviceId: service.id,
+          startsAt: future(),
+          endsAt: new Date(Date.now() + 5400000),
+          timeZone: 'Asia/Dubai',
+          capacity: 10,
+        },
+      });
+      const consumedId = randomUUID();
+      const now = new Date();
+      await prisma.bookingHold.createMany({
+        data: Array.from({ length: 1001 }, (_, index) => ({
+          id: index === 0 ? consumedId : randomUUID(),
+          slotId: slot.id,
+          accountId: booked.requesterAccountId,
+          petId: booked.petId,
+          expiresAt: new Date(
+            now.getTime() - (index === 0 ? 48 : 25) * 3600000,
+          ),
+          ...(index === 0
+            ? { consumedAt: new Date(now.getTime() - 49 * 3600000) }
+            : {}),
+        })),
+      });
+      await prisma.bookingHold.createMany({
+        data: [
+          new Date(now.getTime() - 60000),
+          new Date(now.getTime() + 300000),
+        ].map((expiresAt) => ({
+          id: randomUUID(),
+          slotId: slot.id,
+          accountId: booked.requesterAccountId,
+          petId: booked.petId,
+          expiresAt,
+        })),
+      });
+      await prisma.appointment.update({
+        where: { id: booked.id },
+        data: {
+          slotId: slot.id,
+          requestHoldId: consumedId,
+          serviceName: service.name,
+          durationMinutes: 30,
+        },
+      });
+      await prisma.appointmentHistory.create({
+        data: {
+          appointmentId: booked.id,
+          actorAccountId: booked.requesterAccountId,
+          toStatus: 'REQUESTED',
+          action: 'REQUESTED',
+          slotId: slot.id,
+          proposedStartsAt: booked.startsAt,
+          proposedTimeZone: booked.timeZone,
+        },
+      });
+      await worker.tick();
+      expect(await prisma.bookingHold.count()).toBe(3);
+      expect(
+        await prisma.bookingHold.findUnique({ where: { id: consumedId } }),
+      ).toBeNull();
+      expect(
+        await prisma.appointment.findUniqueOrThrow({
+          where: { id: booked.id },
+        }),
+      ).toMatchObject({
+        requestHoldId: consumedId,
+        serviceName: service.name,
+        slotId: slot.id,
+      });
+      expect(
+        await prisma.appointmentHistory.count({
+          where: { appointmentId: booked.id },
+        }),
+      ).toBe(1);
+      await worker.tick();
+      expect(await prisma.bookingHold.count()).toBe(2);
+    });
+
     it('leases queued mail so overlapping workers do not send the same active job twice', async () => {
       const row = await enqueue();
       let release!: () => void;
@@ -422,6 +513,35 @@ describeWorker(
       }
     });
 
+    it('consumes arrival events and delivers only a generic appointment update', async () => {
+      const account = await recipient();
+      const event = await resourceEvent('AppointmentCheckedIn');
+      await prisma.notification.create({
+        data: {
+          recipientAccountId: account.id,
+          kind: 'APPOINTMENT_UPDATED',
+          title: 'Arrival recorded',
+          message: 'Private fixture pet and arrival details',
+          resourceType: 'appointment',
+          resourceId: event.aggregateId,
+        },
+      });
+      await worker.dispatchEvents();
+      expect(
+        await prisma.outboxEvent.findUniqueOrThrow({ where: { id: event.id } }),
+      ).toMatchObject({ status: 'PUBLISHED' });
+      const email = await prisma.emailDelivery.findFirstOrThrow();
+      expect(email).toMatchObject({
+        recipientAccountId: account.id,
+        category: 'APPOINTMENT_UPDATES',
+      });
+      expect(queue.decrypt(email.encryptedText!)).not.toContain(
+        'Private fixture',
+      );
+      await worker.dispatchEvents();
+      expect(await prisma.emailDelivery.count()).toBe(1);
+    });
+
     it('delivers transactional notices written before the outbox insert', async () => {
       const account = await recipient();
       const resourceId = randomUUID();
@@ -464,6 +584,204 @@ describeWorker(
       expect(
         await prisma.outboxEvent.findUniqueOrThrow({ where: { id: event.id } }),
       ).toMatchObject({ status: 'PUBLISHED' });
+    });
+
+    it('queues every eligible recipient before acknowledging events with more than one notification page', async () => {
+      const accounts = Array.from({ length: 105 }, () => ({
+        id: randomUUID(),
+        email: `${randomUUID()}@worker.test`,
+        passwordHash: 'no-login-fixture',
+        status: 'ACTIVE' as const,
+        emailVerifiedAt: new Date(),
+      }));
+      await prisma.account.createMany({ data: accounts });
+      const event = await resourceEvent();
+      await prisma.notification.createMany({
+        data: accounts.map((account) => ({
+          recipientAccountId: account.id,
+          kind: 'APPOINTMENT_REQUESTED' as const,
+          title: 'Clinic request',
+          message: 'Private request details',
+          resourceType: 'appointment',
+          resourceId: event.aggregateId,
+        })),
+      });
+      await worker.dispatchEvents();
+      expect(await prisma.emailDelivery.count()).toBe(accounts.length);
+      expect(
+        await prisma.outboxEvent.findUniqueOrThrow({ where: { id: event.id } }),
+      ).toMatchObject({ status: 'PUBLISHED' });
+      await worker.dispatchEvents();
+      expect(await prisma.emailDelivery.count()).toBe(accounts.length);
+    });
+
+    it('honors opt-outs before fanout and again for queued legacy mail while preserving mandatory security mail', async () => {
+      const account = await recipient();
+      const event = await resourceEvent();
+      const notice = await prisma.notification.create({
+        data: {
+          recipientAccountId: account.id,
+          kind: 'APPOINTMENT_UPDATED',
+          title: 'Update',
+          message: 'In-app update remains available',
+          resourceType: 'appointment',
+          resourceId: event.aggregateId,
+        },
+      });
+      await prisma.notificationPreference.create({
+        data: { accountId: account.id, appointmentUpdatesEmail: false },
+      });
+      await worker.dispatchEvents();
+      expect(await prisma.emailDelivery.count()).toBe(0);
+      expect(await prisma.notification.count()).toBe(1);
+      // A pre-migration queued message has no category/account metadata.
+      await prisma.$transaction((tx) =>
+        queue.enqueue(tx, {
+          idempotencyKey: `notification:${notice.id}`,
+          to: account.email,
+          subject: 'Queued update',
+          text: 'Private details stay in-app',
+          sensitive: false,
+        }),
+      );
+      const security = await enqueue(`security:fixture:${randomUUID()}`);
+      await worker.dispatchEmail();
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(send.mock.calls[0][0].id).toBe(security.id);
+      expect(
+        await prisma.emailDelivery.findUniqueOrThrow({
+          where: { idempotencyKey: `notification:${notice.id}` },
+        }),
+      ).toMatchObject({ state: 'CANCELLED', encryptedText: null });
+    });
+
+    it('rechecks preferences and current verified recipient identity before queued optional delivery', async () => {
+      const optedOut = await recipient();
+      const changedAddress = await recipient();
+      const unverified = await recipient();
+      const suspended = await recipient();
+      const allowed = await recipient();
+      for (const account of [
+        optedOut,
+        changedAddress,
+        unverified,
+        suspended,
+        allowed,
+      ]) {
+        await prisma.$transaction((tx) =>
+          queue.enqueue(tx, {
+            idempotencyKey: `fixture:optional:${account.id}`,
+            to: account.email,
+            subject: 'Update',
+            text: 'An authenticated workspace update',
+            sensitive: false,
+            category: 'CREDENTIAL_UPDATES',
+            recipientAccountId: account.id,
+          }),
+        );
+      }
+      await prisma.notificationPreference.create({
+        data: { accountId: optedOut.id, credentialUpdatesEmail: false },
+      });
+      await prisma.account.update({
+        where: { id: changedAddress.id },
+        data: { email: `${randomUUID()}@worker.test` },
+      });
+      await prisma.account.update({
+        where: { id: unverified.id },
+        data: { emailVerifiedAt: null },
+      });
+      await prisma.account.update({
+        where: { id: suspended.id },
+        data: { status: 'SUSPENDED' },
+      });
+      await worker.dispatchEmail();
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(send.mock.calls[0][0].to).toBe(allowed.email);
+      expect(
+        await prisma.emailDelivery.count({
+          where: { state: 'CANCELLED', encryptedText: null },
+        }),
+      ).toBe(4);
+    });
+
+    it('retains the in-app reminder but cancels optional mail after a reminder opt-out', async () => {
+      const visit = await appointment();
+      await reminders.enqueueDue();
+      expect(await prisma.emailDelivery.count()).toBe(1);
+      expect(
+        await prisma.notification.count({
+          where: { kind: 'APPOINTMENT_REMINDER' },
+        }),
+      ).toBe(1);
+      await prisma.notificationPreference.create({
+        data: {
+          accountId: visit.requesterAccountId,
+          appointmentRemindersEmail: false,
+        },
+      });
+      await worker.dispatchEmail();
+      expect(send).not.toHaveBeenCalled();
+      expect(await prisma.emailDelivery.findFirstOrThrow()).toMatchObject({
+        state: 'CANCELLED',
+        encryptedText: null,
+      });
+      expect(
+        await prisma.notification.count({
+          where: { kind: 'APPOINTMENT_REMINDER' },
+        }),
+      ).toBe(1);
+    });
+
+    it('does not enqueue arrival reminders and cancels previously queued reminder mail after check-in', async () => {
+      const arrived = await appointment();
+      await prisma.appointment.update({
+        where: { id: arrived.id },
+        data: { checkedInAt: new Date() },
+      });
+      await reminders.enqueueDue();
+      expect(await prisma.emailDelivery.count()).toBe(0);
+      expect(await prisma.appointmentReminder.count()).toBe(0);
+      const queued = await appointment();
+      await reminders.enqueueDue();
+      expect(await prisma.emailDelivery.count()).toBe(1);
+      await prisma.appointment.update({
+        where: { id: queued.id },
+        data: { checkedInAt: new Date() },
+      });
+      const mail = await prisma.emailDelivery.findFirstOrThrow();
+      expect(await reminders.isCurrent(mail.idempotencyKey)).toBe(false);
+      expect(
+        await reminders.recipientForDelivery(mail.idempotencyKey),
+      ).toBeNull();
+      await worker.dispatchEmail();
+      expect(send).not.toHaveBeenCalled();
+      expect(await prisma.emailDelivery.findFirstOrThrow()).toMatchObject({
+        state: 'CANCELLED',
+        encryptedText: null,
+      });
+      expect(
+        await prisma.notification.count({
+          where: { kind: 'APPOINTMENT_REMINDER' },
+        }),
+      ).toBe(1);
+    });
+
+    it('cancels queued reminder mail when a visit is marked no-show', async () => {
+      const visit = await appointment();
+      await reminders.enqueueDue();
+      await prisma.appointment.update({
+        where: { id: visit.id },
+        data: { status: 'NO_SHOW' },
+      });
+      await worker.dispatchEmail();
+      expect(send).not.toHaveBeenCalled();
+      expect(await prisma.emailDelivery.findFirstOrThrow()).toMatchObject({
+        state: 'CANCELLED',
+        encryptedText: null,
+      });
+      await reminders.enqueueDue();
+      expect(await prisma.emailDelivery.count()).toBe(1);
     });
 
     it('rolls back partial event fanout on failure and retries the durable event lease', async () => {
@@ -693,6 +1011,8 @@ describeWorker(
           lastError: 'EVENT_DISPATCH_FAILED',
         },
       });
+      const waiting = await resourceEvent();
+      await resourceEvent('FutureDomainEvent');
       await request(http).get('/api/v1/platform/delivery').expect(401);
       await request(http)
         .get('/api/v1/platform/delivery')
@@ -712,6 +1032,16 @@ describeWorker(
         .set('authorization', `Bearer ${operator}`)
         .expect(200);
       const publicStatus = JSON.stringify(status.body as unknown);
+      expect(status.body as unknown).toMatchObject({
+        eventStates: expect.arrayContaining([
+          { state: 'PENDING', _count: { _all: 1 } },
+        ]) as unknown,
+        oldestPendingEventAt: waiting.createdAt.toISOString(),
+        unsupportedEventCount: 1,
+        failedEmail: expect.arrayContaining([
+          expect.objectContaining({ id: email.id, retryable: true }),
+        ]) as unknown,
+      });
       expect(publicStatus).not.toMatch(
         /encryptedText|fixture-secret|recipient@worker.test/,
       );

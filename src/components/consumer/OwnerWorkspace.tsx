@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PawPrint, Plus, Search } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
-import { apiFetch } from "@/lib/client-api";
+import { apiFetch, ApiRequestError } from "@/lib/client-api";
 import { writeWorkspacePreference } from "@/lib/workspace-preference";
 import { authNavigationContext, withReturnTo } from "@/lib/auth-navigation";
 import type { ApiPet, ApiAppointment } from "@/lib/server/vetlinx-api";
 import { useSession } from "./use-session";
-import { AppointmentList } from "./AppointmentList";
+import { AppointmentList, type AppointmentProposalInput } from "./AppointmentList";
 import styles from "./Consumer.module.css";
 
 export function OwnerWorkspace() {
@@ -19,6 +19,8 @@ export function OwnerWorkspace() {
   const [appointments, setAppointments] = useState<ApiAppointment[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [pending, setPending] = useState(false);
+  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState<ApiPet | null | undefined>();
   const [archiving, setArchiving] = useState<string | null>(null);
@@ -31,10 +33,15 @@ export function OwnerWorkspace() {
     return { pets: petData.pets, appointments: appointmentData.appointments };
   }, []);
   async function refresh() {
-    const data = await reload();
-    setPets(data.pets);
-    setAppointments(data.appointments);
-    setLoaded(true);
+    setRefreshing(true);
+    try {
+      const data = await reload();
+      setPets(data.pets);
+      setAppointments(data.appointments);
+      setLoaded(true);
+      setNeedsRefresh(false);
+      setMessage("");
+    } finally { setRefreshing(false); }
   }
   useEffect(() => {
     if (!session) return;
@@ -115,47 +122,38 @@ export function OwnerWorkspace() {
       setPending(false);
     }
   }
-  async function cancel(appointment: ApiAppointment) {
+  async function appointmentCommand(path: string, body: object) {
+    if (pending || needsRefresh || refreshing) return false;
     setPending(true);
     setMessage("");
     try {
-      await apiFetch(`/api/appointments/${appointment.id}/cancel`, {
-        method: "POST",
-      });
-      await refresh();
+      const result = await apiFetch<{ appointment: ApiAppointment }>(path, { method: "POST", body: JSON.stringify(body) });
+      setAppointments((current) => current.map((item) => item.id === result.appointment.id ? result.appointment : item));
+      try { await refresh(); }
+      catch { setNeedsRefresh(true); setMessage("Your appointment was updated, but the latest list could not be refreshed. Refresh before making another change."); }
+      return true;
     } catch (failure) {
-      setMessage(
-        failure instanceof Error
-          ? failure.message
-          : "Request could not be cancelled.",
-      );
+      if (failure instanceof ApiRequestError && failure.status === 409) { setNeedsRefresh(true); setMessage("This appointment changed. Your draft is kept. Refresh the appointments, review the latest time and status, then try again."); }
+      else setMessage(failure instanceof Error ? failure.message : "The appointment could not be updated. Your draft has been kept.");
+      return false;
     } finally {
       setPending(false);
     }
   }
+  function cancel(appointment: ApiAppointment) {
+    return appointmentCommand(`/api/appointments/${appointment.id}/cancel`, { proposalVersion: appointment.proposalVersion });
+  }
   async function respond(appointment: ApiAppointment, accept: boolean) {
-    setPending(true);
-    setMessage("");
-    try {
-      await apiFetch(
+    return appointmentCommand(
         `/api/appointments/${appointment.id}/proposal/${accept ? "accept" : "reject"}`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            proposalVersion: appointment.proposalVersion,
-          }),
-        },
-      );
-      await refresh();
-    } catch (failure) {
-      setMessage(
-        failure instanceof Error
-          ? failure.message
-          : "The proposed time could not be updated. Refresh and try again.",
-      );
-    } finally {
-      setPending(false);
-    }
+        { proposalVersion: appointment.proposalVersion },
+    );
+  }
+  function requestReschedule(appointment: ApiAppointment, proposal: AppointmentProposalInput) {
+    return appointmentCommand(`/api/appointments/${appointment.id}/reschedule`, proposal);
+  }
+  function withdrawReschedule(appointment: ApiAppointment) {
+    return appointmentCommand(`/api/appointments/${appointment.id}/reschedule/withdraw`, { proposalVersion: appointment.proposalVersion });
   }
   if (!session?.owner)
     return (
@@ -355,7 +353,7 @@ export function OwnerWorkspace() {
         <h2>Appointment requests</h2>
         <button
           className={styles.secondary}
-          disabled={pending}
+          disabled={pending || refreshing}
           onClick={() =>
             void refresh().catch((failure: unknown) =>
               setMessage(
@@ -366,15 +364,17 @@ export function OwnerWorkspace() {
             )
           }
         >
-          Refresh
+          {refreshing ? "Refreshing…" : "Refresh"}
         </button>
       </div>
       {loaded ? (
         <AppointmentList
           appointments={appointments}
-          pending={pending}
+          pending={pending || needsRefresh || refreshing}
           onAction={cancel}
           onRespond={respond}
+          onPropose={requestReschedule}
+          onWithdraw={withdrawReschedule}
         />
       ) : null}
     </AppShell>

@@ -46,6 +46,8 @@ export type AppointmentHistoryMinAggregateOutputType = {
   proposedTimeZone: string | null
   proposalVersion: number | null
   proposalExpiresAt: Date | null
+  proposalInitiator: string | null
+  slotId: string | null
   createdAt: Date | null
 }
 
@@ -61,6 +63,8 @@ export type AppointmentHistoryMaxAggregateOutputType = {
   proposedTimeZone: string | null
   proposalVersion: number | null
   proposalExpiresAt: Date | null
+  proposalInitiator: string | null
+  slotId: string | null
   createdAt: Date | null
 }
 
@@ -76,6 +80,8 @@ export type AppointmentHistoryCountAggregateOutputType = {
   proposedTimeZone: number
   proposalVersion: number
   proposalExpiresAt: number
+  proposalInitiator: number
+  slotId: number
   createdAt: number
   _all: number
 }
@@ -101,6 +107,8 @@ export type AppointmentHistoryMinAggregateInputType = {
   proposedTimeZone?: true
   proposalVersion?: true
   proposalExpiresAt?: true
+  proposalInitiator?: true
+  slotId?: true
   createdAt?: true
 }
 
@@ -116,6 +124,8 @@ export type AppointmentHistoryMaxAggregateInputType = {
   proposedTimeZone?: true
   proposalVersion?: true
   proposalExpiresAt?: true
+  proposalInitiator?: true
+  slotId?: true
   createdAt?: true
 }
 
@@ -131,6 +141,8 @@ export type AppointmentHistoryCountAggregateInputType = {
   proposedTimeZone?: true
   proposalVersion?: true
   proposalExpiresAt?: true
+  proposalInitiator?: true
+  slotId?: true
   createdAt?: true
   _all?: true
 }
@@ -233,6 +245,8 @@ export type AppointmentHistoryGroupByOutputType = {
   proposedTimeZone: string | null
   proposalVersion: number | null
   proposalExpiresAt: Date | null
+  proposalInitiator: string | null
+  slotId: string | null
   createdAt: Date
   _count: AppointmentHistoryCountAggregateOutputType | null
   _avg: AppointmentHistoryAvgAggregateOutputType | null
@@ -271,6 +285,8 @@ export type AppointmentHistoryWhereInput = {
   proposedTimeZone?: Prisma.StringNullableFilter<"AppointmentHistory"> | string | null
   proposalVersion?: Prisma.IntNullableFilter<"AppointmentHistory"> | number | null
   proposalExpiresAt?: Prisma.DateTimeNullableFilter<"AppointmentHistory"> | Date | string | null
+  proposalInitiator?: Prisma.StringNullableFilter<"AppointmentHistory"> | string | null
+  slotId?: Prisma.UuidNullableFilter<"AppointmentHistory"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AppointmentHistory"> | Date | string
   appointment?: Prisma.XOR<Prisma.AppointmentScalarRelationFilter, Prisma.AppointmentWhereInput>
 }
@@ -287,6 +303,8 @@ export type AppointmentHistoryOrderByWithRelationInput = {
   proposedTimeZone?: Prisma.SortOrderInput | Prisma.SortOrder
   proposalVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   proposalExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrderInput | Prisma.SortOrder
+  slotId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   appointment?: Prisma.AppointmentOrderByWithRelationInput
 }
@@ -306,6 +324,8 @@ export type AppointmentHistoryWhereUniqueInput = Prisma.AtLeast<{
   proposedTimeZone?: Prisma.StringNullableFilter<"AppointmentHistory"> | string | null
   proposalVersion?: Prisma.IntNullableFilter<"AppointmentHistory"> | number | null
   proposalExpiresAt?: Prisma.DateTimeNullableFilter<"AppointmentHistory"> | Date | string | null
+  proposalInitiator?: Prisma.StringNullableFilter<"AppointmentHistory"> | string | null
+  slotId?: Prisma.UuidNullableFilter<"AppointmentHistory"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AppointmentHistory"> | Date | string
   appointment?: Prisma.XOR<Prisma.AppointmentScalarRelationFilter, Prisma.AppointmentWhereInput>
 }, "id">
@@ -322,6 +342,8 @@ export type AppointmentHistoryOrderByWithAggregationInput = {
   proposedTimeZone?: Prisma.SortOrderInput | Prisma.SortOrder
   proposalVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   proposalExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrderInput | Prisma.SortOrder
+  slotId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.AppointmentHistoryCountOrderByAggregateInput
   _avg?: Prisma.AppointmentHistoryAvgOrderByAggregateInput
@@ -345,6 +367,8 @@ export type AppointmentHistoryScalarWhereWithAggregatesInput = {
   proposedTimeZone?: Prisma.StringNullableWithAggregatesFilter<"AppointmentHistory"> | string | null
   proposalVersion?: Prisma.IntNullableWithAggregatesFilter<"AppointmentHistory"> | number | null
   proposalExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AppointmentHistory"> | Date | string | null
+  proposalInitiator?: Prisma.StringNullableWithAggregatesFilter<"AppointmentHistory"> | string | null
+  slotId?: Prisma.UuidNullableWithAggregatesFilter<"AppointmentHistory"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AppointmentHistory"> | Date | string
 }
 
@@ -359,6 +383,8 @@ export type AppointmentHistoryCreateInput = {
   proposedTimeZone?: string | null
   proposalVersion?: number | null
   proposalExpiresAt?: Date | string | null
+  proposalInitiator?: string | null
+  slotId?: string | null
   createdAt?: Date | string
   appointment: Prisma.AppointmentCreateNestedOneWithoutHistoryInput
 }
@@ -375,6 +401,8 @@ export type AppointmentHistoryUncheckedCreateInput = {
   proposedTimeZone?: string | null
   proposalVersion?: number | null
   proposalExpiresAt?: Date | string | null
+  proposalInitiator?: string | null
+  slotId?: string | null
   createdAt?: Date | string
 }
 
@@ -389,6 +417,8 @@ export type AppointmentHistoryUpdateInput = {
   proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointment?: Prisma.AppointmentUpdateOneRequiredWithoutHistoryNestedInput
 }
@@ -405,6 +435,8 @@ export type AppointmentHistoryUncheckedUpdateInput = {
   proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -420,6 +452,8 @@ export type AppointmentHistoryCreateManyInput = {
   proposedTimeZone?: string | null
   proposalVersion?: number | null
   proposalExpiresAt?: Date | string | null
+  proposalInitiator?: string | null
+  slotId?: string | null
   createdAt?: Date | string
 }
 
@@ -434,6 +468,8 @@ export type AppointmentHistoryUpdateManyMutationInput = {
   proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -449,6 +485,8 @@ export type AppointmentHistoryUncheckedUpdateManyInput = {
   proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -474,6 +512,8 @@ export type AppointmentHistoryCountOrderByAggregateInput = {
   proposedTimeZone?: Prisma.SortOrder
   proposalVersion?: Prisma.SortOrder
   proposalExpiresAt?: Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrder
+  slotId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -493,6 +533,8 @@ export type AppointmentHistoryMaxOrderByAggregateInput = {
   proposedTimeZone?: Prisma.SortOrder
   proposalVersion?: Prisma.SortOrder
   proposalExpiresAt?: Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrder
+  slotId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -508,6 +550,8 @@ export type AppointmentHistoryMinOrderByAggregateInput = {
   proposedTimeZone?: Prisma.SortOrder
   proposalVersion?: Prisma.SortOrder
   proposalExpiresAt?: Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrder
+  slotId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -561,14 +605,6 @@ export type NullableEnumAppointmentStatusFieldUpdateOperationsInput = {
   set?: $Enums.AppointmentStatus | null
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type AppointmentHistoryCreateWithoutAppointmentInput = {
   id?: string
   actorAccountId: string
@@ -580,6 +616,8 @@ export type AppointmentHistoryCreateWithoutAppointmentInput = {
   proposedTimeZone?: string | null
   proposalVersion?: number | null
   proposalExpiresAt?: Date | string | null
+  proposalInitiator?: string | null
+  slotId?: string | null
   createdAt?: Date | string
 }
 
@@ -594,6 +632,8 @@ export type AppointmentHistoryUncheckedCreateWithoutAppointmentInput = {
   proposedTimeZone?: string | null
   proposalVersion?: number | null
   proposalExpiresAt?: Date | string | null
+  proposalInitiator?: string | null
+  slotId?: string | null
   createdAt?: Date | string
 }
 
@@ -638,6 +678,8 @@ export type AppointmentHistoryScalarWhereInput = {
   proposedTimeZone?: Prisma.StringNullableFilter<"AppointmentHistory"> | string | null
   proposalVersion?: Prisma.IntNullableFilter<"AppointmentHistory"> | number | null
   proposalExpiresAt?: Prisma.DateTimeNullableFilter<"AppointmentHistory"> | Date | string | null
+  proposalInitiator?: Prisma.StringNullableFilter<"AppointmentHistory"> | string | null
+  slotId?: Prisma.UuidNullableFilter<"AppointmentHistory"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AppointmentHistory"> | Date | string
 }
 
@@ -652,6 +694,8 @@ export type AppointmentHistoryCreateManyAppointmentInput = {
   proposedTimeZone?: string | null
   proposalVersion?: number | null
   proposalExpiresAt?: Date | string | null
+  proposalInitiator?: string | null
+  slotId?: string | null
   createdAt?: Date | string
 }
 
@@ -666,6 +710,8 @@ export type AppointmentHistoryUpdateWithoutAppointmentInput = {
   proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -680,6 +726,8 @@ export type AppointmentHistoryUncheckedUpdateWithoutAppointmentInput = {
   proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -694,6 +742,8 @@ export type AppointmentHistoryUncheckedUpdateManyWithoutAppointmentInput = {
   proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -711,6 +761,8 @@ export type AppointmentHistorySelect<ExtArgs extends runtime.Types.Extensions.In
   proposedTimeZone?: boolean
   proposalVersion?: boolean
   proposalExpiresAt?: boolean
+  proposalInitiator?: boolean
+  slotId?: boolean
   createdAt?: boolean
   appointment?: boolean | Prisma.AppointmentDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["appointmentHistory"]>
@@ -727,6 +779,8 @@ export type AppointmentHistorySelectCreateManyAndReturn<ExtArgs extends runtime.
   proposedTimeZone?: boolean
   proposalVersion?: boolean
   proposalExpiresAt?: boolean
+  proposalInitiator?: boolean
+  slotId?: boolean
   createdAt?: boolean
   appointment?: boolean | Prisma.AppointmentDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["appointmentHistory"]>
@@ -743,6 +797,8 @@ export type AppointmentHistorySelectUpdateManyAndReturn<ExtArgs extends runtime.
   proposedTimeZone?: boolean
   proposalVersion?: boolean
   proposalExpiresAt?: boolean
+  proposalInitiator?: boolean
+  slotId?: boolean
   createdAt?: boolean
   appointment?: boolean | Prisma.AppointmentDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["appointmentHistory"]>
@@ -759,10 +815,12 @@ export type AppointmentHistorySelectScalar = {
   proposedTimeZone?: boolean
   proposalVersion?: boolean
   proposalExpiresAt?: boolean
+  proposalInitiator?: boolean
+  slotId?: boolean
   createdAt?: boolean
 }
 
-export type AppointmentHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "appointmentId" | "actorAccountId" | "fromStatus" | "toStatus" | "reason" | "action" | "proposedStartsAt" | "proposedTimeZone" | "proposalVersion" | "proposalExpiresAt" | "createdAt", ExtArgs["result"]["appointmentHistory"]>
+export type AppointmentHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "appointmentId" | "actorAccountId" | "fromStatus" | "toStatus" | "reason" | "action" | "proposedStartsAt" | "proposedTimeZone" | "proposalVersion" | "proposalExpiresAt" | "proposalInitiator" | "slotId" | "createdAt", ExtArgs["result"]["appointmentHistory"]>
 export type AppointmentHistoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   appointment?: boolean | Prisma.AppointmentDefaultArgs<ExtArgs>
 }
@@ -790,6 +848,8 @@ export type $AppointmentHistoryPayload<ExtArgs extends runtime.Types.Extensions.
     proposedTimeZone: string | null
     proposalVersion: number | null
     proposalExpiresAt: Date | null
+    proposalInitiator: string | null
+    slotId: string | null
     createdAt: Date
   }, ExtArgs["result"]["appointmentHistory"]>
   composites: {}
@@ -1226,6 +1286,8 @@ export interface AppointmentHistoryFieldRefs {
   readonly proposedTimeZone: Prisma.FieldRef<"AppointmentHistory", 'String'>
   readonly proposalVersion: Prisma.FieldRef<"AppointmentHistory", 'Int'>
   readonly proposalExpiresAt: Prisma.FieldRef<"AppointmentHistory", 'DateTime'>
+  readonly proposalInitiator: Prisma.FieldRef<"AppointmentHistory", 'String'>
+  readonly slotId: Prisma.FieldRef<"AppointmentHistory", 'String'>
   readonly createdAt: Prisma.FieldRef<"AppointmentHistory", 'DateTime'>
 }
 

@@ -1,7 +1,12 @@
-.center { margin-bottom: 18px; overflow: hidden; border: 1px solid #d4e2e3; border-radius: 10px; background: #fff; }
+.wrapper { position: relative; flex-shrink: 0; }
+.trigger { position: relative; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--navy); cursor: pointer; }
+.trigger:hover, .trigger[aria-expanded="true"] { background: var(--success-soft); border-color: var(--teal); }
+.trigger>svg { width: 20px; height: 20px; }
+.badge { position: absolute; top: -4px; right: -4px; min-width: 19px; height: 19px; padding: 0 4px; display: grid; place-items: center; border-radius: 12px; background: var(--teal-dark); color: white; font-size: 10px; font-weight: 750; border: 2px solid white; }
+.center { position: absolute; top: calc(100% + 12px); right: -46px; z-index: 40; width: min(380px, calc(100vw - 24px)); max-height: min(560px, 70dvh); overflow-y: auto; overscroll-behavior: contain; border: 1px solid #d4e2e3; border-radius: 12px; background: #fff; box-shadow: 0 14px 40px #00192d26; }
 .center > header { min-height: 42px; display: flex; align-items: center; gap: 8px; padding: 10px 13px; border-bottom: 1px solid #e2e9ea; color: #254457; background: #f4f8f8; }
 .center > header svg { width: 16px; color: #0a8877; }
-.center > header strong { font-size: 11px; }
+.center > header strong { font-size: 14px; }
 .center > header span { min-width: 20px; height: 20px; display: grid; place-items: center; margin-left: auto; border-radius: 50%; color: white; background: #0a8877; font-size: 9px; font-weight: 800; }
 .center article { min-height: 76px; display: grid; grid-template-columns: 29px 1fr 25px; align-items: start; gap: 10px; padding: 13px; border-bottom: 1px solid #edf1f2; }
 .center article:last-child { border-bottom: 0; }
@@ -9,8 +14,17 @@
 .center article.positive > svg { color: #087562; background: #dff4ed; }
 .center article.negative > svg { color: #b32836; background: #fde8ea; }
 .center article div { display: grid; gap: 4px; }
-.center article strong { font-size: 10px; }
-.center article p { margin: 0; color: #5f7280; font-size: 9px; line-height: 1.5; }
-.center article time { color: #84909a; font-size: 8px; }
+.center article strong { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.center article p { margin: 0; color: #5f7280; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.center article time { color: #607286; font-size: 11px; }
+.action { width: fit-content; color: #087562; font-size: 12px; font-weight: 700; text-underline-offset: 3px; }
+.action:focus-visible { outline: 2px solid #087562; outline-offset: 3px; border-radius: 2px; }
 .center article button { display: grid; place-items: center; border: 0; color: #71818d; background: transparent; cursor: pointer; }
 .center article button svg { width: 14px; }
+.center>header button { margin-left: 2px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; width: 36px; height: 36px; cursor: pointer; }
+.center>header button svg { width: 18px; height: 18px; }
+.center article { grid-template-columns: 29px minmax(0,1fr) 36px; }
+.center article button { min-height: 36px; }
+.empty, .error { margin: 0; padding: 22px 16px; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.error { background: var(--danger-soft); color: #953636; }
+@media (max-width: 860px) { .center { right: -38px; } }

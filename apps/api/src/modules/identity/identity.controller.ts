@@ -29,6 +29,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterAccountDto } from './dto/register-account.dto';
 import { IdentityService } from './identity.service';
 import type { RequestMetadata } from './identity.types';
+import { MfaLoginDto } from '../identity-security/mfa.dto';
 
 @ApiTags('Identity')
 @Controller({ path: 'auth', version: '1' })
@@ -70,6 +71,20 @@ export class IdentityController {
   })
   refresh(@Body() dto: RefreshTokenDto, @Req() request: Request) {
     return this.identity.refresh(dto.refreshToken, this.metadata(request));
+  }
+
+  @Post('mfa/login')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Complete a password-authenticated two-step sign-in challenge',
+  })
+  mfaLogin(@Body() dto: MfaLoginDto, @Req() request: Request) {
+    return this.identity.completeMfaLogin(
+      dto.challengeToken,
+      dto.code,
+      this.metadata(request),
+    );
   }
 
   @Post('logout')

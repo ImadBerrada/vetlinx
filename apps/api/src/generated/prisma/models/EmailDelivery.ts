@@ -41,6 +41,8 @@ export type EmailDeliveryMinAggregateOutputType = {
   subject: string | null
   encryptedText: string | null
   sensitive: boolean | null
+  recipientAccountId: string | null
+  category: string | null
   state: string | null
   availableAt: Date | null
   expiresAt: Date | null
@@ -60,6 +62,8 @@ export type EmailDeliveryMaxAggregateOutputType = {
   subject: string | null
   encryptedText: string | null
   sensitive: boolean | null
+  recipientAccountId: string | null
+  category: string | null
   state: string | null
   availableAt: Date | null
   expiresAt: Date | null
@@ -79,6 +83,8 @@ export type EmailDeliveryCountAggregateOutputType = {
   subject: number
   encryptedText: number
   sensitive: number
+  recipientAccountId: number
+  category: number
   state: number
   availableAt: number
   expiresAt: number
@@ -108,6 +114,8 @@ export type EmailDeliveryMinAggregateInputType = {
   subject?: true
   encryptedText?: true
   sensitive?: true
+  recipientAccountId?: true
+  category?: true
   state?: true
   availableAt?: true
   expiresAt?: true
@@ -127,6 +135,8 @@ export type EmailDeliveryMaxAggregateInputType = {
   subject?: true
   encryptedText?: true
   sensitive?: true
+  recipientAccountId?: true
+  category?: true
   state?: true
   availableAt?: true
   expiresAt?: true
@@ -146,6 +156,8 @@ export type EmailDeliveryCountAggregateInputType = {
   subject?: true
   encryptedText?: true
   sensitive?: true
+  recipientAccountId?: true
+  category?: true
   state?: true
   availableAt?: true
   expiresAt?: true
@@ -252,6 +264,8 @@ export type EmailDeliveryGroupByOutputType = {
   subject: string
   encryptedText: string | null
   sensitive: boolean
+  recipientAccountId: string | null
+  category: string | null
   state: string
   availableAt: Date
   expiresAt: Date | null
@@ -294,6 +308,8 @@ export type EmailDeliveryWhereInput = {
   subject?: Prisma.StringFilter<"EmailDelivery"> | string
   encryptedText?: Prisma.StringNullableFilter<"EmailDelivery"> | string | null
   sensitive?: Prisma.BoolFilter<"EmailDelivery"> | boolean
+  recipientAccountId?: Prisma.UuidNullableFilter<"EmailDelivery"> | string | null
+  category?: Prisma.StringNullableFilter<"EmailDelivery"> | string | null
   state?: Prisma.StringFilter<"EmailDelivery"> | string
   availableAt?: Prisma.DateTimeFilter<"EmailDelivery"> | Date | string
   expiresAt?: Prisma.DateTimeNullableFilter<"EmailDelivery"> | Date | string | null
@@ -313,6 +329,8 @@ export type EmailDeliveryOrderByWithRelationInput = {
   subject?: Prisma.SortOrder
   encryptedText?: Prisma.SortOrderInput | Prisma.SortOrder
   sensitive?: Prisma.SortOrder
+  recipientAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
   state?: Prisma.SortOrder
   availableAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -335,6 +353,8 @@ export type EmailDeliveryWhereUniqueInput = Prisma.AtLeast<{
   subject?: Prisma.StringFilter<"EmailDelivery"> | string
   encryptedText?: Prisma.StringNullableFilter<"EmailDelivery"> | string | null
   sensitive?: Prisma.BoolFilter<"EmailDelivery"> | boolean
+  recipientAccountId?: Prisma.UuidNullableFilter<"EmailDelivery"> | string | null
+  category?: Prisma.StringNullableFilter<"EmailDelivery"> | string | null
   state?: Prisma.StringFilter<"EmailDelivery"> | string
   availableAt?: Prisma.DateTimeFilter<"EmailDelivery"> | Date | string
   expiresAt?: Prisma.DateTimeNullableFilter<"EmailDelivery"> | Date | string | null
@@ -354,6 +374,8 @@ export type EmailDeliveryOrderByWithAggregationInput = {
   subject?: Prisma.SortOrder
   encryptedText?: Prisma.SortOrderInput | Prisma.SortOrder
   sensitive?: Prisma.SortOrder
+  recipientAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
   state?: Prisma.SortOrder
   availableAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -381,6 +403,8 @@ export type EmailDeliveryScalarWhereWithAggregatesInput = {
   subject?: Prisma.StringWithAggregatesFilter<"EmailDelivery"> | string
   encryptedText?: Prisma.StringNullableWithAggregatesFilter<"EmailDelivery"> | string | null
   sensitive?: Prisma.BoolWithAggregatesFilter<"EmailDelivery"> | boolean
+  recipientAccountId?: Prisma.UuidNullableWithAggregatesFilter<"EmailDelivery"> | string | null
+  category?: Prisma.StringNullableWithAggregatesFilter<"EmailDelivery"> | string | null
   state?: Prisma.StringWithAggregatesFilter<"EmailDelivery"> | string
   availableAt?: Prisma.DateTimeWithAggregatesFilter<"EmailDelivery"> | Date | string
   expiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"EmailDelivery"> | Date | string | null
@@ -400,6 +424,8 @@ export type EmailDeliveryCreateInput = {
   subject: string
   encryptedText?: string | null
   sensitive?: boolean
+  recipientAccountId?: string | null
+  category?: string | null
   state?: string
   availableAt?: Date | string
   expiresAt?: Date | string | null
@@ -419,6 +445,8 @@ export type EmailDeliveryUncheckedCreateInput = {
   subject: string
   encryptedText?: string | null
   sensitive?: boolean
+  recipientAccountId?: string | null
+  category?: string | null
   state?: string
   availableAt?: Date | string
   expiresAt?: Date | string | null
@@ -438,6 +466,8 @@ export type EmailDeliveryUpdateInput = {
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   encryptedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sensitive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recipientAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
   availableAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -457,6 +487,8 @@ export type EmailDeliveryUncheckedUpdateInput = {
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   encryptedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sensitive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recipientAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
   availableAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -476,6 +508,8 @@ export type EmailDeliveryCreateManyInput = {
   subject: string
   encryptedText?: string | null
   sensitive?: boolean
+  recipientAccountId?: string | null
+  category?: string | null
   state?: string
   availableAt?: Date | string
   expiresAt?: Date | string | null
@@ -495,6 +529,8 @@ export type EmailDeliveryUpdateManyMutationInput = {
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   encryptedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sensitive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recipientAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
   availableAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -514,6 +550,8 @@ export type EmailDeliveryUncheckedUpdateManyInput = {
   subject?: Prisma.StringFieldUpdateOperationsInput | string
   encryptedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sensitive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recipientAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.StringFieldUpdateOperationsInput | string
   availableAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -533,6 +571,8 @@ export type EmailDeliveryCountOrderByAggregateInput = {
   subject?: Prisma.SortOrder
   encryptedText?: Prisma.SortOrder
   sensitive?: Prisma.SortOrder
+  recipientAccountId?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   state?: Prisma.SortOrder
   availableAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -556,6 +596,8 @@ export type EmailDeliveryMaxOrderByAggregateInput = {
   subject?: Prisma.SortOrder
   encryptedText?: Prisma.SortOrder
   sensitive?: Prisma.SortOrder
+  recipientAccountId?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   state?: Prisma.SortOrder
   availableAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -575,6 +617,8 @@ export type EmailDeliveryMinOrderByAggregateInput = {
   subject?: Prisma.SortOrder
   encryptedText?: Prisma.SortOrder
   sensitive?: Prisma.SortOrder
+  recipientAccountId?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   state?: Prisma.SortOrder
   availableAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
@@ -600,6 +644,8 @@ export type EmailDeliverySelect<ExtArgs extends runtime.Types.Extensions.Interna
   subject?: boolean
   encryptedText?: boolean
   sensitive?: boolean
+  recipientAccountId?: boolean
+  category?: boolean
   state?: boolean
   availableAt?: boolean
   expiresAt?: boolean
@@ -619,6 +665,8 @@ export type EmailDeliverySelectCreateManyAndReturn<ExtArgs extends runtime.Types
   subject?: boolean
   encryptedText?: boolean
   sensitive?: boolean
+  recipientAccountId?: boolean
+  category?: boolean
   state?: boolean
   availableAt?: boolean
   expiresAt?: boolean
@@ -638,6 +686,8 @@ export type EmailDeliverySelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   subject?: boolean
   encryptedText?: boolean
   sensitive?: boolean
+  recipientAccountId?: boolean
+  category?: boolean
   state?: boolean
   availableAt?: boolean
   expiresAt?: boolean
@@ -657,6 +707,8 @@ export type EmailDeliverySelectScalar = {
   subject?: boolean
   encryptedText?: boolean
   sensitive?: boolean
+  recipientAccountId?: boolean
+  category?: boolean
   state?: boolean
   availableAt?: boolean
   expiresAt?: boolean
@@ -669,7 +721,7 @@ export type EmailDeliverySelectScalar = {
   updatedAt?: boolean
 }
 
-export type EmailDeliveryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "idempotencyKey" | "to" | "subject" | "encryptedText" | "sensitive" | "state" | "availableAt" | "expiresAt" | "attempts" | "leaseId" | "leasedUntil" | "lastError" | "sentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["emailDelivery"]>
+export type EmailDeliveryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "idempotencyKey" | "to" | "subject" | "encryptedText" | "sensitive" | "recipientAccountId" | "category" | "state" | "availableAt" | "expiresAt" | "attempts" | "leaseId" | "leasedUntil" | "lastError" | "sentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["emailDelivery"]>
 
 export type $EmailDeliveryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EmailDelivery"
@@ -681,6 +733,8 @@ export type $EmailDeliveryPayload<ExtArgs extends runtime.Types.Extensions.Inter
     subject: string
     encryptedText: string | null
     sensitive: boolean
+    recipientAccountId: string | null
+    category: string | null
     state: string
     availableAt: Date
     expiresAt: Date | null
@@ -1120,6 +1174,8 @@ export interface EmailDeliveryFieldRefs {
   readonly subject: Prisma.FieldRef<"EmailDelivery", 'String'>
   readonly encryptedText: Prisma.FieldRef<"EmailDelivery", 'String'>
   readonly sensitive: Prisma.FieldRef<"EmailDelivery", 'Boolean'>
+  readonly recipientAccountId: Prisma.FieldRef<"EmailDelivery", 'String'>
+  readonly category: Prisma.FieldRef<"EmailDelivery", 'String'>
   readonly state: Prisma.FieldRef<"EmailDelivery", 'String'>
   readonly availableAt: Prisma.FieldRef<"EmailDelivery", 'DateTime'>
   readonly expiresAt: Prisma.FieldRef<"EmailDelivery", 'DateTime'>

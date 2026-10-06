@@ -6,6 +6,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
 import { AppointmentRemindersService } from './appointment-reminders.service';
+import { SchedulingService } from './scheduling.service';
+import { SchedulingController } from './scheduling.controller';
 
 @Module({
   imports: [
@@ -14,8 +16,12 @@ import { AppointmentRemindersService } from './appointment-reminders.service';
     OrganizationsModule,
     NotificationsModule,
   ],
-  controllers: [AppointmentsController],
-  providers: [AppointmentsService, AppointmentRemindersService],
-  exports: [AppointmentRemindersService],
+  controllers: [AppointmentsController, SchedulingController],
+  providers: [
+    AppointmentsService,
+    AppointmentRemindersService,
+    SchedulingService,
+  ],
+  exports: [AppointmentRemindersService, SchedulingService],
 })
 export class AppointmentsModule {}

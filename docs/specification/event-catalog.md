@@ -7,6 +7,7 @@ Events are stored in the PostgreSQL outbox with an aggregate ID, event type, sch
 | `AccountRegistered` | Identity | Notifications, analytics |
 | `AccountPasswordReset` | Identity security | Security analytics |
 | `EmailVerified` | Identity security | Contact readiness |
+| `MfaSecurityChanged` | Identity security | Security analytics; payload contains action and account ID only |
 | `ProfessionalProfileCreated` | Professionals | Search, analytics |
 | `ProfessionalProfileUpdated` | Professionals | Search, portfolio |
 | `CredentialCreated` | Credentials | Portfolio |
@@ -14,6 +15,8 @@ Events are stored in the PostgreSQL outbox with an aggregate ID, event type, sch
 | `VerificationRequestSubmitted` | Verification | Reviewer operations |
 | `CredentialVerified` | Verification | Portfolio, search, notifications |
 | `CredentialRejected` | Verification | Notifications |
+| `CredentialExpired` | Credentials | Validity projections, notifications |
+| `CredentialRevoked` | Credentials | Validity projections, notifications |
 | `OrganizationCreated` | Organizations | Search, analytics |
 | `OrganizationVerificationSubmitted` | Organizations | Reviewer operations |
 | `OrganizationVerified` | Organizations | Recruitment, notifications |
@@ -32,7 +35,8 @@ Events are stored in the PostgreSQL outbox with an aggregate ID, event type, sch
 | `ClinicBookingAvailabilityChanged` | Organizations | Public clinic directory |
 | `AppointmentRequested` | Appointments | Clinic intake, notifications |
 | `AppointmentStatusChanged` | Appointments | Owner/clinic projections, notifications |
-| `AppointmentTimeProposed` | Appointments | Owner action and notifications |
+| `AppointmentCheckedIn` | Appointments | Owner/clinic projections, notifications; arrival does not complete the visit |
+| `AppointmentTimeProposed` | Appointments | Owner or clinic response and notifications; initiator identifies the responding side |
 | `AppointmentTimeAccepted` | Appointments | Owner/clinic projections, notifications |
 | `AppointmentTimeProposalClosed` | Appointments | Owner/clinic projections, notifications |
 
@@ -57,4 +61,4 @@ These names define the approved integration vocabulary. They are implemented onl
 | `CertificateRevoked` | Learning | CPD, portfolio, licensing readiness, notifications |
 | `CpdRecordCreated` | Learning | Portfolio, licensing readiness |
 
-The separate delivery worker now consumes version-1 appointment events and `CredentialVerified`, `CredentialRejected`, `VerificationInformationRequested` to enqueue verified-recipient email from existing in-app notices. Event delivery and outbox acknowledgement commit together; retries/dead letters are stored separately. All other events/versions remain pending until their intended handler exists. This is a local notification consumer, not a distributed broker or a broadcast acknowledgement of every intended consumer. A future relay requires per-consumer acknowledgement semantics.
+The separate delivery worker consumes version-1 appointment events and `CredentialVerified`, `CredentialRejected`, `VerificationInformationRequested`, `CredentialExpired`, `CredentialRevoked` to enqueue eligible verified-recipient email from existing in-app notices. Notification preferences are checked at fanout and again before external sending. Event delivery and outbox acknowledgement commit together; retries/dead letters are stored separately. All other events/versions remain pending until their intended handler exists and appear separately in delivery operations. This is a local notification consumer, not a distributed broker or a broadcast acknowledgement of every intended consumer. A future relay requires per-consumer acknowledgement semantics.

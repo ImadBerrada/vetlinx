@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { Prisma } from '../../generated/prisma/client';
 import type {
   OrganizationMemberRole,
   OrganizationVerificationDecisionAction,
@@ -47,6 +48,7 @@ const organizationSelect = {
   postalCode: true,
   status: true,
   acceptsAppointmentRequests: true,
+  appointmentSchedulingEnabled: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -209,7 +211,86 @@ export class OrganizationsService implements OrganizationsPublicApi {
       addressLine1: true,
       phone: true,
       website: true,
+      appointmentSchedulingEnabled: true,
     } as const;
+  }
+
+  async lockAppointmentAccess(
+    tx: Prisma.TransactionClient,
+    accountId: string,
+    organizationId: string,
+    management = false,
+  ): Promise<void> {
+    // A membership is active while its grant row exists; there is no separate membership status.
+    // SHARE locks conflict with removal, role changes and organization suspension through commit.
+    const grants = await tx.$queryRaw<Array<{ id: string }>>`
+      SELECT membership.id
+      FROM organizations.organization_memberships AS membership
+      JOIN organizations.organizations AS organization
+        ON organization.id = membership.organization_id
+      WHERE membership.account_id = ${accountId}::uuid
+        AND organization.id = ${organizationId}::uuid
+        AND membership.role IN (${management ? Prisma.sql`'OWNER', 'ADMIN'` : Prisma.sql`'OWNER', 'ADMIN', 'STAFF'`})
+        AND organization.status = 'VERIFIED'
+        AND organization.type IN ('CLINIC', 'HOSPITAL')
+      ${management ? Prisma.sql`FOR SHARE OF membership FOR UPDATE OF organization` : Prisma.sql`FOR SHARE OF membership, organization`}
+    `;
+    if (grants.length !== 1)
+      throw new ForbiddenException('Verified clinic staff access is required');
+  }
+
+  async lockBookableClinic(
+    tx: Prisma.TransactionClient,
+    organizationId: string,
+    requireIntake = true,
+  ): Promise<PublicClinic | null> {
+    await tx.$queryRaw`SELECT id FROM organizations.organizations WHERE id = ${organizationId}::uuid FOR SHARE`;
+    const clinic = await tx.organization.findFirst({
+      where: {
+        id: organizationId,
+        status: 'VERIFIED',
+        ...(requireIntake ? { acceptsAppointmentRequests: true } : {}),
+        type: { in: ['CLINIC', 'HOSPITAL'] },
+      },
+      select: this.clinicSelect(),
+    });
+    return clinic
+      ? { ...clinic, type: clinic.type as 'CLINIC' | 'HOSPITAL' }
+      : null;
+  }
+
+  async configureAppointmentScheduling(
+    accountId: string,
+    organizationId: string,
+    enabled: boolean,
+    expectedEnabled: boolean,
+    correlationId: string,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      await this.lockAppointmentAccess(tx, accountId, organizationId, true);
+      const current = await tx.organization.findUniqueOrThrow({
+        where: { id: organizationId },
+        select: { appointmentSchedulingEnabled: true },
+      });
+      if (current.appointmentSchedulingEnabled !== expectedEnabled)
+        throw new ConflictException(
+          'Scheduling settings changed. Refresh before saving.',
+        );
+      await tx.organization.update({
+        where: { id: organizationId },
+        data: { appointmentSchedulingEnabled: enabled },
+      });
+      await this.audit.recordInTransaction(tx, {
+        actorId: accountId,
+        action: 'clinic.scheduling_changed',
+        resourceType: 'organization',
+        resourceId: organizationId,
+        occurredAt: new Date().toISOString(),
+        correlationId,
+        changes: { enabled },
+      });
+      return { enabled };
+    });
   }
 
   async appointmentRecipients(organizationId: string) {
@@ -248,10 +329,25 @@ export class OrganizationsService implements OrganizationsPublicApi {
   async findAccess(accountId: string, organizationId: string) {
     const membership = await this.prisma.organizationMembership.findUnique({
       where: { organizationId_accountId: { organizationId, accountId } },
-      select: { role: true, organization: { select: { status: true } } },
+      select: {
+        role: true,
+        organization: {
+          select: {
+            status: true,
+            type: true,
+            appointmentSchedulingEnabled: true,
+          },
+        },
+      },
     });
     return membership
-      ? { role: membership.role, status: membership.organization.status }
+      ? {
+          role: membership.role,
+          status: membership.organization.status,
+          type: membership.organization.type,
+          appointmentSchedulingEnabled:
+            membership.organization.appointmentSchedulingEnabled,
+        }
       : null;
   }
 

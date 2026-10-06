@@ -29,14 +29,37 @@ export class AppointmentRemindersService {
     if (!id) return false;
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
-      select: { id: true, startsAt: true, proposalVersion: true, status: true },
+      select: { id: true, startsAt: true, checkedInAt: true, status: true },
     });
     return Boolean(
       appointment &&
       appointment.status === 'CONFIRMED' &&
+      !appointment.checkedInAt &&
       appointment.startsAt > new Date() &&
       this.key(appointment) === key,
     );
+  }
+
+  async recipientForDelivery(key: string): Promise<string | null> {
+    const [, id] = key.split(':');
+    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return null;
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        startsAt: true,
+        status: true,
+        checkedInAt: true,
+        requesterAccountId: true,
+      },
+    });
+    return appointment &&
+      appointment.status === 'CONFIRMED' &&
+      !appointment.checkedInAt &&
+      appointment.startsAt > new Date() &&
+      this.key(appointment) === key
+      ? appointment.requesterAccountId
+      : null;
   }
 
   async enqueueDue(now = new Date()) {
@@ -44,7 +67,7 @@ export class AppointmentRemindersService {
       Array<{ id: string; requesterAccountId: string }>
     >`
       SELECT a.id, a.requester_account_id AS "requesterAccountId" FROM appointments.appointments a
-      WHERE a.status = 'CONFIRMED' AND a.starts_at > ${now} AND a.starts_at <= ${new Date(now.getTime() + 86400000)}
+      WHERE a.status = 'CONFIRMED' AND a.checked_in_at IS NULL AND a.starts_at > ${now} AND a.starts_at <= ${new Date(now.getTime() + 86400000)}
       AND NOT EXISTS (SELECT 1 FROM appointments.appointment_reminders r WHERE r.appointment_id = a.id AND r.starts_at = a.starts_at)
       ORDER BY a.starts_at, a.id LIMIT 100`;
     for (const candidate of candidates) {
@@ -59,6 +82,7 @@ export class AppointmentRemindersService {
         if (
           !current ||
           current.status !== 'CONFIRMED' ||
+          current.checkedInAt ||
           current.startsAt <= now ||
           current.startsAt > new Date(now.getTime() + 86400000)
         )
@@ -92,6 +116,8 @@ export class AppointmentRemindersService {
             text: `You have an upcoming confirmed appointment. Sign in to view its details: ${this.config.getOrThrow<string>('FRONTEND_ORIGIN')}/owner`,
             sensitive: false,
             expiresAt: current.startsAt,
+            recipientAccountId: contact.accountId,
+            category: 'APPOINTMENT_REMINDERS',
           });
       });
     }

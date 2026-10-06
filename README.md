@@ -6,8 +6,10 @@ VetLinX connects veterinary professionals, pet owners, and verified organization
 
 - Secure account registration, login, token rotation, logout, and protected BFF sessions.
 - Email verification, password recovery, device sessions, and immediate session-family revocation.
+- Authenticator MFA, one-use recovery codes, and production privileged-action step-up.
 - Professional onboarding, profile, privacy controls, verified portfolio, and ATS text CV.
 - Credential wallet, private evidence upload, governed reviewer queue, and decisions.
+- Credential expiry and reasoned revocation with preserved review decisions and a private validity history.
 - Organization onboarding, verification, invitations, and role-based membership.
 - Structured jobs, verified-candidate discovery, applications, interviews, offers, and employment confirmation.
 - Append-only audit history, durable outbox events, notifications, health checks, OpenAPI, and module manifest.
@@ -15,8 +17,11 @@ VetLinX connects veterinary professionals, pet owners, and verified organization
 - Public homepage and a workspace chooser; one account can have both professional and pet-owner profiles.
 - Private pet-owner onboarding, pet creation/editing/archiving, appointment consent and request history.
 - Verified clinics opt into public discovery and manage requests through owner/admin/staff permissions.
-- Clinic time proposals with explicit owner acceptance, version checks, and an appointment timeline.
+- Clinic service catalogues, published times, per-service capacity, five-minute owner holds and capacity-safe rescheduling; clinics can retain flexible requests.
+- Clinic time proposals and owner rescheduling requests with explicit responses, version checks, and an appointment timeline.
+- Clinic check-in and reasoned no-show decisions; reminders stop after arrival or a terminal decision.
 - Durable encrypted email delivery, retry controls, worker heartbeat, and confirmed-appointment reminders.
+- Account email preferences and a restricted delivery operations dashboard with confirmed retries.
 
 No demo identities are seeded. New users register through the product; privileged reviewer roles are granted through the audited role-management script.
 
@@ -36,7 +41,7 @@ scripts/                  Explicit backup/restore tooling
 
 ## Local setup
 
-Requirements: Node.js 22+, npm, Docker Desktop, and Chrome.
+Requirements: Node.js 22.18+ (or Node.js 24), npm, Docker Desktop, and Chrome.
 
 ```powershell
 Copy-Item .env.example .env.local
@@ -77,7 +82,7 @@ npm --prefix apps/api audit --omit=dev
 
 The API integration suite uses `vetlinx_test`; set `DATABASE_URL` accordingly before invoking it directly. Browser tests create unique test accounts and should run only against a disposable database.
 
-The worker integration suite scans whole queues and requires a separately migrated `vetlinx_worker_test` database through `WORKER_TEST_DATABASE_URL`; it refuses other database names and sends through a fake transport. Without that variable it is skipped. Browser tests retain real signup throttling: run each viewport project separately with a fresh minute between signup batches when testing through one local BFF address.
+The worker and credential lifecycle integration suites scan whole domain queues and require a separately migrated `vetlinx_worker_test` database through `WORKER_TEST_DATABASE_URL`; they refuse other database names and send through a fake transport. Without that variable they are skipped. Browser tests retain real signup throttling: run each viewport project separately with a fresh minute between signup batches when testing through one local BFF address.
 
 ## Container deployment
 

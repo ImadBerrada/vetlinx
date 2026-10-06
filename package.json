@@ -15,6 +15,7 @@
     "lint": "eslint",
     "lint:api": "npm --prefix apps/api run lint",
     "test:e2e": "playwright test",
+    "test:time": "node --experimental-strip-types --test tests/unit/appointment-time.test.mjs",
     "test:api": "npm --prefix apps/api run test -- --runInBand",
     "test:api:e2e": "npm --prefix apps/api run test:e2e -- --runInBand",
     "db:up": "docker compose up -d postgres",
@@ -23,9 +24,10 @@
     "db:migrate": "npm --prefix apps/api run db:migrate",
     "db:deploy": "npm --prefix apps/api run db:deploy",
     "db:seed:access": "npm --prefix apps/api run seed:access",
-    "verify": "npm run lint && npm run build:web && npm run lint:api && npm run build:api && npm run test:api && npm run test:api:e2e"
+    "verify": "npm run lint && npm run build:web && npm run lint:api && npm run build:api && npm run test:time && npm run test:api && npm run test:api:e2e"
   },
   "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1",
     "lucide-react": "^1.27.0",
     "next": "16.3.8",
     "react": "19.2.4",

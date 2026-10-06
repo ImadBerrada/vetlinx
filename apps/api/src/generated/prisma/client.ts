@@ -55,6 +55,11 @@ export type Notification = Prisma.NotificationModel
  */
 export type AccountSystemRole = Prisma.AccountSystemRoleModel
 /**
+ * Model NotificationPreference
+ *
+ */
+export type NotificationPreference = Prisma.NotificationPreferenceModel
+/**
  * Model RefreshSession
  *
  */
@@ -65,6 +70,16 @@ export type RefreshSession = Prisma.RefreshSessionModel
  */
 export type SecurityToken = Prisma.SecurityTokenModel
 /**
+ * Model MfaRecoveryCode
+ *
+ */
+export type MfaRecoveryCode = Prisma.MfaRecoveryCodeModel
+/**
+ * Model MfaChallenge
+ *
+ */
+export type MfaChallenge = Prisma.MfaChallengeModel
+/**
  * Model ProfessionalProfile
  *
  */
@@ -74,6 +89,11 @@ export type ProfessionalProfile = Prisma.ProfessionalProfileModel
  *
  */
 export type Credential = Prisma.CredentialModel
+/**
+ * Model CredentialLifecycleHistory
+ *
+ */
+export type CredentialLifecycleHistory = Prisma.CredentialLifecycleHistoryModel
 /**
  * Model FileObject
  *
@@ -119,6 +139,31 @@ export type Appointment = Prisma.AppointmentModel
  *
  */
 export type AppointmentHistory = Prisma.AppointmentHistoryModel
+/**
+ * Model ClinicService
+ *
+ */
+export type ClinicService = Prisma.ClinicServiceModel
+/**
+ * Model AppointmentSlot
+ *
+ */
+export type AppointmentSlot = Prisma.AppointmentSlotModel
+/**
+ * Model ClinicResource
+ *
+ */
+export type ClinicResource = Prisma.ClinicResourceModel
+/**
+ * Model SlotResource
+ *
+ */
+export type SlotResource = Prisma.SlotResourceModel
+/**
+ * Model BookingHold
+ *
+ */
+export type BookingHold = Prisma.BookingHoldModel
 /**
  * Model AppointmentReminder
  *

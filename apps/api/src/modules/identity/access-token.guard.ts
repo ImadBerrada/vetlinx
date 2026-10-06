@@ -53,30 +53,30 @@ export class AccessTokenGuard implements CanActivate {
       throw new UnauthorizedException();
     const account = await this.prisma.account.findUnique({
       where: { id: payload.sub },
-      select: { status: true, authVersion: true },
+      select: { status: true, authVersion: true, mfaEnabledAt: true },
     });
     if (account?.status !== 'ACTIVE') throw new UnauthorizedException();
     // Legacy tokens carry version zero until they rotate. A reset/revoke-all invalidates them.
     if ((payload.av ?? 0) !== account.authVersion)
       throw new UnauthorizedException();
-    if (
-      payload.sid &&
-      !(await this.prisma.refreshSession.findFirst({
-        where: {
-          accountId: payload.sub,
-          familyId: payload.sid,
-          revokedAt: null,
-          expiresAt: { gt: new Date() },
-        },
-        select: { id: true },
-      }))
-    )
+    const family = await this.prisma.refreshSession.findFirst({
+      where: {
+        accountId: payload.sub,
+        familyId: payload.sid,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: { id: true, mfaAuthenticatedAt: true },
+    });
+    if (!family || (account.mfaEnabledAt && !family.mfaAuthenticatedAt))
       throw new UnauthorizedException();
     request.user = {
       accountId: payload.sub,
       email: payload.email,
       authVersion: account.authVersion,
       sessionFamilyId: payload.sid,
+      mfaEnabled: Boolean(account.mfaEnabledAt),
+      mfaAuthenticatedAt: family.mfaAuthenticatedAt,
     };
     return true;
   }

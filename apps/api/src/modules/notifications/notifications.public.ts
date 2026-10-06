@@ -2,6 +2,8 @@ import type { Prisma } from '../../generated/prisma/client';
 import type { NotificationKind } from '../../generated/prisma/enums';
 
 export const NOTIFICATIONS_PUBLIC_API = Symbol('NOTIFICATIONS_PUBLIC_API');
+export type NotificationEmailCategory =
+  'APPOINTMENT_UPDATES' | 'APPOINTMENT_REMINDERS' | 'CREDENTIAL_UPDATES';
 export interface NotificationsPublicApi {
   enqueue(
     transaction: Prisma.TransactionClient,
@@ -24,6 +26,8 @@ export interface NotificationsPublicApi {
       text: string;
       sensitive: boolean;
       expiresAt?: Date;
+      recipientAccountId?: string;
+      category?: NotificationEmailCategory;
     },
   ): Promise<void>;
   deliverResourceNotifications(
@@ -32,4 +36,10 @@ export interface NotificationsPublicApi {
     resourceId: string,
     since: Date,
   ): Promise<void>;
+  canDeliverEmail(message: {
+    idempotencyKey: string;
+    to: string;
+    recipientAccountId?: string | null;
+    category?: string | null;
+  }): Promise<boolean>;
 }

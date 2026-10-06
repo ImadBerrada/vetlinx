@@ -1,10 +1,12 @@
 import {
   Controller,
+  Body,
   Get,
   HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
+  Patch,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -14,6 +16,8 @@ import {
   type AuthenticatedRequest,
 } from '../identity/access-token.guard';
 import { NotificationsService } from './notifications.service';
+import { UpdateNotificationPreferencesDto } from './notification-preferences.dto';
+import { randomUUID } from 'node:crypto';
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
@@ -21,6 +25,23 @@ import { NotificationsService } from './notifications.service';
 @Controller({ path: 'notifications', version: '1' })
 export class NotificationsController {
   constructor(private readonly notifications: NotificationsService) {}
+
+  @Get('preferences')
+  preferences(@Req() request: AuthenticatedRequest) {
+    return this.notifications.getPreferences(request.user.accountId);
+  }
+
+  @Patch('preferences')
+  updatePreferences(
+    @Body() dto: UpdateNotificationPreferencesDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.notifications.updatePreferences(
+      request.user.accountId,
+      dto,
+      request.header('x-correlation-id') ?? randomUUID(),
+    );
+  }
 
   @Get('me')
   @ApiOperation({ summary: 'List the authenticated account notifications' })

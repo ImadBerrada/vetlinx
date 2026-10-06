@@ -32,8 +32,9 @@ test("one account switches between professional and organization workspaces", as
   await page.getByRole("button", { name: "Switch workspace: Professional", exact: true }).first().click();
   await page.getByRole("menuitem", { name: "Add or join an organization, Organization workspace" }).click();
   await expect(page).toHaveURL(/\/employer$/);
-  await expect(page.getByRole("link", { name: "Organization" })).toHaveCount(1);
-  await expect(page.getByRole("link", { name: "Recruitment" })).toHaveCount(0);
+  // With no memberships, organization setup opens a modal over the closed mobile drawer.
+  await expect(page.locator("aside").getByRole("link", { name: "Organization", includeHidden: true })).toHaveCount(1);
+  await expect(page.locator("aside").getByRole("link", { name: "Recruitment", includeHidden: true })).toHaveCount(0);
 
   await page.getByLabel("Legal name").fill(organizationName);
   await page.getByRole("button", { name: "Create organization", exact: true }).last().click();

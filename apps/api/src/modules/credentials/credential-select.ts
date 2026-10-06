@@ -1,0 +1,26 @@
+export const credentialSelect = {
+  id: true,
+  professionalProfileId: true,
+  typeCode: true,
+  title: true,
+  issuingOrganization: true,
+  countryCode: true,
+  issueDate: true,
+  expiryDate: true,
+  status: true,
+  submittedAt: true,
+  createdAt: true,
+  updatedAt: true,
+  lifecycleHistory: {
+    select: {
+      id: true,
+      fromStatus: true,
+      toStatus: true,
+      reason: true,
+      source: true,
+      verificationRequestId: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'asc' as const },
+  },
+} as const;

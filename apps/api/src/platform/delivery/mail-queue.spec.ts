@@ -32,6 +32,21 @@ describe('Encrypted delivery content', () => {
     }
   });
 
+  it('binds protected secrets to their declared purpose', () => {
+    const encrypted = queue().encrypt(
+      'mfa-enrollment-secret',
+      'identity-mfa-secret',
+    );
+    expect(queue().decrypt(encrypted, 'identity-mfa-secret')).toBe(
+      'mfa-enrollment-secret',
+    );
+    expect(() => queue().decrypt(encrypted)).toThrow();
+    expect(() => queue().decrypt(encrypted, 'email-delivery')).toThrow();
+    expect(() =>
+      queue().decrypt(queue().encrypt(text), 'identity-mfa-secret'),
+    ).toThrow();
+  });
+
   it('rejects decryption with a different key and invalid envelope versions', () => {
     const encrypted = queue().encrypt(text);
     expect(() => queue('b2'.repeat(32)).decrypt(encrypted)).toThrow();

@@ -39,6 +39,7 @@ export type OrganizationMinAggregateOutputType = {
   postalCode: string | null
   status: $Enums.OrganizationStatus | null
   acceptsAppointmentRequests: boolean | null
+  appointmentSchedulingEnabled: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -58,6 +59,7 @@ export type OrganizationMaxAggregateOutputType = {
   postalCode: string | null
   status: $Enums.OrganizationStatus | null
   acceptsAppointmentRequests: boolean | null
+  appointmentSchedulingEnabled: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -77,6 +79,7 @@ export type OrganizationCountAggregateOutputType = {
   postalCode: number
   status: number
   acceptsAppointmentRequests: number
+  appointmentSchedulingEnabled: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -98,6 +101,7 @@ export type OrganizationMinAggregateInputType = {
   postalCode?: true
   status?: true
   acceptsAppointmentRequests?: true
+  appointmentSchedulingEnabled?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -117,6 +121,7 @@ export type OrganizationMaxAggregateInputType = {
   postalCode?: true
   status?: true
   acceptsAppointmentRequests?: true
+  appointmentSchedulingEnabled?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -136,6 +141,7 @@ export type OrganizationCountAggregateInputType = {
   postalCode?: true
   status?: true
   acceptsAppointmentRequests?: true
+  appointmentSchedulingEnabled?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -228,6 +234,7 @@ export type OrganizationGroupByOutputType = {
   postalCode: string | null
   status: $Enums.OrganizationStatus
   acceptsAppointmentRequests: boolean
+  appointmentSchedulingEnabled: boolean
   createdAt: Date
   updatedAt: Date
   _count: OrganizationCountAggregateOutputType | null
@@ -268,8 +275,11 @@ export type OrganizationWhereInput = {
   postalCode?: Prisma.StringNullableFilter<"Organization"> | string | null
   status?: Prisma.EnumOrganizationStatusFilter<"Organization"> | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFilter<"Organization"> | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
+  clinicServices?: Prisma.ClinicServiceListRelationFilter
+  clinicResources?: Prisma.ClinicResourceListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   members?: Prisma.OrganizationMembershipListRelationFilter
   invitations?: Prisma.OrganizationInvitationListRelationFilter
@@ -293,8 +303,11 @@ export type OrganizationOrderByWithRelationInput = {
   postalCode?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   acceptsAppointmentRequests?: Prisma.SortOrder
+  appointmentSchedulingEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  clinicServices?: Prisma.ClinicServiceOrderByRelationAggregateInput
+  clinicResources?: Prisma.ClinicResourceOrderByRelationAggregateInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
   members?: Prisma.OrganizationMembershipOrderByRelationAggregateInput
   invitations?: Prisma.OrganizationInvitationOrderByRelationAggregateInput
@@ -321,8 +334,11 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   postalCode?: Prisma.StringNullableFilter<"Organization"> | string | null
   status?: Prisma.EnumOrganizationStatusFilter<"Organization"> | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFilter<"Organization"> | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
+  clinicServices?: Prisma.ClinicServiceListRelationFilter
+  clinicResources?: Prisma.ClinicResourceListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
   members?: Prisma.OrganizationMembershipListRelationFilter
   invitations?: Prisma.OrganizationInvitationListRelationFilter
@@ -346,6 +362,7 @@ export type OrganizationOrderByWithAggregationInput = {
   postalCode?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   acceptsAppointmentRequests?: Prisma.SortOrder
+  appointmentSchedulingEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
@@ -371,6 +388,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   postalCode?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   status?: Prisma.EnumOrganizationStatusWithAggregatesFilter<"Organization"> | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
 }
@@ -390,8 +408,11 @@ export type OrganizationCreateInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationCreateNestedManyWithoutOrganizationInput
@@ -415,8 +436,11 @@ export type OrganizationUncheckedCreateInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceUncheckedCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -440,8 +464,11 @@ export type OrganizationUpdateInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
@@ -465,8 +492,11 @@ export type OrganizationUncheckedUpdateInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUncheckedUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -490,6 +520,7 @@ export type OrganizationCreateManyInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -509,6 +540,7 @@ export type OrganizationUpdateManyMutationInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -528,6 +560,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -547,6 +580,7 @@ export type OrganizationCountOrderByAggregateInput = {
   postalCode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   acceptsAppointmentRequests?: Prisma.SortOrder
+  appointmentSchedulingEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -566,6 +600,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   postalCode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   acceptsAppointmentRequests?: Prisma.SortOrder
+  appointmentSchedulingEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -585,6 +620,7 @@ export type OrganizationMinOrderByAggregateInput = {
   postalCode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   acceptsAppointmentRequests?: Prisma.SortOrder
+  appointmentSchedulingEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -602,10 +638,6 @@ export type EnumOrganizationStatusFieldUpdateOperationsInput = {
   set?: $Enums.OrganizationStatus
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type OrganizationCreateNestedOneWithoutAppointmentsInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAppointmentsInput, Prisma.OrganizationUncheckedCreateWithoutAppointmentsInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAppointmentsInput
@@ -618,6 +650,34 @@ export type OrganizationUpdateOneRequiredWithoutAppointmentsNestedInput = {
   upsert?: Prisma.OrganizationUpsertWithoutAppointmentsInput
   connect?: Prisma.OrganizationWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.OrganizationUpdateWithoutAppointmentsInput>, Prisma.OrganizationUncheckedUpdateWithoutAppointmentsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutClinicServicesInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutClinicServicesInput, Prisma.OrganizationUncheckedCreateWithoutClinicServicesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutClinicServicesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutClinicServicesNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutClinicServicesInput, Prisma.OrganizationUncheckedCreateWithoutClinicServicesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutClinicServicesInput
+  upsert?: Prisma.OrganizationUpsertWithoutClinicServicesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutClinicServicesInput, Prisma.OrganizationUpdateWithoutClinicServicesInput>, Prisma.OrganizationUncheckedUpdateWithoutClinicServicesInput>
+}
+
+export type OrganizationCreateNestedOneWithoutClinicResourcesInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutClinicResourcesInput, Prisma.OrganizationUncheckedCreateWithoutClinicResourcesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutClinicResourcesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutClinicResourcesNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutClinicResourcesInput, Prisma.OrganizationUncheckedCreateWithoutClinicResourcesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutClinicResourcesInput
+  upsert?: Prisma.OrganizationUpsertWithoutClinicResourcesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutClinicResourcesInput, Prisma.OrganizationUpdateWithoutClinicResourcesInput>, Prisma.OrganizationUncheckedUpdateWithoutClinicResourcesInput>
 }
 
 export type OrganizationCreateNestedOneWithoutJobsInput = {
@@ -705,8 +765,11 @@ export type OrganizationCreateWithoutAppointmentsInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationCreateNestedManyWithoutOrganizationInput
   verification?: Prisma.OrganizationVerificationRequestCreateNestedOneWithoutOrganizationInput
@@ -729,8 +792,11 @@ export type OrganizationUncheckedCreateWithoutAppointmentsInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   verification?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedOneWithoutOrganizationInput
@@ -769,8 +835,11 @@ export type OrganizationUpdateWithoutAppointmentsInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
   verification?: Prisma.OrganizationVerificationRequestUpdateOneWithoutOrganizationNestedInput
@@ -793,8 +862,259 @@ export type OrganizationUncheckedUpdateWithoutAppointmentsInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  members?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  verification?: Prisma.OrganizationVerificationRequestUncheckedUpdateOneWithoutOrganizationNestedInput
+  jobs?: Prisma.JobUncheckedUpdateManyWithoutOrganizationNestedInput
+  employments?: Prisma.EmploymentUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutClinicServicesInput = {
+  id?: string
+  legalName: string
+  countryCode: string
+  type?: $Enums.OrganizationType
+  publicName?: string | null
+  email?: string | null
+  phone?: string | null
+  website?: string | null
+  addressLine1?: string | null
+  city?: string | null
+  region?: string | null
+  postalCode?: string | null
+  status?: $Enums.OrganizationStatus
+  acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  clinicResources?: Prisma.ClinicResourceCreateNestedManyWithoutOrganizationInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
+  members?: Prisma.OrganizationMembershipCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+  verification?: Prisma.OrganizationVerificationRequestCreateNestedOneWithoutOrganizationInput
+  jobs?: Prisma.JobCreateNestedManyWithoutOrganizationInput
+  employments?: Prisma.EmploymentCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutClinicServicesInput = {
+  id?: string
+  legalName: string
+  countryCode: string
+  type?: $Enums.OrganizationType
+  publicName?: string | null
+  email?: string | null
+  phone?: string | null
+  website?: string | null
+  addressLine1?: string | null
+  city?: string | null
+  region?: string | null
+  postalCode?: string | null
+  status?: $Enums.OrganizationStatus
+  acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  clinicResources?: Prisma.ClinicResourceUncheckedCreateNestedManyWithoutOrganizationInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
+  members?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  verification?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedOneWithoutOrganizationInput
+  jobs?: Prisma.JobUncheckedCreateNestedManyWithoutOrganizationInput
+  employments?: Prisma.EmploymentUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutClinicServicesInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutClinicServicesInput, Prisma.OrganizationUncheckedCreateWithoutClinicServicesInput>
+}
+
+export type OrganizationUpsertWithoutClinicServicesInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutClinicServicesInput, Prisma.OrganizationUncheckedUpdateWithoutClinicServicesInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutClinicServicesInput, Prisma.OrganizationUncheckedCreateWithoutClinicServicesInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutClinicServicesInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutClinicServicesInput, Prisma.OrganizationUncheckedUpdateWithoutClinicServicesInput>
+}
+
+export type OrganizationUpdateWithoutClinicServicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  countryCode?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumOrganizationTypeFieldUpdateOperationsInput | $Enums.OrganizationType
+  publicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
+  acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicResources?: Prisma.ClinicResourceUpdateManyWithoutOrganizationNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
+  members?: Prisma.OrganizationMembershipUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+  verification?: Prisma.OrganizationVerificationRequestUpdateOneWithoutOrganizationNestedInput
+  jobs?: Prisma.JobUpdateManyWithoutOrganizationNestedInput
+  employments?: Prisma.EmploymentUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutClinicServicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  countryCode?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumOrganizationTypeFieldUpdateOperationsInput | $Enums.OrganizationType
+  publicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
+  acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicResources?: Prisma.ClinicResourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  members?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  verification?: Prisma.OrganizationVerificationRequestUncheckedUpdateOneWithoutOrganizationNestedInput
+  jobs?: Prisma.JobUncheckedUpdateManyWithoutOrganizationNestedInput
+  employments?: Prisma.EmploymentUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutClinicResourcesInput = {
+  id?: string
+  legalName: string
+  countryCode: string
+  type?: $Enums.OrganizationType
+  publicName?: string | null
+  email?: string | null
+  phone?: string | null
+  website?: string | null
+  addressLine1?: string | null
+  city?: string | null
+  region?: string | null
+  postalCode?: string | null
+  status?: $Enums.OrganizationStatus
+  acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceCreateNestedManyWithoutOrganizationInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
+  members?: Prisma.OrganizationMembershipCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+  verification?: Prisma.OrganizationVerificationRequestCreateNestedOneWithoutOrganizationInput
+  jobs?: Prisma.JobCreateNestedManyWithoutOrganizationInput
+  employments?: Prisma.EmploymentCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutClinicResourcesInput = {
+  id?: string
+  legalName: string
+  countryCode: string
+  type?: $Enums.OrganizationType
+  publicName?: string | null
+  email?: string | null
+  phone?: string | null
+  website?: string | null
+  addressLine1?: string | null
+  city?: string | null
+  region?: string | null
+  postalCode?: string | null
+  status?: $Enums.OrganizationStatus
+  acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
+  members?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  verification?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedOneWithoutOrganizationInput
+  jobs?: Prisma.JobUncheckedCreateNestedManyWithoutOrganizationInput
+  employments?: Prisma.EmploymentUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutClinicResourcesInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutClinicResourcesInput, Prisma.OrganizationUncheckedCreateWithoutClinicResourcesInput>
+}
+
+export type OrganizationUpsertWithoutClinicResourcesInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutClinicResourcesInput, Prisma.OrganizationUncheckedUpdateWithoutClinicResourcesInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutClinicResourcesInput, Prisma.OrganizationUncheckedCreateWithoutClinicResourcesInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutClinicResourcesInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutClinicResourcesInput, Prisma.OrganizationUncheckedUpdateWithoutClinicResourcesInput>
+}
+
+export type OrganizationUpdateWithoutClinicResourcesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  countryCode?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumOrganizationTypeFieldUpdateOperationsInput | $Enums.OrganizationType
+  publicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
+  acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUpdateManyWithoutOrganizationNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
+  members?: Prisma.OrganizationMembershipUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+  verification?: Prisma.OrganizationVerificationRequestUpdateOneWithoutOrganizationNestedInput
+  jobs?: Prisma.JobUpdateManyWithoutOrganizationNestedInput
+  employments?: Prisma.EmploymentUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutClinicResourcesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legalName?: Prisma.StringFieldUpdateOperationsInput | string
+  countryCode?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumOrganizationTypeFieldUpdateOperationsInput | $Enums.OrganizationType
+  publicName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
+  acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedUpdateManyWithoutOrganizationNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   verification?: Prisma.OrganizationVerificationRequestUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -817,8 +1137,11 @@ export type OrganizationCreateWithoutJobsInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationCreateNestedManyWithoutOrganizationInput
@@ -841,8 +1164,11 @@ export type OrganizationUncheckedCreateWithoutJobsInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceUncheckedCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -881,8 +1207,11 @@ export type OrganizationUpdateWithoutJobsInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
@@ -905,8 +1234,11 @@ export type OrganizationUncheckedUpdateWithoutJobsInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUncheckedUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -929,8 +1261,11 @@ export type OrganizationCreateWithoutEmploymentsInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationCreateNestedManyWithoutOrganizationInput
@@ -953,8 +1288,11 @@ export type OrganizationUncheckedCreateWithoutEmploymentsInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceUncheckedCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -993,8 +1331,11 @@ export type OrganizationUpdateWithoutEmploymentsInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
@@ -1017,8 +1358,11 @@ export type OrganizationUncheckedUpdateWithoutEmploymentsInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUncheckedUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1041,8 +1385,11 @@ export type OrganizationCreateWithoutInvitationsInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipCreateNestedManyWithoutOrganizationInput
   verification?: Prisma.OrganizationVerificationRequestCreateNestedOneWithoutOrganizationInput
@@ -1065,8 +1412,11 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceUncheckedCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutOrganizationInput
   verification?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedOneWithoutOrganizationInput
@@ -1105,8 +1455,11 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUpdateManyWithoutOrganizationNestedInput
   verification?: Prisma.OrganizationVerificationRequestUpdateOneWithoutOrganizationNestedInput
@@ -1129,8 +1482,11 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUncheckedUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   verification?: Prisma.OrganizationVerificationRequestUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -1153,8 +1509,11 @@ export type OrganizationCreateWithoutVerificationInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationCreateNestedManyWithoutOrganizationInput
@@ -1177,8 +1536,11 @@ export type OrganizationUncheckedCreateWithoutVerificationInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceUncheckedCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
   members?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1217,8 +1579,11 @@ export type OrganizationUpdateWithoutVerificationInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
@@ -1241,8 +1606,11 @@ export type OrganizationUncheckedUpdateWithoutVerificationInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUncheckedUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
   members?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1265,8 +1633,11 @@ export type OrganizationCreateWithoutMembersInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationCreateNestedManyWithoutOrganizationInput
   verification?: Prisma.OrganizationVerificationRequestCreateNestedOneWithoutOrganizationInput
@@ -1289,8 +1660,11 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   postalCode?: string | null
   status?: $Enums.OrganizationStatus
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedCreateNestedManyWithoutOrganizationInput
+  clinicResources?: Prisma.ClinicResourceUncheckedCreateNestedManyWithoutOrganizationInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
   verification?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedOneWithoutOrganizationInput
@@ -1329,8 +1703,11 @@ export type OrganizationUpdateWithoutMembersInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
   verification?: Prisma.OrganizationVerificationRequestUpdateOneWithoutOrganizationNestedInput
@@ -1353,8 +1730,11 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOrganizationStatusFieldUpdateOperationsInput | $Enums.OrganizationStatus
   acceptsAppointmentRequests?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  appointmentSchedulingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clinicServices?: Prisma.ClinicServiceUncheckedUpdateManyWithoutOrganizationNestedInput
+  clinicResources?: Prisma.ClinicResourceUncheckedUpdateManyWithoutOrganizationNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   verification?: Prisma.OrganizationVerificationRequestUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -1368,6 +1748,8 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
  */
 
 export type OrganizationCountOutputType = {
+  clinicServices: number
+  clinicResources: number
   appointments: number
   members: number
   invitations: number
@@ -1376,6 +1758,8 @@ export type OrganizationCountOutputType = {
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  clinicServices?: boolean | OrganizationCountOutputTypeCountClinicServicesArgs
+  clinicResources?: boolean | OrganizationCountOutputTypeCountClinicResourcesArgs
   appointments?: boolean | OrganizationCountOutputTypeCountAppointmentsArgs
   members?: boolean | OrganizationCountOutputTypeCountMembersArgs
   invitations?: boolean | OrganizationCountOutputTypeCountInvitationsArgs
@@ -1391,6 +1775,20 @@ export type OrganizationCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types
    * Select specific fields to fetch from the OrganizationCountOutputType
    */
   select?: Prisma.OrganizationCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountClinicServicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClinicServiceWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountClinicResourcesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClinicResourceWhereInput
 }
 
 /**
@@ -1444,8 +1842,11 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   postalCode?: boolean
   status?: boolean
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  clinicServices?: boolean | Prisma.Organization$clinicServicesArgs<ExtArgs>
+  clinicResources?: boolean | Prisma.Organization$clinicResourcesArgs<ExtArgs>
   appointments?: boolean | Prisma.Organization$appointmentsArgs<ExtArgs>
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
   invitations?: boolean | Prisma.Organization$invitationsArgs<ExtArgs>
@@ -1470,6 +1871,7 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   postalCode?: boolean
   status?: boolean
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["organization"]>
@@ -1489,6 +1891,7 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   postalCode?: boolean
   status?: boolean
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["organization"]>
@@ -1508,12 +1911,15 @@ export type OrganizationSelectScalar = {
   postalCode?: boolean
   status?: boolean
   acceptsAppointmentRequests?: boolean
+  appointmentSchedulingEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legalName" | "countryCode" | "type" | "publicName" | "email" | "phone" | "website" | "addressLine1" | "city" | "region" | "postalCode" | "status" | "acceptsAppointmentRequests" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legalName" | "countryCode" | "type" | "publicName" | "email" | "phone" | "website" | "addressLine1" | "city" | "region" | "postalCode" | "status" | "acceptsAppointmentRequests" | "appointmentSchedulingEnabled" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  clinicServices?: boolean | Prisma.Organization$clinicServicesArgs<ExtArgs>
+  clinicResources?: boolean | Prisma.Organization$clinicResourcesArgs<ExtArgs>
   appointments?: boolean | Prisma.Organization$appointmentsArgs<ExtArgs>
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
   invitations?: boolean | Prisma.Organization$invitationsArgs<ExtArgs>
@@ -1528,6 +1934,8 @@ export type OrganizationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types
 export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Organization"
   objects: {
+    clinicServices: Prisma.$ClinicServicePayload<ExtArgs>[]
+    clinicResources: Prisma.$ClinicResourcePayload<ExtArgs>[]
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
     members: Prisma.$OrganizationMembershipPayload<ExtArgs>[]
     invitations: Prisma.$OrganizationInvitationPayload<ExtArgs>[]
@@ -1550,6 +1958,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     postalCode: string | null
     status: $Enums.OrganizationStatus
     acceptsAppointmentRequests: boolean
+    appointmentSchedulingEnabled: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["organization"]>
@@ -1946,6 +2355,8 @@ readonly fields: OrganizationFieldRefs;
  */
 export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  clinicServices<T extends Prisma.Organization$clinicServicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$clinicServicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClinicServicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  clinicResources<T extends Prisma.Organization$clinicResourcesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$clinicResourcesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClinicResourcePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   appointments<T extends Prisma.Organization$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   members<T extends Prisma.Organization$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.Organization$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1995,6 +2406,7 @@ export interface OrganizationFieldRefs {
   readonly postalCode: Prisma.FieldRef<"Organization", 'String'>
   readonly status: Prisma.FieldRef<"Organization", 'OrganizationStatus'>
   readonly acceptsAppointmentRequests: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly appointmentSchedulingEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
 }
@@ -2387,6 +2799,54 @@ export type OrganizationDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many Organizations to delete.
    */
   limit?: number
+}
+
+/**
+ * Organization.clinicServices
+ */
+export type Organization$clinicServicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClinicService
+   */
+  select?: Prisma.ClinicServiceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClinicService
+   */
+  omit?: Prisma.ClinicServiceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClinicServiceInclude<ExtArgs> | null
+  where?: Prisma.ClinicServiceWhereInput
+  orderBy?: Prisma.ClinicServiceOrderByWithRelationInput | Prisma.ClinicServiceOrderByWithRelationInput[]
+  cursor?: Prisma.ClinicServiceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClinicServiceScalarFieldEnum | Prisma.ClinicServiceScalarFieldEnum[]
+}
+
+/**
+ * Organization.clinicResources
+ */
+export type Organization$clinicResourcesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClinicResource
+   */
+  select?: Prisma.ClinicResourceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClinicResource
+   */
+  omit?: Prisma.ClinicResourceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClinicResourceInclude<ExtArgs> | null
+  where?: Prisma.ClinicResourceWhereInput
+  orderBy?: Prisma.ClinicResourceOrderByWithRelationInput | Prisma.ClinicResourceOrderByWithRelationInput[]
+  cursor?: Prisma.ClinicResourceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClinicResourceScalarFieldEnum | Prisma.ClinicResourceScalarFieldEnum[]
 }
 
 /**

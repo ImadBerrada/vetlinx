@@ -19,6 +19,8 @@ import {
 } from '../../modules/identity/access-token.guard';
 import { RequireSystemRoles } from '../../modules/identity/required-roles.decorator';
 import { SystemRolesGuard } from '../../modules/identity/system-roles.guard';
+import { Prisma } from '../../generated/prisma/client';
+import { DELIVERY_EVENT_RESOURCES } from './delivery-event-resources';
 
 @ApiTags('Delivery operations')
 @ApiBearerAuth()
@@ -33,42 +35,73 @@ export class DeliveryOperationsController {
 
   @Get()
   async status() {
-    const [heartbeat, emailStates, eventStates, failedEmail, failedEvents] =
-      await Promise.all([
-        this.prisma.workerHeartbeat.findUnique({ where: { name: 'delivery' } }),
-        this.prisma.emailDelivery.groupBy({
-          by: ['state'],
-          _count: { _all: true },
-        }),
-        this.prisma.eventDelivery.groupBy({
-          by: ['state'],
-          _count: { _all: true },
-        }),
-        this.prisma.emailDelivery.findMany({
-          where: { state: 'FAILED' },
-          take: 50,
-          orderBy: { createdAt: 'asc' },
-          select: {
-            id: true,
-            attempts: true,
-            lastError: true,
-            createdAt: true,
-            expiresAt: true,
-          },
-        }),
-        this.prisma.eventDelivery.findMany({
-          where: { state: 'FAILED' },
-          take: 50,
-          orderBy: { createdAt: 'asc' },
-          select: {
-            id: true,
-            eventId: true,
-            attempts: true,
-            lastError: true,
-            createdAt: true,
-          },
-        }),
-      ]);
+    const [
+      heartbeat,
+      emailStates,
+      eventStates,
+      failedEmail,
+      failedEvents,
+      pendingEmail,
+      pendingEvent,
+      unsupportedEventCount,
+    ] = await Promise.all([
+      this.prisma.workerHeartbeat.findUnique({ where: { name: 'delivery' } }),
+      this.prisma.emailDelivery.groupBy({
+        by: ['state'],
+        _count: { _all: true },
+      }),
+      this.prisma.eventDelivery.groupBy({
+        by: ['state'],
+        _count: { _all: true },
+      }),
+      this.prisma.emailDelivery.findMany({
+        where: { state: 'FAILED' },
+        take: 50,
+        orderBy: { createdAt: 'asc' },
+        select: {
+          id: true,
+          attempts: true,
+          lastError: true,
+          createdAt: true,
+          expiresAt: true,
+          encryptedText: true,
+        },
+      }),
+      this.prisma.eventDelivery.findMany({
+        where: { state: 'FAILED' },
+        take: 50,
+        orderBy: { createdAt: 'asc' },
+        select: {
+          id: true,
+          eventId: true,
+          attempts: true,
+          lastError: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.emailDelivery.findFirst({
+        where: { state: 'PENDING' },
+        orderBy: { createdAt: 'asc' },
+        select: { createdAt: true },
+      }),
+      this.prisma.$queryRaw<
+        Array<{ count: number; oldest: Date | null }>
+      >(Prisma.sql`
+          SELECT COUNT(*)::integer AS count, MIN(e.created_at) AS oldest
+          FROM platform.outbox_events e LEFT JOIN platform.event_deliveries d ON d.event_id = e.id
+          WHERE e.status = 'PENDING' AND e.version = 1 AND e.name IN (${Prisma.join(Object.keys(DELIVERY_EVENT_RESOURCES))})
+            AND (d.id IS NULL OR d.state = 'PENDING')
+        `),
+      this.prisma.outboxEvent.count({
+        where: {
+          status: 'PENDING',
+          OR: [
+            { version: { not: 1 } },
+            { name: { notIn: Object.keys(DELIVERY_EVENT_RESOURCES) } },
+          ],
+        },
+      }),
+    ]);
     return {
       heartbeat,
       healthy: Boolean(
@@ -77,9 +110,20 @@ export class DeliveryOperationsController {
         !heartbeat.lastError,
       ),
       emailStates,
-      eventStates,
-      failedEmail,
+      eventStates: [
+        ...eventStates.filter(({ state }) => state !== 'PENDING'),
+        { state: 'PENDING', _count: { _all: pendingEvent[0]?.count ?? 0 } },
+      ],
+      failedEmail: failedEmail.map(({ encryptedText, ...email }) => ({
+        ...email,
+        retryable: Boolean(
+          encryptedText && (!email.expiresAt || email.expiresAt > new Date()),
+        ),
+      })),
       failedEvents,
+      oldestPendingEmailAt: pendingEmail?.createdAt ?? null,
+      oldestPendingEventAt: pendingEvent[0]?.oldest ?? null,
+      unsupportedEventCount,
     };
   }
 

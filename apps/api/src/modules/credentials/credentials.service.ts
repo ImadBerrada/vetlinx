@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -18,21 +19,11 @@ import {
 } from '../professionals/professionals.public';
 import type { CreateCredentialDto } from './dto/create-credential.dto';
 import type { CredentialsPublicApi } from './credentials.public';
-
-const credentialSelect = {
-  id: true,
-  professionalProfileId: true,
-  typeCode: true,
-  title: true,
-  issuingOrganization: true,
-  countryCode: true,
-  issueDate: true,
-  expiryDate: true,
-  status: true,
-  submittedAt: true,
-  createdAt: true,
-  updatedAt: true,
-} as const;
+import { credentialSelect } from './credential-select';
+import {
+  NOTIFICATIONS_PUBLIC_API,
+  type NotificationsPublicApi,
+} from '../notifications/notifications.public';
 
 @Injectable()
 export class CredentialsService implements CredentialsPublicApi {
@@ -42,15 +33,29 @@ export class CredentialsService implements CredentialsPublicApi {
     @Inject(OUTBOX_WRITER) private readonly outbox: OutboxWriter,
     @Inject(PROFESSIONALS_PUBLIC_API)
     private readonly professionals: ProfessionalsPublicApi,
+    @Inject(NOTIFICATIONS_PUBLIC_API)
+    private readonly notifications: NotificationsPublicApi,
   ) {}
 
   async listMine(accountId: string) {
     const professional = await this.requireProfessional(accountId);
-    return this.prisma.credential.findMany({
+    const credentials = await this.prisma.credential.findMany({
       where: { professionalProfileId: professional.id },
       select: credentialSelect,
       orderBy: { createdAt: 'desc' },
     });
+    const today = new Date(
+      `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`,
+    );
+    return credentials.map((credential) => ({
+      ...credential,
+      effectiveStatus:
+        credential.status === 'VERIFIED' &&
+        credential.expiryDate &&
+        credential.expiryDate < today
+          ? ('EXPIRED' as const)
+          : credential.status,
+    }));
   }
 
   async findOwnedByAccount(accountId: string, credentialId: string) {
@@ -60,6 +65,219 @@ export class CredentialsService implements CredentialsPublicApi {
       where: { id: credentialId, professionalProfileId: professional.id },
       select: { id: true, professionalProfileId: true, status: true },
     });
+  }
+
+  async findLifecycle(credentialId: string) {
+    const credential = await this.prisma.credential.findUnique({
+      where: { id: credentialId },
+      select: credentialSelect,
+    });
+    if (!credential) return null;
+    const today = new Date(
+      `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`,
+    );
+    return {
+      ...credential,
+      effectiveStatus:
+        credential.status === 'VERIFIED' &&
+        credential.expiryDate &&
+        credential.expiryDate < today
+          ? ('EXPIRED' as const)
+          : credential.status,
+    };
+  }
+
+  async revokeCredential(
+    actorAccountId: string,
+    credentialId: string,
+    reasonInput: string,
+    correlationId: string,
+    source: 'OPERATIONS' | 'ASSIGNED_REVIEWER',
+    verificationRequestId?: string,
+  ) {
+    const reason = reasonInput.trim();
+    if (reason.length < 10 || reason.length > 1000)
+      throw new BadRequestException(
+        'A specific revocation reason of 10 to 1000 characters is required',
+      );
+    const credential = await this.findLifecycle(credentialId);
+    if (!credential) throw new NotFoundException('Credential not found');
+    const professional = await this.professionals.findSummary(
+      credential.professionalProfileId,
+    );
+    if (!professional)
+      throw new NotFoundException('Professional profile not found');
+    if (professional.accountId === actorAccountId)
+      throw new ForbiddenException(
+        'You cannot revoke your own credential. An independent authorized reviewer is required.',
+      );
+    if (!['VERIFIED', 'EXPIRED', 'REVOKED'].includes(credential.status))
+      throw new ConflictException(
+        'Only a previously verified credential can be revoked',
+      );
+    const now = new Date();
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM credentials.credentials WHERE id = ${credentialId}::uuid FOR UPDATE`;
+      const current = await tx.credential.findUniqueOrThrow({
+        where: { id: credentialId },
+        select: { status: true },
+      });
+      const changed = await tx.credential.updateMany({
+        where: { id: credentialId, status: { in: ['VERIFIED', 'EXPIRED'] } },
+        data: { status: 'REVOKED' },
+      });
+      if (!changed.count) {
+        const replay = await tx.credentialLifecycleHistory.findFirst({
+          where: { credentialId, toStatus: 'REVOKED' },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (
+          replay?.actorAccountId === actorAccountId &&
+          replay.reason === reason &&
+          replay.source === source &&
+          replay.verificationRequestId === (verificationRequestId ?? null)
+        )
+          return tx.credential.findUniqueOrThrow({
+            where: { id: credentialId },
+            select: credentialSelect,
+          });
+        throw new ConflictException(
+          'This credential has already been revoked or changed. Refresh its history.',
+        );
+      }
+      const history = await tx.credentialLifecycleHistory.create({
+        data: {
+          credentialId,
+          actorAccountId,
+          fromStatus: current.status,
+          toStatus: 'REVOKED',
+          reason,
+          source,
+          verificationRequestId,
+        },
+      });
+      await this.audit.recordInTransaction(tx, {
+        actorId: actorAccountId,
+        action: 'credential.revoked',
+        resourceType: 'credential',
+        resourceId: credentialId,
+        occurredAt: now.toISOString(),
+        correlationId,
+        changes: {
+          status: { from: history.fromStatus, to: 'REVOKED' },
+          lifecycleHistoryId: history.id,
+          source,
+        },
+      });
+      await this.outbox.enqueue(tx, [
+        {
+          id: randomUUID(),
+          name: 'CredentialRevoked',
+          version: 1,
+          aggregateId: credentialId,
+          occurredAt: now.toISOString(),
+          correlationId,
+          payload: {
+            credentialId,
+            professionalProfileId: credential.professionalProfileId,
+            lifecycleHistoryId: history.id,
+          },
+        },
+      ]);
+      await this.notifications.enqueue(tx, [professional.accountId], {
+        kind: 'CREDENTIAL_REVOKED',
+        title: 'Credential verification revoked',
+        message:
+          'A governed decision changed your credential validity. Open your wallet to review the reason and history.',
+        resourceType: 'credential',
+        resourceId: credentialId,
+      });
+      return tx.credential.findUniqueOrThrow({
+        where: { id: credentialId },
+        select: credentialSelect,
+      });
+    });
+  }
+
+  async expireDue(now = new Date()) {
+    if (!Number.isFinite(now.getTime()))
+      throw new BadRequestException(
+        'A valid expiry evaluation date is required',
+      );
+    const today = new Date(`${now.toISOString().slice(0, 10)}T00:00:00.000Z`);
+    const credentials = await this.prisma.credential.findMany({
+      where: { status: 'VERIFIED', expiryDate: { lt: today } },
+      select: { id: true, professionalProfileId: true, expiryDate: true },
+      orderBy: [{ expiryDate: 'asc' }, { id: 'asc' }],
+      take: 100,
+    });
+    let count = 0;
+    for (const credential of credentials) {
+      const professional = await this.professionals.findSummary(
+        credential.professionalProfileId,
+      );
+      if (!professional) continue;
+      count += await this.prisma.$transaction(async (tx) => {
+        const updated = await tx.credential.updateMany({
+          where: {
+            id: credential.id,
+            status: 'VERIFIED',
+            expiryDate: { lt: today },
+          },
+          data: { status: 'EXPIRED' },
+        });
+        if (!updated.count) return 0;
+        const reason = `Expired after ${credential.expiryDate!.toISOString().slice(0, 10)}; valid through that UTC date.`;
+        const history = await tx.credentialLifecycleHistory.create({
+          data: {
+            credentialId: credential.id,
+            actorAccountId: null,
+            fromStatus: 'VERIFIED',
+            toStatus: 'EXPIRED',
+            source: 'EXPIRY_WORKER',
+            reason,
+          },
+        });
+        const correlationId = randomUUID();
+        await this.audit.recordInTransaction(tx, {
+          actorId: 'system:credential-expiry',
+          action: 'credential.expired',
+          resourceType: 'credential',
+          resourceId: credential.id,
+          occurredAt: now.toISOString(),
+          correlationId,
+          changes: {
+            status: { from: 'VERIFIED', to: 'EXPIRED' },
+            lifecycleHistoryId: history.id,
+          },
+        });
+        await this.outbox.enqueue(tx, [
+          {
+            id: randomUUID(),
+            name: 'CredentialExpired',
+            version: 1,
+            aggregateId: credential.id,
+            occurredAt: now.toISOString(),
+            correlationId,
+            payload: {
+              credentialId: credential.id,
+              professionalProfileId: credential.professionalProfileId,
+              lifecycleHistoryId: history.id,
+            },
+          },
+        ]);
+        await this.notifications.enqueue(tx, [professional.accountId], {
+          kind: 'CREDENTIAL_EXPIRED',
+          title: 'Credential expired',
+          message:
+            'A credential passed its recorded expiry date. Open your wallet for the validity history and renewal guidance.',
+          resourceType: 'credential',
+          resourceId: credential.id,
+        });
+        return 1;
+      });
+    }
+    return count;
   }
 
   async createMine(

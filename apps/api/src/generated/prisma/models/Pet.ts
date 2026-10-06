@@ -224,6 +224,7 @@ export type PetWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Pet"> | Date | string
   owner?: Prisma.XOR<Prisma.OwnerProfileScalarRelationFilter, Prisma.OwnerProfileWhereInput>
   appointments?: Prisma.AppointmentListRelationFilter
+  bookingHolds?: Prisma.BookingHoldListRelationFilter
 }
 
 export type PetOrderByWithRelationInput = {
@@ -239,6 +240,7 @@ export type PetOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   owner?: Prisma.OwnerProfileOrderByWithRelationInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
+  bookingHolds?: Prisma.BookingHoldOrderByRelationAggregateInput
 }
 
 export type PetWhereUniqueInput = Prisma.AtLeast<{
@@ -257,6 +259,7 @@ export type PetWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Pet"> | Date | string
   owner?: Prisma.XOR<Prisma.OwnerProfileScalarRelationFilter, Prisma.OwnerProfileWhereInput>
   appointments?: Prisma.AppointmentListRelationFilter
+  bookingHolds?: Prisma.BookingHoldListRelationFilter
 }, "id">
 
 export type PetOrderByWithAggregationInput = {
@@ -303,6 +306,7 @@ export type PetCreateInput = {
   updatedAt?: Date | string
   owner: Prisma.OwnerProfileCreateNestedOneWithoutPetsInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutPetInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutPetInput
 }
 
 export type PetUncheckedCreateInput = {
@@ -317,6 +321,7 @@ export type PetUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPetInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutPetInput
 }
 
 export type PetUpdateInput = {
@@ -331,6 +336,7 @@ export type PetUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.OwnerProfileUpdateOneRequiredWithoutPetsNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutPetNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutPetNestedInput
 }
 
 export type PetUncheckedUpdateInput = {
@@ -345,6 +351,7 @@ export type PetUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPetNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutPetNestedInput
 }
 
 export type PetCreateManyInput = {
@@ -495,6 +502,20 @@ export type PetUpdateOneRequiredWithoutAppointmentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PetUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.PetUpdateWithoutAppointmentsInput>, Prisma.PetUncheckedUpdateWithoutAppointmentsInput>
 }
 
+export type PetCreateNestedOneWithoutBookingHoldsInput = {
+  create?: Prisma.XOR<Prisma.PetCreateWithoutBookingHoldsInput, Prisma.PetUncheckedCreateWithoutBookingHoldsInput>
+  connectOrCreate?: Prisma.PetCreateOrConnectWithoutBookingHoldsInput
+  connect?: Prisma.PetWhereUniqueInput
+}
+
+export type PetUpdateOneRequiredWithoutBookingHoldsNestedInput = {
+  create?: Prisma.XOR<Prisma.PetCreateWithoutBookingHoldsInput, Prisma.PetUncheckedCreateWithoutBookingHoldsInput>
+  connectOrCreate?: Prisma.PetCreateOrConnectWithoutBookingHoldsInput
+  upsert?: Prisma.PetUpsertWithoutBookingHoldsInput
+  connect?: Prisma.PetWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PetUpdateToOneWithWhereWithoutBookingHoldsInput, Prisma.PetUpdateWithoutBookingHoldsInput>, Prisma.PetUncheckedUpdateWithoutBookingHoldsInput>
+}
+
 export type PetCreateWithoutOwnerInput = {
   id?: string
   name: string
@@ -506,6 +527,7 @@ export type PetCreateWithoutOwnerInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   appointments?: Prisma.AppointmentCreateNestedManyWithoutPetInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutPetInput
 }
 
 export type PetUncheckedCreateWithoutOwnerInput = {
@@ -519,6 +541,7 @@ export type PetUncheckedCreateWithoutOwnerInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPetInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutPetInput
 }
 
 export type PetCreateOrConnectWithoutOwnerInput = {
@@ -574,6 +597,7 @@ export type PetCreateWithoutAppointmentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.OwnerProfileCreateNestedOneWithoutPetsInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutPetInput
 }
 
 export type PetUncheckedCreateWithoutAppointmentsInput = {
@@ -587,6 +611,7 @@ export type PetUncheckedCreateWithoutAppointmentsInput = {
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutPetInput
 }
 
 export type PetCreateOrConnectWithoutAppointmentsInput = {
@@ -616,6 +641,7 @@ export type PetUpdateWithoutAppointmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.OwnerProfileUpdateOneRequiredWithoutPetsNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutPetNestedInput
 }
 
 export type PetUncheckedUpdateWithoutAppointmentsInput = {
@@ -629,6 +655,79 @@ export type PetUncheckedUpdateWithoutAppointmentsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutPetNestedInput
+}
+
+export type PetCreateWithoutBookingHoldsInput = {
+  id?: string
+  name: string
+  speciesCode: string
+  breed?: string | null
+  sex?: string
+  birthDate?: Date | string | null
+  archivedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.OwnerProfileCreateNestedOneWithoutPetsInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutPetInput
+}
+
+export type PetUncheckedCreateWithoutBookingHoldsInput = {
+  id?: string
+  ownerProfileId: string
+  name: string
+  speciesCode: string
+  breed?: string | null
+  sex?: string
+  birthDate?: Date | string | null
+  archivedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutPetInput
+}
+
+export type PetCreateOrConnectWithoutBookingHoldsInput = {
+  where: Prisma.PetWhereUniqueInput
+  create: Prisma.XOR<Prisma.PetCreateWithoutBookingHoldsInput, Prisma.PetUncheckedCreateWithoutBookingHoldsInput>
+}
+
+export type PetUpsertWithoutBookingHoldsInput = {
+  update: Prisma.XOR<Prisma.PetUpdateWithoutBookingHoldsInput, Prisma.PetUncheckedUpdateWithoutBookingHoldsInput>
+  create: Prisma.XOR<Prisma.PetCreateWithoutBookingHoldsInput, Prisma.PetUncheckedCreateWithoutBookingHoldsInput>
+  where?: Prisma.PetWhereInput
+}
+
+export type PetUpdateToOneWithWhereWithoutBookingHoldsInput = {
+  where?: Prisma.PetWhereInput
+  data: Prisma.XOR<Prisma.PetUpdateWithoutBookingHoldsInput, Prisma.PetUncheckedUpdateWithoutBookingHoldsInput>
+}
+
+export type PetUpdateWithoutBookingHoldsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  speciesCode?: Prisma.StringFieldUpdateOperationsInput | string
+  breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sex?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.OwnerProfileUpdateOneRequiredWithoutPetsNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutPetNestedInput
+}
+
+export type PetUncheckedUpdateWithoutBookingHoldsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  speciesCode?: Prisma.StringFieldUpdateOperationsInput | string
+  breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sex?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPetNestedInput
 }
 
 export type PetCreateManyOwnerInput = {
@@ -654,6 +753,7 @@ export type PetUpdateWithoutOwnerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUpdateManyWithoutPetNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutPetNestedInput
 }
 
 export type PetUncheckedUpdateWithoutOwnerInput = {
@@ -667,6 +767,7 @@ export type PetUncheckedUpdateWithoutOwnerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutPetNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutPetNestedInput
 }
 
 export type PetUncheckedUpdateManyWithoutOwnerInput = {
@@ -688,10 +789,12 @@ export type PetUncheckedUpdateManyWithoutOwnerInput = {
 
 export type PetCountOutputType = {
   appointments: number
+  bookingHolds: number
 }
 
 export type PetCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   appointments?: boolean | PetCountOutputTypeCountAppointmentsArgs
+  bookingHolds?: boolean | PetCountOutputTypeCountBookingHoldsArgs
 }
 
 /**
@@ -711,6 +814,13 @@ export type PetCountOutputTypeCountAppointmentsArgs<ExtArgs extends runtime.Type
   where?: Prisma.AppointmentWhereInput
 }
 
+/**
+ * PetCountOutputType without action
+ */
+export type PetCountOutputTypeCountBookingHoldsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookingHoldWhereInput
+}
+
 
 export type PetSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -725,6 +835,7 @@ export type PetSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   updatedAt?: boolean
   owner?: boolean | Prisma.OwnerProfileDefaultArgs<ExtArgs>
   appointments?: boolean | Prisma.Pet$appointmentsArgs<ExtArgs>
+  bookingHolds?: boolean | Prisma.Pet$bookingHoldsArgs<ExtArgs>
   _count?: boolean | Prisma.PetCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["pet"]>
 
@@ -773,6 +884,7 @@ export type PetOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
 export type PetInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.OwnerProfileDefaultArgs<ExtArgs>
   appointments?: boolean | Prisma.Pet$appointmentsArgs<ExtArgs>
+  bookingHolds?: boolean | Prisma.Pet$bookingHoldsArgs<ExtArgs>
   _count?: boolean | Prisma.PetCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PetIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -787,6 +899,7 @@ export type $PetPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   objects: {
     owner: Prisma.$OwnerProfilePayload<ExtArgs>
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
+    bookingHolds: Prisma.$BookingHoldPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1195,6 +1308,7 @@ export interface Prisma__PetClient<T, Null = never, ExtArgs extends runtime.Type
   readonly [Symbol.toStringTag]: "PrismaPromise"
   owner<T extends Prisma.OwnerProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OwnerProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__OwnerProfileClient<runtime.Types.Result.GetResult<Prisma.$OwnerProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   appointments<T extends Prisma.Pet$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Pet$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  bookingHolds<T extends Prisma.Pet$bookingHoldsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Pet$bookingHoldsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingHoldPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1656,6 +1770,30 @@ export type Pet$appointmentsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.AppointmentScalarFieldEnum | Prisma.AppointmentScalarFieldEnum[]
+}
+
+/**
+ * Pet.bookingHolds
+ */
+export type Pet$bookingHoldsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BookingHold
+   */
+  select?: Prisma.BookingHoldSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BookingHold
+   */
+  omit?: Prisma.BookingHoldOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingHoldInclude<ExtArgs> | null
+  where?: Prisma.BookingHoldWhereInput
+  orderBy?: Prisma.BookingHoldOrderByWithRelationInput | Prisma.BookingHoldOrderByWithRelationInput[]
+  cursor?: Prisma.BookingHoldWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookingHoldScalarFieldEnum | Prisma.BookingHoldScalarFieldEnum[]
 }
 
 /**

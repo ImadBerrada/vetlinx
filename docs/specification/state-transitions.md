@@ -6,12 +6,12 @@ All transitions are checked server-side and written with audit/outbox records in
 
 ```text
 Credential: DRAFT → SUBMITTED → VERIFIED | REJECTED
+Credential: VERIFIED → EXPIRED | REVOKED; EXPIRED → REVOKED
 Verification: DRAFT → SUBMITTED → UNDER_REVIEW → VERIFIED | NEEDS_INFORMATION | REJECTED
 NEEDS_INFORMATION → SUBMITTED
-VERIFIED → EXPIRED | REVOKED
 ```
 
-Evidence must exist before a verification request can be submitted. Decisions require the reviewer role and an under-review request. Verified claims are never silently rewritten back to draft.
+Evidence must exist before a verification request can be submitted. Decisions require the assigned reviewer and an under-review request. Credential expiry/revocation records a separate validity history while preserving the original verification decision. Revocation requires an independent authorized actor and a specific reason. An expiry date is inclusive through that UTC date. Verified claims are never silently rewritten back to draft; renewal creates a new credential and review.
 
 ## Organization verification
 
@@ -58,24 +58,52 @@ Only the organization tied to the accepted offer can confirm employment. Confirm
 
 ```text
 REQUESTED → CONFIRMED | DECLINED | CANCELLED
-CONFIRMED → COMPLETED | CANCELLED
-Time proposal: pending → accepted | rejected | expired | cleared on cancellation
+CONFIRMED → COMPLETED | CANCELLED | NO_SHOW
+Arrival: unrecorded → checked in (while CONFIRMED)
+Clinic time proposal: pending → owner accepted | rejected | expired | cleared on cancellation
+Owner reschedule request: pending → clinic accepted | declined | owner withdrawn | expired | cleared on cancellation
 ```
 
-Only the requesting owner can accept/reject a clinic's versioned proposal. Acceptance confirms the proposed time; rejection/expiry preserve the original status/time. Confirmation/completion cannot bypass a live proposal. Terminal appointments cannot reopen, future visits cannot be completed, and stale versions cannot overwrite newer actions. Every decision retains the request snapshot and appends history/audit/outbox/notifications atomically. Times are UTC instants plus an IANA timezone, not capacity reservations.
+Only the requesting owner can accept/reject a clinic's versioned proposal. Only authorized clinic staff can answer an owner reschedule request, and only the owner can withdraw it. Owner requests require a future confirmed visit, a future proposed time, a reason and a deadline within seven days and before both times. There is one active proposal; opposite-origin changes must be answered before another can be proposed. Acceptance confirms the proposed time; rejection, withdrawal and expiry preserve the original status/time.
+
+Confirmation, completion, arrival and no-show cannot bypass a live proposal. Arrival can be recorded within 24 hours before a confirmed visit or afterward. No-show requires an elapsed visit, no arrival and a reason. Arrival blocks owner cancellation and time changes. Terminal appointments cannot reopen, future visits cannot be completed, and stale versions cannot overwrite newer actions. Exact retries of new care commands return the existing result only while the corresponding decision is still current. Every decision retains the request snapshot and appends history/audit/outbox/notifications atomically. Clinic permission is held through transaction commit by organization/member shared locks.
+
+Times are UTC instants plus an IANA timezone. Flexible requests do not reserve capacity; scheduled requests do. Local form values are interpreted in the displayed zone; skipped or repeated daylight-saving times require another unambiguous input. API timestamps must include a UTC or numeric offset.
+
+```text
+Service: DRAFT ↔ PUBLISHED (optimistic version)
+Slot: PUBLISHED ↔ CLOSED (optimistic version; capacity cannot undercut occupancy)
+Hold: LIVE → CONSUMED | RELEASED | EXPIRED
+Consumed hold → REQUESTED appointment (atomic)
+Scheduled reschedule acceptance: original slot → another published slot of the same service (atomic capacity check)
+```
+
+Hold expiry is determined from the current database-backed deadline, independent of worker uptime; the UI countdown is advisory. Holds last at most five minutes and end before their slot starts. Competing owners lock the slot before capacity checks, and one owner may have only one live temporary hold. Identical hold/submission retries preserve the original deadline/result. Published-time mode rejects requests without holds. Catalogue publication and intake changes acquire organization-policy locks before slot writes. Closing/unpublishing blocks new bookings while preserving earlier appointment snapshots. A reschedule proposal does not occupy its destination; failed acceptance leaves the original appointment and capacity intact. Bounded worker cleanup after a 24-hour grace removes ephemeral holds while appointments retain the consumed request identifier.
 
 ## Account security and delivery
 
 Recovery/verification tokens are purpose-bound, unused and unexpired before consumption. Password reset invalidates every session family and older access-token versions. A device logout revokes its entire family including rotated descendants; other families remain active.
 
+Enrolled account login: password accepted → hashed challenge → second-factor proof → session. The challenge expires after five minutes, has bounded attempts and is consumed once. TOTP counters and recovery codes cannot be replayed. Password reset preserves enrollment; MFA disable requires password plus proof and revokes all sessions. Privileged production routes require recent second-factor proof, recorded on the server-side session family.
+
 ```text
 Delivery: PENDING → PROCESSING → DELIVERED | PENDING (backoff) | FAILED
-PROCESSING → CANCELLED when an email expires or its reminder becomes stale
+PROCESSING → CANCELLED when an email expires, its reminder becomes stale, or optional delivery becomes ineligible
 Expired lease: PROCESSING → PROCESSING under a new worker lease
 Administrator recovery: FAILED → PENDING (audited, eligible unexpired content only)
 ```
 
 Delivered/cancelled email bodies are purged. SMTP delivery may repeat after an acknowledgement failure; it is not exactly-once.
+
+## Shared clinic resources
+
+```text
+Resource: AVAILABLE ↔ RETIRED (optimistic version)
+Slot reservation: RESERVED → RELEASED (closed, future, no active holds or appointments)
+Reopening: RELEASED → RESERVED (all assigned resources active and non-overlapping)
+```
+
+A resource reserves the entire time block across services, including every place in that block. Slots keep fixed resource assignments, start and end instants. Closing a slot or unpublishing its service does not release resources. Requested/confirmed appointments and unexpired active holds prevent release. Retirement is blocked by upcoming or ongoing reservations, including closed slots whose resources have not been released. A failed release, reopening or audit leaves the prior reservation intact. Existing resource-free slots retain their original behavior.
 
 ## Phase 2 — Licence pathways
 

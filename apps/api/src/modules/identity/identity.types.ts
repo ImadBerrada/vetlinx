@@ -6,6 +6,8 @@ export interface AuthenticatedAccount {
   authVersion?: number;
   sessionFamilyId?: string;
   roles?: SystemRole[];
+  mfaEnabled?: boolean;
+  mfaAuthenticatedAt?: Date | null;
 }
 
 export interface RequestMetadata {
@@ -25,4 +27,10 @@ export interface AuthenticationResult {
     status: string;
     roles: SystemRole[];
   };
+}
+
+export interface MfaChallengeResult {
+  mfaRequired: true;
+  challengeToken: string;
+  expiresIn: number;
 }

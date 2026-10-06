@@ -28,10 +28,12 @@ export type AggregateAppointment = {
 
 export type AppointmentAvgAggregateOutputType = {
   proposalVersion: number | null
+  durationMinutes: number | null
 }
 
 export type AppointmentSumAggregateOutputType = {
   proposalVersion: number | null
+  durationMinutes: number | null
 }
 
 export type AppointmentMinAggregateOutputType = {
@@ -57,6 +59,13 @@ export type AppointmentMinAggregateOutputType = {
   proposalVersion: number | null
   proposedByAccountId: string | null
   proposalReason: string | null
+  proposalInitiator: string | null
+  checkedInAt: Date | null
+  slotId: string | null
+  proposedSlotId: string | null
+  requestHoldId: string | null
+  serviceName: string | null
+  durationMinutes: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -84,6 +93,13 @@ export type AppointmentMaxAggregateOutputType = {
   proposalVersion: number | null
   proposedByAccountId: string | null
   proposalReason: string | null
+  proposalInitiator: string | null
+  checkedInAt: Date | null
+  slotId: string | null
+  proposedSlotId: string | null
+  requestHoldId: string | null
+  serviceName: string | null
+  durationMinutes: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -111,6 +127,13 @@ export type AppointmentCountAggregateOutputType = {
   proposalVersion: number
   proposedByAccountId: number
   proposalReason: number
+  proposalInitiator: number
+  checkedInAt: number
+  slotId: number
+  proposedSlotId: number
+  requestHoldId: number
+  serviceName: number
+  durationMinutes: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -119,10 +142,12 @@ export type AppointmentCountAggregateOutputType = {
 
 export type AppointmentAvgAggregateInputType = {
   proposalVersion?: true
+  durationMinutes?: true
 }
 
 export type AppointmentSumAggregateInputType = {
   proposalVersion?: true
+  durationMinutes?: true
 }
 
 export type AppointmentMinAggregateInputType = {
@@ -148,6 +173,13 @@ export type AppointmentMinAggregateInputType = {
   proposalVersion?: true
   proposedByAccountId?: true
   proposalReason?: true
+  proposalInitiator?: true
+  checkedInAt?: true
+  slotId?: true
+  proposedSlotId?: true
+  requestHoldId?: true
+  serviceName?: true
+  durationMinutes?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -175,6 +207,13 @@ export type AppointmentMaxAggregateInputType = {
   proposalVersion?: true
   proposedByAccountId?: true
   proposalReason?: true
+  proposalInitiator?: true
+  checkedInAt?: true
+  slotId?: true
+  proposedSlotId?: true
+  requestHoldId?: true
+  serviceName?: true
+  durationMinutes?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -202,6 +241,13 @@ export type AppointmentCountAggregateInputType = {
   proposalVersion?: true
   proposedByAccountId?: true
   proposalReason?: true
+  proposalInitiator?: true
+  checkedInAt?: true
+  slotId?: true
+  proposedSlotId?: true
+  requestHoldId?: true
+  serviceName?: true
+  durationMinutes?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -316,6 +362,13 @@ export type AppointmentGroupByOutputType = {
   proposalVersion: number
   proposedByAccountId: string | null
   proposalReason: string | null
+  proposalInitiator: string | null
+  checkedInAt: Date | null
+  slotId: string | null
+  proposedSlotId: string | null
+  requestHoldId: string | null
+  serviceName: string | null
+  durationMinutes: number | null
   createdAt: Date
   updatedAt: Date
   _count: AppointmentCountAggregateOutputType | null
@@ -366,8 +419,17 @@ export type AppointmentWhereInput = {
   proposalVersion?: Prisma.IntFilter<"Appointment"> | number
   proposedByAccountId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
   proposalReason?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  proposalInitiator?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  checkedInAt?: Prisma.DateTimeNullableFilter<"Appointment"> | Date | string | null
+  slotId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
+  proposedSlotId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
+  requestHoldId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
+  serviceName?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  durationMinutes?: Prisma.IntNullableFilter<"Appointment"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
+  slot?: Prisma.XOR<Prisma.AppointmentSlotNullableScalarRelationFilter, Prisma.AppointmentSlotWhereInput> | null
+  proposedSlot?: Prisma.XOR<Prisma.AppointmentSlotNullableScalarRelationFilter, Prisma.AppointmentSlotWhereInput> | null
   history?: Prisma.AppointmentHistoryListRelationFilter
   reminderMarkers?: Prisma.AppointmentReminderListRelationFilter
   requester?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
@@ -399,8 +461,17 @@ export type AppointmentOrderByWithRelationInput = {
   proposalVersion?: Prisma.SortOrder
   proposedByAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   proposalReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkedInAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  slotId?: Prisma.SortOrderInput | Prisma.SortOrder
+  proposedSlotId?: Prisma.SortOrderInput | Prisma.SortOrder
+  requestHoldId?: Prisma.SortOrderInput | Prisma.SortOrder
+  serviceName?: Prisma.SortOrderInput | Prisma.SortOrder
+  durationMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  slot?: Prisma.AppointmentSlotOrderByWithRelationInput
+  proposedSlot?: Prisma.AppointmentSlotOrderByWithRelationInput
   history?: Prisma.AppointmentHistoryOrderByRelationAggregateInput
   reminderMarkers?: Prisma.AppointmentReminderOrderByRelationAggregateInput
   requester?: Prisma.AccountOrderByWithRelationInput
@@ -411,6 +482,7 @@ export type AppointmentOrderByWithRelationInput = {
 
 export type AppointmentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  requestHoldId?: string
   AND?: Prisma.AppointmentWhereInput | Prisma.AppointmentWhereInput[]
   OR?: Prisma.AppointmentWhereInput[]
   NOT?: Prisma.AppointmentWhereInput | Prisma.AppointmentWhereInput[]
@@ -435,15 +507,23 @@ export type AppointmentWhereUniqueInput = Prisma.AtLeast<{
   proposalVersion?: Prisma.IntFilter<"Appointment"> | number
   proposedByAccountId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
   proposalReason?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  proposalInitiator?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  checkedInAt?: Prisma.DateTimeNullableFilter<"Appointment"> | Date | string | null
+  slotId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
+  proposedSlotId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
+  serviceName?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  durationMinutes?: Prisma.IntNullableFilter<"Appointment"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
+  slot?: Prisma.XOR<Prisma.AppointmentSlotNullableScalarRelationFilter, Prisma.AppointmentSlotWhereInput> | null
+  proposedSlot?: Prisma.XOR<Prisma.AppointmentSlotNullableScalarRelationFilter, Prisma.AppointmentSlotWhereInput> | null
   history?: Prisma.AppointmentHistoryListRelationFilter
   reminderMarkers?: Prisma.AppointmentReminderListRelationFilter
   requester?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
   owner?: Prisma.XOR<Prisma.OwnerProfileScalarRelationFilter, Prisma.OwnerProfileWhereInput>
   pet?: Prisma.XOR<Prisma.PetScalarRelationFilter, Prisma.PetWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-}, "id">
+}, "id" | "requestHoldId">
 
 export type AppointmentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -468,6 +548,13 @@ export type AppointmentOrderByWithAggregationInput = {
   proposalVersion?: Prisma.SortOrder
   proposedByAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   proposalReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrderInput | Prisma.SortOrder
+  checkedInAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  slotId?: Prisma.SortOrderInput | Prisma.SortOrder
+  proposedSlotId?: Prisma.SortOrderInput | Prisma.SortOrder
+  requestHoldId?: Prisma.SortOrderInput | Prisma.SortOrder
+  serviceName?: Prisma.SortOrderInput | Prisma.SortOrder
+  durationMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AppointmentCountOrderByAggregateInput
@@ -503,6 +590,13 @@ export type AppointmentScalarWhereWithAggregatesInput = {
   proposalVersion?: Prisma.IntWithAggregatesFilter<"Appointment"> | number
   proposedByAccountId?: Prisma.UuidNullableWithAggregatesFilter<"Appointment"> | string | null
   proposalReason?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
+  proposalInitiator?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
+  checkedInAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Appointment"> | Date | string | null
+  slotId?: Prisma.UuidNullableWithAggregatesFilter<"Appointment"> | string | null
+  proposedSlotId?: Prisma.UuidNullableWithAggregatesFilter<"Appointment"> | string | null
+  requestHoldId?: Prisma.UuidNullableWithAggregatesFilter<"Appointment"> | string | null
+  serviceName?: Prisma.StringNullableWithAggregatesFilter<"Appointment"> | string | null
+  durationMinutes?: Prisma.IntNullableWithAggregatesFilter<"Appointment"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Appointment"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Appointment"> | Date | string
 }
@@ -526,8 +620,15 @@ export type AppointmentCreateInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  slot?: Prisma.AppointmentSlotCreateNestedOneWithoutAppointmentsInput
+  proposedSlot?: Prisma.AppointmentSlotCreateNestedOneWithoutProposalsInput
   history?: Prisma.AppointmentHistoryCreateNestedManyWithoutAppointmentInput
   reminderMarkers?: Prisma.AppointmentReminderCreateNestedManyWithoutAppointmentInput
   requester: Prisma.AccountCreateNestedOneWithoutAppointmentsInput
@@ -559,6 +660,13 @@ export type AppointmentUncheckedCreateInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   history?: Prisma.AppointmentHistoryUncheckedCreateNestedManyWithoutAppointmentInput
@@ -584,8 +692,15 @@ export type AppointmentUpdateInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  slot?: Prisma.AppointmentSlotUpdateOneWithoutAppointmentsNestedInput
+  proposedSlot?: Prisma.AppointmentSlotUpdateOneWithoutProposalsNestedInput
   history?: Prisma.AppointmentHistoryUpdateManyWithoutAppointmentNestedInput
   reminderMarkers?: Prisma.AppointmentReminderUpdateManyWithoutAppointmentNestedInput
   requester?: Prisma.AccountUpdateOneRequiredWithoutAppointmentsNestedInput
@@ -617,6 +732,13 @@ export type AppointmentUncheckedUpdateInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   history?: Prisma.AppointmentHistoryUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -646,6 +768,13 @@ export type AppointmentCreateManyInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -669,6 +798,11 @@ export type AppointmentUpdateManyMutationInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -696,6 +830,13 @@ export type AppointmentUncheckedUpdateManyInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -733,12 +874,20 @@ export type AppointmentCountOrderByAggregateInput = {
   proposalVersion?: Prisma.SortOrder
   proposedByAccountId?: Prisma.SortOrder
   proposalReason?: Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrder
+  checkedInAt?: Prisma.SortOrder
+  slotId?: Prisma.SortOrder
+  proposedSlotId?: Prisma.SortOrder
+  requestHoldId?: Prisma.SortOrder
+  serviceName?: Prisma.SortOrder
+  durationMinutes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type AppointmentAvgOrderByAggregateInput = {
   proposalVersion?: Prisma.SortOrder
+  durationMinutes?: Prisma.SortOrder
 }
 
 export type AppointmentMaxOrderByAggregateInput = {
@@ -764,6 +913,13 @@ export type AppointmentMaxOrderByAggregateInput = {
   proposalVersion?: Prisma.SortOrder
   proposedByAccountId?: Prisma.SortOrder
   proposalReason?: Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrder
+  checkedInAt?: Prisma.SortOrder
+  slotId?: Prisma.SortOrder
+  proposedSlotId?: Prisma.SortOrder
+  requestHoldId?: Prisma.SortOrder
+  serviceName?: Prisma.SortOrder
+  durationMinutes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -791,12 +947,20 @@ export type AppointmentMinOrderByAggregateInput = {
   proposalVersion?: Prisma.SortOrder
   proposedByAccountId?: Prisma.SortOrder
   proposalReason?: Prisma.SortOrder
+  proposalInitiator?: Prisma.SortOrder
+  checkedInAt?: Prisma.SortOrder
+  slotId?: Prisma.SortOrder
+  proposedSlotId?: Prisma.SortOrder
+  requestHoldId?: Prisma.SortOrder
+  serviceName?: Prisma.SortOrder
+  durationMinutes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type AppointmentSumOrderByAggregateInput = {
   proposalVersion?: Prisma.SortOrder
+  durationMinutes?: Prisma.SortOrder
 }
 
 export type AppointmentScalarRelationFilter = {
@@ -976,6 +1140,14 @@ export type EnumAppointmentStatusFieldUpdateOperationsInput = {
   set?: $Enums.AppointmentStatus
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type AppointmentCreateNestedOneWithoutHistoryInput = {
   create?: Prisma.XOR<Prisma.AppointmentCreateWithoutHistoryInput, Prisma.AppointmentUncheckedCreateWithoutHistoryInput>
   connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutHistoryInput
@@ -988,6 +1160,90 @@ export type AppointmentUpdateOneRequiredWithoutHistoryNestedInput = {
   upsert?: Prisma.AppointmentUpsertWithoutHistoryInput
   connect?: Prisma.AppointmentWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.AppointmentUpdateToOneWithWhereWithoutHistoryInput, Prisma.AppointmentUpdateWithoutHistoryInput>, Prisma.AppointmentUncheckedUpdateWithoutHistoryInput>
+}
+
+export type AppointmentCreateNestedManyWithoutSlotInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutSlotInput, Prisma.AppointmentUncheckedCreateWithoutSlotInput> | Prisma.AppointmentCreateWithoutSlotInput[] | Prisma.AppointmentUncheckedCreateWithoutSlotInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutSlotInput | Prisma.AppointmentCreateOrConnectWithoutSlotInput[]
+  createMany?: Prisma.AppointmentCreateManySlotInputEnvelope
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+}
+
+export type AppointmentCreateNestedManyWithoutProposedSlotInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutProposedSlotInput, Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput> | Prisma.AppointmentCreateWithoutProposedSlotInput[] | Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutProposedSlotInput | Prisma.AppointmentCreateOrConnectWithoutProposedSlotInput[]
+  createMany?: Prisma.AppointmentCreateManyProposedSlotInputEnvelope
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+}
+
+export type AppointmentUncheckedCreateNestedManyWithoutSlotInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutSlotInput, Prisma.AppointmentUncheckedCreateWithoutSlotInput> | Prisma.AppointmentCreateWithoutSlotInput[] | Prisma.AppointmentUncheckedCreateWithoutSlotInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutSlotInput | Prisma.AppointmentCreateOrConnectWithoutSlotInput[]
+  createMany?: Prisma.AppointmentCreateManySlotInputEnvelope
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+}
+
+export type AppointmentUncheckedCreateNestedManyWithoutProposedSlotInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutProposedSlotInput, Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput> | Prisma.AppointmentCreateWithoutProposedSlotInput[] | Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutProposedSlotInput | Prisma.AppointmentCreateOrConnectWithoutProposedSlotInput[]
+  createMany?: Prisma.AppointmentCreateManyProposedSlotInputEnvelope
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+}
+
+export type AppointmentUpdateManyWithoutSlotNestedInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutSlotInput, Prisma.AppointmentUncheckedCreateWithoutSlotInput> | Prisma.AppointmentCreateWithoutSlotInput[] | Prisma.AppointmentUncheckedCreateWithoutSlotInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutSlotInput | Prisma.AppointmentCreateOrConnectWithoutSlotInput[]
+  upsert?: Prisma.AppointmentUpsertWithWhereUniqueWithoutSlotInput | Prisma.AppointmentUpsertWithWhereUniqueWithoutSlotInput[]
+  createMany?: Prisma.AppointmentCreateManySlotInputEnvelope
+  set?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  disconnect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  delete?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  update?: Prisma.AppointmentUpdateWithWhereUniqueWithoutSlotInput | Prisma.AppointmentUpdateWithWhereUniqueWithoutSlotInput[]
+  updateMany?: Prisma.AppointmentUpdateManyWithWhereWithoutSlotInput | Prisma.AppointmentUpdateManyWithWhereWithoutSlotInput[]
+  deleteMany?: Prisma.AppointmentScalarWhereInput | Prisma.AppointmentScalarWhereInput[]
+}
+
+export type AppointmentUpdateManyWithoutProposedSlotNestedInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutProposedSlotInput, Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput> | Prisma.AppointmentCreateWithoutProposedSlotInput[] | Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutProposedSlotInput | Prisma.AppointmentCreateOrConnectWithoutProposedSlotInput[]
+  upsert?: Prisma.AppointmentUpsertWithWhereUniqueWithoutProposedSlotInput | Prisma.AppointmentUpsertWithWhereUniqueWithoutProposedSlotInput[]
+  createMany?: Prisma.AppointmentCreateManyProposedSlotInputEnvelope
+  set?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  disconnect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  delete?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  update?: Prisma.AppointmentUpdateWithWhereUniqueWithoutProposedSlotInput | Prisma.AppointmentUpdateWithWhereUniqueWithoutProposedSlotInput[]
+  updateMany?: Prisma.AppointmentUpdateManyWithWhereWithoutProposedSlotInput | Prisma.AppointmentUpdateManyWithWhereWithoutProposedSlotInput[]
+  deleteMany?: Prisma.AppointmentScalarWhereInput | Prisma.AppointmentScalarWhereInput[]
+}
+
+export type AppointmentUncheckedUpdateManyWithoutSlotNestedInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutSlotInput, Prisma.AppointmentUncheckedCreateWithoutSlotInput> | Prisma.AppointmentCreateWithoutSlotInput[] | Prisma.AppointmentUncheckedCreateWithoutSlotInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutSlotInput | Prisma.AppointmentCreateOrConnectWithoutSlotInput[]
+  upsert?: Prisma.AppointmentUpsertWithWhereUniqueWithoutSlotInput | Prisma.AppointmentUpsertWithWhereUniqueWithoutSlotInput[]
+  createMany?: Prisma.AppointmentCreateManySlotInputEnvelope
+  set?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  disconnect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  delete?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  update?: Prisma.AppointmentUpdateWithWhereUniqueWithoutSlotInput | Prisma.AppointmentUpdateWithWhereUniqueWithoutSlotInput[]
+  updateMany?: Prisma.AppointmentUpdateManyWithWhereWithoutSlotInput | Prisma.AppointmentUpdateManyWithWhereWithoutSlotInput[]
+  deleteMany?: Prisma.AppointmentScalarWhereInput | Prisma.AppointmentScalarWhereInput[]
+}
+
+export type AppointmentUncheckedUpdateManyWithoutProposedSlotNestedInput = {
+  create?: Prisma.XOR<Prisma.AppointmentCreateWithoutProposedSlotInput, Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput> | Prisma.AppointmentCreateWithoutProposedSlotInput[] | Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput[]
+  connectOrCreate?: Prisma.AppointmentCreateOrConnectWithoutProposedSlotInput | Prisma.AppointmentCreateOrConnectWithoutProposedSlotInput[]
+  upsert?: Prisma.AppointmentUpsertWithWhereUniqueWithoutProposedSlotInput | Prisma.AppointmentUpsertWithWhereUniqueWithoutProposedSlotInput[]
+  createMany?: Prisma.AppointmentCreateManyProposedSlotInputEnvelope
+  set?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  disconnect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  delete?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  connect?: Prisma.AppointmentWhereUniqueInput | Prisma.AppointmentWhereUniqueInput[]
+  update?: Prisma.AppointmentUpdateWithWhereUniqueWithoutProposedSlotInput | Prisma.AppointmentUpdateWithWhereUniqueWithoutProposedSlotInput[]
+  updateMany?: Prisma.AppointmentUpdateManyWithWhereWithoutProposedSlotInput | Prisma.AppointmentUpdateManyWithWhereWithoutProposedSlotInput[]
+  deleteMany?: Prisma.AppointmentScalarWhereInput | Prisma.AppointmentScalarWhereInput[]
 }
 
 export type AppointmentCreateNestedOneWithoutReminderMarkersInput = {
@@ -1023,8 +1279,15 @@ export type AppointmentCreateWithoutRequesterInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  slot?: Prisma.AppointmentSlotCreateNestedOneWithoutAppointmentsInput
+  proposedSlot?: Prisma.AppointmentSlotCreateNestedOneWithoutProposalsInput
   history?: Prisma.AppointmentHistoryCreateNestedManyWithoutAppointmentInput
   reminderMarkers?: Prisma.AppointmentReminderCreateNestedManyWithoutAppointmentInput
   owner: Prisma.OwnerProfileCreateNestedOneWithoutAppointmentsInput
@@ -1054,6 +1317,13 @@ export type AppointmentUncheckedCreateWithoutRequesterInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   history?: Prisma.AppointmentHistoryUncheckedCreateNestedManyWithoutAppointmentInput
@@ -1112,6 +1382,13 @@ export type AppointmentScalarWhereInput = {
   proposalVersion?: Prisma.IntFilter<"Appointment"> | number
   proposedByAccountId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
   proposalReason?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  proposalInitiator?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  checkedInAt?: Prisma.DateTimeNullableFilter<"Appointment"> | Date | string | null
+  slotId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
+  proposedSlotId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
+  requestHoldId?: Prisma.UuidNullableFilter<"Appointment"> | string | null
+  serviceName?: Prisma.StringNullableFilter<"Appointment"> | string | null
+  durationMinutes?: Prisma.IntNullableFilter<"Appointment"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
 }
@@ -1135,8 +1412,15 @@ export type AppointmentCreateWithoutOrganizationInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  slot?: Prisma.AppointmentSlotCreateNestedOneWithoutAppointmentsInput
+  proposedSlot?: Prisma.AppointmentSlotCreateNestedOneWithoutProposalsInput
   history?: Prisma.AppointmentHistoryCreateNestedManyWithoutAppointmentInput
   reminderMarkers?: Prisma.AppointmentReminderCreateNestedManyWithoutAppointmentInput
   requester: Prisma.AccountCreateNestedOneWithoutAppointmentsInput
@@ -1166,6 +1450,13 @@ export type AppointmentUncheckedCreateWithoutOrganizationInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   history?: Prisma.AppointmentHistoryUncheckedCreateNestedManyWithoutAppointmentInput
@@ -1217,8 +1508,15 @@ export type AppointmentCreateWithoutOwnerInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  slot?: Prisma.AppointmentSlotCreateNestedOneWithoutAppointmentsInput
+  proposedSlot?: Prisma.AppointmentSlotCreateNestedOneWithoutProposalsInput
   history?: Prisma.AppointmentHistoryCreateNestedManyWithoutAppointmentInput
   reminderMarkers?: Prisma.AppointmentReminderCreateNestedManyWithoutAppointmentInput
   requester: Prisma.AccountCreateNestedOneWithoutAppointmentsInput
@@ -1248,6 +1546,13 @@ export type AppointmentUncheckedCreateWithoutOwnerInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   history?: Prisma.AppointmentHistoryUncheckedCreateNestedManyWithoutAppointmentInput
@@ -1299,8 +1604,15 @@ export type AppointmentCreateWithoutPetInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  slot?: Prisma.AppointmentSlotCreateNestedOneWithoutAppointmentsInput
+  proposedSlot?: Prisma.AppointmentSlotCreateNestedOneWithoutProposalsInput
   history?: Prisma.AppointmentHistoryCreateNestedManyWithoutAppointmentInput
   reminderMarkers?: Prisma.AppointmentReminderCreateNestedManyWithoutAppointmentInput
   requester: Prisma.AccountCreateNestedOneWithoutAppointmentsInput
@@ -1330,6 +1642,13 @@ export type AppointmentUncheckedCreateWithoutPetInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   history?: Prisma.AppointmentHistoryUncheckedCreateNestedManyWithoutAppointmentInput
@@ -1381,8 +1700,15 @@ export type AppointmentCreateWithoutHistoryInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  slot?: Prisma.AppointmentSlotCreateNestedOneWithoutAppointmentsInput
+  proposedSlot?: Prisma.AppointmentSlotCreateNestedOneWithoutProposalsInput
   reminderMarkers?: Prisma.AppointmentReminderCreateNestedManyWithoutAppointmentInput
   requester: Prisma.AccountCreateNestedOneWithoutAppointmentsInput
   owner: Prisma.OwnerProfileCreateNestedOneWithoutAppointmentsInput
@@ -1413,6 +1739,13 @@ export type AppointmentUncheckedCreateWithoutHistoryInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reminderMarkers?: Prisma.AppointmentReminderUncheckedCreateNestedManyWithoutAppointmentInput
@@ -1453,8 +1786,15 @@ export type AppointmentUpdateWithoutHistoryInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  slot?: Prisma.AppointmentSlotUpdateOneWithoutAppointmentsNestedInput
+  proposedSlot?: Prisma.AppointmentSlotUpdateOneWithoutProposalsNestedInput
   reminderMarkers?: Prisma.AppointmentReminderUpdateManyWithoutAppointmentNestedInput
   requester?: Prisma.AccountUpdateOneRequiredWithoutAppointmentsNestedInput
   owner?: Prisma.OwnerProfileUpdateOneRequiredWithoutAppointmentsNestedInput
@@ -1485,9 +1825,208 @@ export type AppointmentUncheckedUpdateWithoutHistoryInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reminderMarkers?: Prisma.AppointmentReminderUncheckedUpdateManyWithoutAppointmentNestedInput
+}
+
+export type AppointmentCreateWithoutSlotInput = {
+  id?: string
+  ownerName: string
+  contactPhone: string
+  petName: string
+  speciesCode: string
+  clinicName: string
+  startsAt: Date | string
+  timeZone: string
+  visitReason: string
+  sharingConsentAt: Date | string
+  status?: $Enums.AppointmentStatus
+  responseNote?: string | null
+  proposedStartsAt?: Date | string | null
+  proposedTimeZone?: string | null
+  proposalExpiresAt?: Date | string | null
+  proposalVersion?: number
+  proposedByAccountId?: string | null
+  proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  proposedSlot?: Prisma.AppointmentSlotCreateNestedOneWithoutProposalsInput
+  history?: Prisma.AppointmentHistoryCreateNestedManyWithoutAppointmentInput
+  reminderMarkers?: Prisma.AppointmentReminderCreateNestedManyWithoutAppointmentInput
+  requester: Prisma.AccountCreateNestedOneWithoutAppointmentsInput
+  owner: Prisma.OwnerProfileCreateNestedOneWithoutAppointmentsInput
+  pet: Prisma.PetCreateNestedOneWithoutAppointmentsInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutAppointmentsInput
+}
+
+export type AppointmentUncheckedCreateWithoutSlotInput = {
+  id?: string
+  requesterAccountId: string
+  ownerProfileId: string
+  petId: string
+  organizationId: string
+  ownerName: string
+  contactPhone: string
+  petName: string
+  speciesCode: string
+  clinicName: string
+  startsAt: Date | string
+  timeZone: string
+  visitReason: string
+  sharingConsentAt: Date | string
+  status?: $Enums.AppointmentStatus
+  responseNote?: string | null
+  proposedStartsAt?: Date | string | null
+  proposedTimeZone?: string | null
+  proposalExpiresAt?: Date | string | null
+  proposalVersion?: number
+  proposedByAccountId?: string | null
+  proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  history?: Prisma.AppointmentHistoryUncheckedCreateNestedManyWithoutAppointmentInput
+  reminderMarkers?: Prisma.AppointmentReminderUncheckedCreateNestedManyWithoutAppointmentInput
+}
+
+export type AppointmentCreateOrConnectWithoutSlotInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AppointmentCreateWithoutSlotInput, Prisma.AppointmentUncheckedCreateWithoutSlotInput>
+}
+
+export type AppointmentCreateManySlotInputEnvelope = {
+  data: Prisma.AppointmentCreateManySlotInput | Prisma.AppointmentCreateManySlotInput[]
+  skipDuplicates?: boolean
+}
+
+export type AppointmentCreateWithoutProposedSlotInput = {
+  id?: string
+  ownerName: string
+  contactPhone: string
+  petName: string
+  speciesCode: string
+  clinicName: string
+  startsAt: Date | string
+  timeZone: string
+  visitReason: string
+  sharingConsentAt: Date | string
+  status?: $Enums.AppointmentStatus
+  responseNote?: string | null
+  proposedStartsAt?: Date | string | null
+  proposedTimeZone?: string | null
+  proposalExpiresAt?: Date | string | null
+  proposalVersion?: number
+  proposedByAccountId?: string | null
+  proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  slot?: Prisma.AppointmentSlotCreateNestedOneWithoutAppointmentsInput
+  history?: Prisma.AppointmentHistoryCreateNestedManyWithoutAppointmentInput
+  reminderMarkers?: Prisma.AppointmentReminderCreateNestedManyWithoutAppointmentInput
+  requester: Prisma.AccountCreateNestedOneWithoutAppointmentsInput
+  owner: Prisma.OwnerProfileCreateNestedOneWithoutAppointmentsInput
+  pet: Prisma.PetCreateNestedOneWithoutAppointmentsInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutAppointmentsInput
+}
+
+export type AppointmentUncheckedCreateWithoutProposedSlotInput = {
+  id?: string
+  requesterAccountId: string
+  ownerProfileId: string
+  petId: string
+  organizationId: string
+  ownerName: string
+  contactPhone: string
+  petName: string
+  speciesCode: string
+  clinicName: string
+  startsAt: Date | string
+  timeZone: string
+  visitReason: string
+  sharingConsentAt: Date | string
+  status?: $Enums.AppointmentStatus
+  responseNote?: string | null
+  proposedStartsAt?: Date | string | null
+  proposedTimeZone?: string | null
+  proposalExpiresAt?: Date | string | null
+  proposalVersion?: number
+  proposedByAccountId?: string | null
+  proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  history?: Prisma.AppointmentHistoryUncheckedCreateNestedManyWithoutAppointmentInput
+  reminderMarkers?: Prisma.AppointmentReminderUncheckedCreateNestedManyWithoutAppointmentInput
+}
+
+export type AppointmentCreateOrConnectWithoutProposedSlotInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AppointmentCreateWithoutProposedSlotInput, Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput>
+}
+
+export type AppointmentCreateManyProposedSlotInputEnvelope = {
+  data: Prisma.AppointmentCreateManyProposedSlotInput | Prisma.AppointmentCreateManyProposedSlotInput[]
+  skipDuplicates?: boolean
+}
+
+export type AppointmentUpsertWithWhereUniqueWithoutSlotInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  update: Prisma.XOR<Prisma.AppointmentUpdateWithoutSlotInput, Prisma.AppointmentUncheckedUpdateWithoutSlotInput>
+  create: Prisma.XOR<Prisma.AppointmentCreateWithoutSlotInput, Prisma.AppointmentUncheckedCreateWithoutSlotInput>
+}
+
+export type AppointmentUpdateWithWhereUniqueWithoutSlotInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  data: Prisma.XOR<Prisma.AppointmentUpdateWithoutSlotInput, Prisma.AppointmentUncheckedUpdateWithoutSlotInput>
+}
+
+export type AppointmentUpdateManyWithWhereWithoutSlotInput = {
+  where: Prisma.AppointmentScalarWhereInput
+  data: Prisma.XOR<Prisma.AppointmentUpdateManyMutationInput, Prisma.AppointmentUncheckedUpdateManyWithoutSlotInput>
+}
+
+export type AppointmentUpsertWithWhereUniqueWithoutProposedSlotInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  update: Prisma.XOR<Prisma.AppointmentUpdateWithoutProposedSlotInput, Prisma.AppointmentUncheckedUpdateWithoutProposedSlotInput>
+  create: Prisma.XOR<Prisma.AppointmentCreateWithoutProposedSlotInput, Prisma.AppointmentUncheckedCreateWithoutProposedSlotInput>
+}
+
+export type AppointmentUpdateWithWhereUniqueWithoutProposedSlotInput = {
+  where: Prisma.AppointmentWhereUniqueInput
+  data: Prisma.XOR<Prisma.AppointmentUpdateWithoutProposedSlotInput, Prisma.AppointmentUncheckedUpdateWithoutProposedSlotInput>
+}
+
+export type AppointmentUpdateManyWithWhereWithoutProposedSlotInput = {
+  where: Prisma.AppointmentScalarWhereInput
+  data: Prisma.XOR<Prisma.AppointmentUpdateManyMutationInput, Prisma.AppointmentUncheckedUpdateManyWithoutProposedSlotInput>
 }
 
 export type AppointmentCreateWithoutReminderMarkersInput = {
@@ -1509,8 +2048,15 @@ export type AppointmentCreateWithoutReminderMarkersInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  slot?: Prisma.AppointmentSlotCreateNestedOneWithoutAppointmentsInput
+  proposedSlot?: Prisma.AppointmentSlotCreateNestedOneWithoutProposalsInput
   history?: Prisma.AppointmentHistoryCreateNestedManyWithoutAppointmentInput
   requester: Prisma.AccountCreateNestedOneWithoutAppointmentsInput
   owner: Prisma.OwnerProfileCreateNestedOneWithoutAppointmentsInput
@@ -1541,6 +2087,13 @@ export type AppointmentUncheckedCreateWithoutReminderMarkersInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   history?: Prisma.AppointmentHistoryUncheckedCreateNestedManyWithoutAppointmentInput
@@ -1581,8 +2134,15 @@ export type AppointmentUpdateWithoutReminderMarkersInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  slot?: Prisma.AppointmentSlotUpdateOneWithoutAppointmentsNestedInput
+  proposedSlot?: Prisma.AppointmentSlotUpdateOneWithoutProposalsNestedInput
   history?: Prisma.AppointmentHistoryUpdateManyWithoutAppointmentNestedInput
   requester?: Prisma.AccountUpdateOneRequiredWithoutAppointmentsNestedInput
   owner?: Prisma.OwnerProfileUpdateOneRequiredWithoutAppointmentsNestedInput
@@ -1613,6 +2173,13 @@ export type AppointmentUncheckedUpdateWithoutReminderMarkersInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   history?: Prisma.AppointmentHistoryUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -1640,6 +2207,13 @@ export type AppointmentCreateManyRequesterInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1663,8 +2237,15 @@ export type AppointmentUpdateWithoutRequesterInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  slot?: Prisma.AppointmentSlotUpdateOneWithoutAppointmentsNestedInput
+  proposedSlot?: Prisma.AppointmentSlotUpdateOneWithoutProposalsNestedInput
   history?: Prisma.AppointmentHistoryUpdateManyWithoutAppointmentNestedInput
   reminderMarkers?: Prisma.AppointmentReminderUpdateManyWithoutAppointmentNestedInput
   owner?: Prisma.OwnerProfileUpdateOneRequiredWithoutAppointmentsNestedInput
@@ -1694,6 +2275,13 @@ export type AppointmentUncheckedUpdateWithoutRequesterInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   history?: Prisma.AppointmentHistoryUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -1722,6 +2310,13 @@ export type AppointmentUncheckedUpdateManyWithoutRequesterInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1748,6 +2343,13 @@ export type AppointmentCreateManyOrganizationInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1771,8 +2373,15 @@ export type AppointmentUpdateWithoutOrganizationInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  slot?: Prisma.AppointmentSlotUpdateOneWithoutAppointmentsNestedInput
+  proposedSlot?: Prisma.AppointmentSlotUpdateOneWithoutProposalsNestedInput
   history?: Prisma.AppointmentHistoryUpdateManyWithoutAppointmentNestedInput
   reminderMarkers?: Prisma.AppointmentReminderUpdateManyWithoutAppointmentNestedInput
   requester?: Prisma.AccountUpdateOneRequiredWithoutAppointmentsNestedInput
@@ -1802,6 +2411,13 @@ export type AppointmentUncheckedUpdateWithoutOrganizationInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   history?: Prisma.AppointmentHistoryUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -1830,6 +2446,13 @@ export type AppointmentUncheckedUpdateManyWithoutOrganizationInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1856,6 +2479,13 @@ export type AppointmentCreateManyOwnerInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1879,8 +2509,15 @@ export type AppointmentUpdateWithoutOwnerInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  slot?: Prisma.AppointmentSlotUpdateOneWithoutAppointmentsNestedInput
+  proposedSlot?: Prisma.AppointmentSlotUpdateOneWithoutProposalsNestedInput
   history?: Prisma.AppointmentHistoryUpdateManyWithoutAppointmentNestedInput
   reminderMarkers?: Prisma.AppointmentReminderUpdateManyWithoutAppointmentNestedInput
   requester?: Prisma.AccountUpdateOneRequiredWithoutAppointmentsNestedInput
@@ -1910,6 +2547,13 @@ export type AppointmentUncheckedUpdateWithoutOwnerInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   history?: Prisma.AppointmentHistoryUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -1938,6 +2582,13 @@ export type AppointmentUncheckedUpdateManyWithoutOwnerInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1964,6 +2615,13 @@ export type AppointmentCreateManyPetInput = {
   proposalVersion?: number
   proposedByAccountId?: string | null
   proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1987,8 +2645,15 @@ export type AppointmentUpdateWithoutPetInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  slot?: Prisma.AppointmentSlotUpdateOneWithoutAppointmentsNestedInput
+  proposedSlot?: Prisma.AppointmentSlotUpdateOneWithoutProposalsNestedInput
   history?: Prisma.AppointmentHistoryUpdateManyWithoutAppointmentNestedInput
   reminderMarkers?: Prisma.AppointmentReminderUpdateManyWithoutAppointmentNestedInput
   requester?: Prisma.AccountUpdateOneRequiredWithoutAppointmentsNestedInput
@@ -2018,6 +2683,13 @@ export type AppointmentUncheckedUpdateWithoutPetInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   history?: Prisma.AppointmentHistoryUncheckedUpdateManyWithoutAppointmentNestedInput
@@ -2046,6 +2718,285 @@ export type AppointmentUncheckedUpdateManyWithoutPetInput = {
   proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
   proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AppointmentCreateManySlotInput = {
+  id?: string
+  requesterAccountId: string
+  ownerProfileId: string
+  petId: string
+  organizationId: string
+  ownerName: string
+  contactPhone: string
+  petName: string
+  speciesCode: string
+  clinicName: string
+  startsAt: Date | string
+  timeZone: string
+  visitReason: string
+  sharingConsentAt: Date | string
+  status?: $Enums.AppointmentStatus
+  responseNote?: string | null
+  proposedStartsAt?: Date | string | null
+  proposedTimeZone?: string | null
+  proposalExpiresAt?: Date | string | null
+  proposalVersion?: number
+  proposedByAccountId?: string | null
+  proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  proposedSlotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AppointmentCreateManyProposedSlotInput = {
+  id?: string
+  requesterAccountId: string
+  ownerProfileId: string
+  petId: string
+  organizationId: string
+  ownerName: string
+  contactPhone: string
+  petName: string
+  speciesCode: string
+  clinicName: string
+  startsAt: Date | string
+  timeZone: string
+  visitReason: string
+  sharingConsentAt: Date | string
+  status?: $Enums.AppointmentStatus
+  responseNote?: string | null
+  proposedStartsAt?: Date | string | null
+  proposedTimeZone?: string | null
+  proposalExpiresAt?: Date | string | null
+  proposalVersion?: number
+  proposedByAccountId?: string | null
+  proposalReason?: string | null
+  proposalInitiator?: string | null
+  checkedInAt?: Date | string | null
+  slotId?: string | null
+  requestHoldId?: string | null
+  serviceName?: string | null
+  durationMinutes?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AppointmentUpdateWithoutSlotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  petName?: Prisma.StringFieldUpdateOperationsInput | string
+  speciesCode?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicName?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  visitReason?: Prisma.StringFieldUpdateOperationsInput | string
+  sharingConsentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus
+  responseNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedStartsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  proposedSlot?: Prisma.AppointmentSlotUpdateOneWithoutProposalsNestedInput
+  history?: Prisma.AppointmentHistoryUpdateManyWithoutAppointmentNestedInput
+  reminderMarkers?: Prisma.AppointmentReminderUpdateManyWithoutAppointmentNestedInput
+  requester?: Prisma.AccountUpdateOneRequiredWithoutAppointmentsNestedInput
+  owner?: Prisma.OwnerProfileUpdateOneRequiredWithoutAppointmentsNestedInput
+  pet?: Prisma.PetUpdateOneRequiredWithoutAppointmentsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutAppointmentsNestedInput
+}
+
+export type AppointmentUncheckedUpdateWithoutSlotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterAccountId?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  petId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  petName?: Prisma.StringFieldUpdateOperationsInput | string
+  speciesCode?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicName?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  visitReason?: Prisma.StringFieldUpdateOperationsInput | string
+  sharingConsentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus
+  responseNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedStartsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  history?: Prisma.AppointmentHistoryUncheckedUpdateManyWithoutAppointmentNestedInput
+  reminderMarkers?: Prisma.AppointmentReminderUncheckedUpdateManyWithoutAppointmentNestedInput
+}
+
+export type AppointmentUncheckedUpdateManyWithoutSlotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterAccountId?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  petId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  petName?: Prisma.StringFieldUpdateOperationsInput | string
+  speciesCode?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicName?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  visitReason?: Prisma.StringFieldUpdateOperationsInput | string
+  sharingConsentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus
+  responseNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedStartsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedSlotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AppointmentUpdateWithoutProposedSlotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  petName?: Prisma.StringFieldUpdateOperationsInput | string
+  speciesCode?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicName?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  visitReason?: Prisma.StringFieldUpdateOperationsInput | string
+  sharingConsentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus
+  responseNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedStartsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  slot?: Prisma.AppointmentSlotUpdateOneWithoutAppointmentsNestedInput
+  history?: Prisma.AppointmentHistoryUpdateManyWithoutAppointmentNestedInput
+  reminderMarkers?: Prisma.AppointmentReminderUpdateManyWithoutAppointmentNestedInput
+  requester?: Prisma.AccountUpdateOneRequiredWithoutAppointmentsNestedInput
+  owner?: Prisma.OwnerProfileUpdateOneRequiredWithoutAppointmentsNestedInput
+  pet?: Prisma.PetUpdateOneRequiredWithoutAppointmentsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutAppointmentsNestedInput
+}
+
+export type AppointmentUncheckedUpdateWithoutProposedSlotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterAccountId?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  petId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  petName?: Prisma.StringFieldUpdateOperationsInput | string
+  speciesCode?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicName?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  visitReason?: Prisma.StringFieldUpdateOperationsInput | string
+  sharingConsentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus
+  responseNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedStartsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  history?: Prisma.AppointmentHistoryUncheckedUpdateManyWithoutAppointmentNestedInput
+  reminderMarkers?: Prisma.AppointmentReminderUncheckedUpdateManyWithoutAppointmentNestedInput
+}
+
+export type AppointmentUncheckedUpdateManyWithoutProposedSlotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterAccountId?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  petId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  petName?: Prisma.StringFieldUpdateOperationsInput | string
+  speciesCode?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicName?: Prisma.StringFieldUpdateOperationsInput | string
+  startsAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  visitReason?: Prisma.StringFieldUpdateOperationsInput | string
+  sharingConsentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumAppointmentStatusFieldUpdateOperationsInput | $Enums.AppointmentStatus
+  responseNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposedStartsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposedTimeZone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  proposalVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  proposedByAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalInitiator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  slotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHoldId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2113,8 +3064,17 @@ export type AppointmentSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   proposalVersion?: boolean
   proposedByAccountId?: boolean
   proposalReason?: boolean
+  proposalInitiator?: boolean
+  checkedInAt?: boolean
+  slotId?: boolean
+  proposedSlotId?: boolean
+  requestHoldId?: boolean
+  serviceName?: boolean
+  durationMinutes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  slot?: boolean | Prisma.Appointment$slotArgs<ExtArgs>
+  proposedSlot?: boolean | Prisma.Appointment$proposedSlotArgs<ExtArgs>
   history?: boolean | Prisma.Appointment$historyArgs<ExtArgs>
   reminderMarkers?: boolean | Prisma.Appointment$reminderMarkersArgs<ExtArgs>
   requester?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
@@ -2147,8 +3107,17 @@ export type AppointmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   proposalVersion?: boolean
   proposedByAccountId?: boolean
   proposalReason?: boolean
+  proposalInitiator?: boolean
+  checkedInAt?: boolean
+  slotId?: boolean
+  proposedSlotId?: boolean
+  requestHoldId?: boolean
+  serviceName?: boolean
+  durationMinutes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  slot?: boolean | Prisma.Appointment$slotArgs<ExtArgs>
+  proposedSlot?: boolean | Prisma.Appointment$proposedSlotArgs<ExtArgs>
   requester?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   owner?: boolean | Prisma.OwnerProfileDefaultArgs<ExtArgs>
   pet?: boolean | Prisma.PetDefaultArgs<ExtArgs>
@@ -2178,8 +3147,17 @@ export type AppointmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   proposalVersion?: boolean
   proposedByAccountId?: boolean
   proposalReason?: boolean
+  proposalInitiator?: boolean
+  checkedInAt?: boolean
+  slotId?: boolean
+  proposedSlotId?: boolean
+  requestHoldId?: boolean
+  serviceName?: boolean
+  durationMinutes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  slot?: boolean | Prisma.Appointment$slotArgs<ExtArgs>
+  proposedSlot?: boolean | Prisma.Appointment$proposedSlotArgs<ExtArgs>
   requester?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   owner?: boolean | Prisma.OwnerProfileDefaultArgs<ExtArgs>
   pet?: boolean | Prisma.PetDefaultArgs<ExtArgs>
@@ -2209,12 +3187,21 @@ export type AppointmentSelectScalar = {
   proposalVersion?: boolean
   proposedByAccountId?: boolean
   proposalReason?: boolean
+  proposalInitiator?: boolean
+  checkedInAt?: boolean
+  slotId?: boolean
+  proposedSlotId?: boolean
+  requestHoldId?: boolean
+  serviceName?: boolean
+  durationMinutes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AppointmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requesterAccountId" | "ownerProfileId" | "petId" | "organizationId" | "ownerName" | "contactPhone" | "petName" | "speciesCode" | "clinicName" | "startsAt" | "timeZone" | "visitReason" | "sharingConsentAt" | "status" | "responseNote" | "proposedStartsAt" | "proposedTimeZone" | "proposalExpiresAt" | "proposalVersion" | "proposedByAccountId" | "proposalReason" | "createdAt" | "updatedAt", ExtArgs["result"]["appointment"]>
+export type AppointmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requesterAccountId" | "ownerProfileId" | "petId" | "organizationId" | "ownerName" | "contactPhone" | "petName" | "speciesCode" | "clinicName" | "startsAt" | "timeZone" | "visitReason" | "sharingConsentAt" | "status" | "responseNote" | "proposedStartsAt" | "proposedTimeZone" | "proposalExpiresAt" | "proposalVersion" | "proposedByAccountId" | "proposalReason" | "proposalInitiator" | "checkedInAt" | "slotId" | "proposedSlotId" | "requestHoldId" | "serviceName" | "durationMinutes" | "createdAt" | "updatedAt", ExtArgs["result"]["appointment"]>
 export type AppointmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  slot?: boolean | Prisma.Appointment$slotArgs<ExtArgs>
+  proposedSlot?: boolean | Prisma.Appointment$proposedSlotArgs<ExtArgs>
   history?: boolean | Prisma.Appointment$historyArgs<ExtArgs>
   reminderMarkers?: boolean | Prisma.Appointment$reminderMarkersArgs<ExtArgs>
   requester?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
@@ -2224,12 +3211,16 @@ export type AppointmentInclude<ExtArgs extends runtime.Types.Extensions.Internal
   _count?: boolean | Prisma.AppointmentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AppointmentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  slot?: boolean | Prisma.Appointment$slotArgs<ExtArgs>
+  proposedSlot?: boolean | Prisma.Appointment$proposedSlotArgs<ExtArgs>
   requester?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   owner?: boolean | Prisma.OwnerProfileDefaultArgs<ExtArgs>
   pet?: boolean | Prisma.PetDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
 export type AppointmentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  slot?: boolean | Prisma.Appointment$slotArgs<ExtArgs>
+  proposedSlot?: boolean | Prisma.Appointment$proposedSlotArgs<ExtArgs>
   requester?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   owner?: boolean | Prisma.OwnerProfileDefaultArgs<ExtArgs>
   pet?: boolean | Prisma.PetDefaultArgs<ExtArgs>
@@ -2239,6 +3230,8 @@ export type AppointmentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.
 export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Appointment"
   objects: {
+    slot: Prisma.$AppointmentSlotPayload<ExtArgs> | null
+    proposedSlot: Prisma.$AppointmentSlotPayload<ExtArgs> | null
     history: Prisma.$AppointmentHistoryPayload<ExtArgs>[]
     reminderMarkers: Prisma.$AppointmentReminderPayload<ExtArgs>[]
     requester: Prisma.$AccountPayload<ExtArgs>
@@ -2269,6 +3262,13 @@ export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.Interna
     proposalVersion: number
     proposedByAccountId: string | null
     proposalReason: string | null
+    proposalInitiator: string | null
+    checkedInAt: Date | null
+    slotId: string | null
+    proposedSlotId: string | null
+    requestHoldId: string | null
+    serviceName: string | null
+    durationMinutes: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["appointment"]>
@@ -2665,6 +3665,8 @@ readonly fields: AppointmentFieldRefs;
  */
 export interface Prisma__AppointmentClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  slot<T extends Prisma.Appointment$slotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$slotArgs<ExtArgs>>): Prisma.Prisma__AppointmentSlotClient<runtime.Types.Result.GetResult<Prisma.$AppointmentSlotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  proposedSlot<T extends Prisma.Appointment$proposedSlotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$proposedSlotArgs<ExtArgs>>): Prisma.Prisma__AppointmentSlotClient<runtime.Types.Result.GetResult<Prisma.$AppointmentSlotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   history<T extends Prisma.Appointment$historyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$historyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reminderMarkers<T extends Prisma.Appointment$reminderMarkersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Appointment$reminderMarkersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentReminderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   requester<T extends Prisma.AccountDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AccountDefaultArgs<ExtArgs>>): Prisma.Prisma__AccountClient<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
@@ -2722,6 +3724,13 @@ export interface AppointmentFieldRefs {
   readonly proposalVersion: Prisma.FieldRef<"Appointment", 'Int'>
   readonly proposedByAccountId: Prisma.FieldRef<"Appointment", 'String'>
   readonly proposalReason: Prisma.FieldRef<"Appointment", 'String'>
+  readonly proposalInitiator: Prisma.FieldRef<"Appointment", 'String'>
+  readonly checkedInAt: Prisma.FieldRef<"Appointment", 'DateTime'>
+  readonly slotId: Prisma.FieldRef<"Appointment", 'String'>
+  readonly proposedSlotId: Prisma.FieldRef<"Appointment", 'String'>
+  readonly requestHoldId: Prisma.FieldRef<"Appointment", 'String'>
+  readonly serviceName: Prisma.FieldRef<"Appointment", 'String'>
+  readonly durationMinutes: Prisma.FieldRef<"Appointment", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Appointment", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Appointment", 'DateTime'>
 }
@@ -3122,6 +4131,44 @@ export type AppointmentDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many Appointments to delete.
    */
   limit?: number
+}
+
+/**
+ * Appointment.slot
+ */
+export type Appointment$slotArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AppointmentSlot
+   */
+  select?: Prisma.AppointmentSlotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AppointmentSlot
+   */
+  omit?: Prisma.AppointmentSlotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AppointmentSlotInclude<ExtArgs> | null
+  where?: Prisma.AppointmentSlotWhereInput
+}
+
+/**
+ * Appointment.proposedSlot
+ */
+export type Appointment$proposedSlotArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AppointmentSlot
+   */
+  select?: Prisma.AppointmentSlotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AppointmentSlot
+   */
+  omit?: Prisma.AppointmentSlotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AppointmentSlotInclude<ExtArgs> | null
+  where?: Prisma.AppointmentSlotWhereInput
 }
 
 /**

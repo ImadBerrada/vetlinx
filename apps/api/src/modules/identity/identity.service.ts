@@ -12,7 +12,12 @@ import {
   type OutboxWriter,
 } from '../../platform/events/outbox-writer.port';
 import { AuthTokenService } from './auth-token.service';
-import type { AuthenticationResult, RequestMetadata } from './identity.types';
+import type {
+  AuthenticationResult,
+  MfaChallengeResult,
+  RequestMetadata,
+} from './identity.types';
+import { MfaService } from '../identity-security/mfa.service';
 import { PASSWORD_HASHER, type PasswordHasher } from './password-hasher.port';
 import type { AccountStatus } from './identity.public';
 
@@ -24,7 +29,41 @@ export class IdentityService {
     private readonly tokens: AuthTokenService,
     @Inject(PASSWORD_HASHER) private readonly passwords: PasswordHasher,
     @Inject(OUTBOX_WRITER) private readonly outbox: OutboxWriter,
+    private readonly mfa: MfaService,
   ) {}
+
+  async pruneExpiredSecurityArtifacts(now = new Date()): Promise<number> {
+    // Technical retention: expired challenges/link tokens get a 24-hour grace.
+    // Each worker cycle is bounded; durable audit records and active security state remain untouched.
+    const cutoff = new Date(now.getTime() - 24 * 60 * 60_000);
+    return this.prisma.$transaction(async (tx) => {
+      const challenges = await tx.mfaChallenge.findMany({
+        where: { expiresAt: { lt: cutoff } },
+        select: { id: true },
+        orderBy: [{ expiresAt: 'asc' }, { id: 'asc' }],
+        take: 1_000,
+      });
+      const tokens = await tx.securityToken.findMany({
+        where: { expiresAt: { lt: cutoff } },
+        select: { id: true },
+        orderBy: [{ expiresAt: 'asc' }, { id: 'asc' }],
+        take: 1_000,
+      });
+      const removedChallenges = await tx.mfaChallenge.deleteMany({
+        where: {
+          id: { in: challenges.map(({ id }) => id) },
+          expiresAt: { lt: cutoff },
+        },
+      });
+      const removedTokens = await tx.securityToken.deleteMany({
+        where: {
+          id: { in: tokens.map(({ id }) => id) },
+          expiresAt: { lt: cutoff },
+        },
+      });
+      return removedChallenges.count + removedTokens.count;
+    });
+  }
 
   async getAccountStatus(accountId: string): Promise<AccountStatus | null> {
     const account = await this.prisma.account.findUnique({
@@ -142,7 +181,7 @@ export class IdentityService {
     emailInput: string,
     password: string,
     metadata: RequestMetadata,
-  ): Promise<AuthenticationResult> {
+  ): Promise<AuthenticationResult | MfaChallengeResult> {
     const email = this.normalizeEmail(emailInput);
     const account = await this.prisma.account.findUnique({ where: { email } });
     if (!account) {
@@ -158,7 +197,7 @@ export class IdentityService {
     const refresh = this.tokens.generateRefreshToken();
     const refreshFamilyId = randomUUID();
     const occurredAt = new Date();
-    await this.prisma.$transaction(async (transaction) => {
+    const challenge = await this.prisma.$transaction(async (transaction) => {
       await transaction.$queryRaw`SELECT id FROM identity.accounts WHERE id = ${account.id}::uuid FOR UPDATE`;
       const locked = await transaction.account.findUnique({
         where: { id: account.id },
@@ -170,6 +209,8 @@ export class IdentityService {
         locked.authVersion !== account.authVersion
       )
         throw new UnauthorizedException('Invalid email or password');
+      if (locked.mfaEnabledAt)
+        return this.mfa.createLoginChallenge(transaction, locked, metadata);
       await transaction.refreshSession.create({
         data: {
           accountId: account.id,
@@ -188,7 +229,10 @@ export class IdentityService {
         occurredAt: occurredAt.toISOString(),
         correlationId: metadata.correlationId,
       });
+      return null;
     });
+
+    if (challenge) return challenge;
 
     return this.authenticationResult(
       account.id,
@@ -223,6 +267,8 @@ export class IdentityService {
       if (!current || current.account.status !== 'ACTIVE') {
         return null;
       }
+      if (current.account.mfaEnabledAt && !current.mfaAuthenticatedAt)
+        return null;
       if (current.revokedAt || current.expiresAt <= now) {
         if (current.replacedById) {
           await transaction.refreshSession.updateMany({
@@ -257,6 +303,7 @@ export class IdentityService {
           expiresAt: replacement.expiresAt,
           ipAddress: metadata.ipAddress,
           userAgent: metadata.userAgent,
+          mfaAuthenticatedAt: current.mfaAuthenticatedAt,
         },
       });
       await this.audit.recordInTransaction(transaction, {
@@ -309,6 +356,55 @@ export class IdentityService {
         correlationId: metadata.correlationId,
       });
     });
+  }
+
+  async completeMfaLogin(
+    challengeToken: string,
+    code: string,
+    metadata: RequestMetadata,
+  ): Promise<AuthenticationResult> {
+    const refresh = this.tokens.generateRefreshToken();
+    const familyId = randomUUID();
+    const account = await this.prisma.$transaction(async (tx) => {
+      const account = await this.mfa.consumeLoginChallenge(
+        tx,
+        challengeToken,
+        code,
+      );
+      if (!account) return null;
+      await tx.refreshSession.create({
+        data: {
+          accountId: account.id,
+          familyId,
+          tokenHash: refresh.hash,
+          expiresAt: refresh.expiresAt,
+          ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
+          mfaAuthenticatedAt: new Date(),
+        },
+      });
+      await this.audit.recordInTransaction(tx, {
+        actorId: account.id,
+        action: 'identity.session.mfa_authenticated',
+        resourceType: 'account',
+        resourceId: account.id,
+        occurredAt: new Date().toISOString(),
+        correlationId: metadata.correlationId,
+      });
+      return account;
+    });
+    if (!account)
+      throw new UnauthorizedException(
+        'The code or sign-in challenge is invalid or expired. Try the next code, an unused recovery code, or sign in again.',
+      );
+    return this.authenticationResult(
+      account.id,
+      account.email,
+      account.status,
+      refresh.token,
+      account.authVersion,
+      familyId,
+    );
   }
 
   private async authenticationResult(

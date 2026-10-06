@@ -10,7 +10,7 @@ export function safeReturnTo(value: string | null | undefined): string | null {
   if (!value || !value.startsWith("/") || value.startsWith("//") || /[\\\u0000-\u001f]/.test(value)) return null;
   const destination = new URL(value, "https://vetlinx.local");
   if (destination.origin !== "https://vetlinx.local") return null;
-  const paths = ["/professional", "/owner", "/clinics", "/get-started", "/onboarding", "/credentials", "/portfolio", "/jobs", "/applications", "/employer", "/review", "/settings"];
+  const paths = ["/professional", "/owner", "/clinics", "/get-started", "/onboarding", "/credentials", "/portfolio", "/jobs", "/applications", "/employer", "/review", "/settings", "/operations"];
   if (destination.pathname !== "/" && !paths.some((path) => destination.pathname === path || destination.pathname.startsWith(`${path}/`))) return null;
   return `${destination.pathname}${destination.search}${destination.hash}`;
 }

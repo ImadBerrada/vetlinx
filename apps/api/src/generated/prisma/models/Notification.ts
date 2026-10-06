@@ -499,10 +499,6 @@ export type EnumNotificationStatusFieldUpdateOperationsInput = {
   set?: $Enums.NotificationStatus
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type NotificationCreateWithoutRecipientInput = {
   id?: string
   kind: $Enums.NotificationKind

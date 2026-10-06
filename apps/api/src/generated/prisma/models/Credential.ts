@@ -238,6 +238,7 @@ export type CredentialWhereInput = {
   submittedAt?: Prisma.DateTimeNullableFilter<"Credential"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Credential"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Credential"> | Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryListRelationFilter
   professional?: Prisma.XOR<Prisma.ProfessionalProfileScalarRelationFilter, Prisma.ProfessionalProfileWhereInput>
 }
 
@@ -254,6 +255,7 @@ export type CredentialOrderByWithRelationInput = {
   submittedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryOrderByRelationAggregateInput
   professional?: Prisma.ProfessionalProfileOrderByWithRelationInput
 }
 
@@ -273,6 +275,7 @@ export type CredentialWhereUniqueInput = Prisma.AtLeast<{
   submittedAt?: Prisma.DateTimeNullableFilter<"Credential"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Credential"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Credential"> | Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryListRelationFilter
   professional?: Prisma.XOR<Prisma.ProfessionalProfileScalarRelationFilter, Prisma.ProfessionalProfileWhereInput>
 }, "id">
 
@@ -324,6 +327,7 @@ export type CredentialCreateInput = {
   submittedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryCreateNestedManyWithoutCredentialInput
   professional: Prisma.ProfessionalProfileCreateNestedOneWithoutCredentialsInput
 }
 
@@ -340,6 +344,7 @@ export type CredentialUncheckedCreateInput = {
   submittedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryUncheckedCreateNestedManyWithoutCredentialInput
 }
 
 export type CredentialUpdateInput = {
@@ -354,6 +359,7 @@ export type CredentialUpdateInput = {
   submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryUpdateManyWithoutCredentialNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneRequiredWithoutCredentialsNestedInput
 }
 
@@ -370,6 +376,7 @@ export type CredentialUncheckedUpdateInput = {
   submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryUncheckedUpdateManyWithoutCredentialNestedInput
 }
 
 export type CredentialCreateManyInput = {
@@ -471,6 +478,11 @@ export type CredentialMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type CredentialScalarRelationFilter = {
+  is?: Prisma.CredentialWhereInput
+  isNot?: Prisma.CredentialWhereInput
+}
+
 export type CredentialCreateNestedManyWithoutProfessionalInput = {
   create?: Prisma.XOR<Prisma.CredentialCreateWithoutProfessionalInput, Prisma.CredentialUncheckedCreateWithoutProfessionalInput> | Prisma.CredentialCreateWithoutProfessionalInput[] | Prisma.CredentialUncheckedCreateWithoutProfessionalInput[]
   connectOrCreate?: Prisma.CredentialCreateOrConnectWithoutProfessionalInput | Prisma.CredentialCreateOrConnectWithoutProfessionalInput[]
@@ -517,6 +529,20 @@ export type EnumCredentialStatusFieldUpdateOperationsInput = {
   set?: $Enums.CredentialStatus
 }
 
+export type CredentialCreateNestedOneWithoutLifecycleHistoryInput = {
+  create?: Prisma.XOR<Prisma.CredentialCreateWithoutLifecycleHistoryInput, Prisma.CredentialUncheckedCreateWithoutLifecycleHistoryInput>
+  connectOrCreate?: Prisma.CredentialCreateOrConnectWithoutLifecycleHistoryInput
+  connect?: Prisma.CredentialWhereUniqueInput
+}
+
+export type CredentialUpdateOneRequiredWithoutLifecycleHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.CredentialCreateWithoutLifecycleHistoryInput, Prisma.CredentialUncheckedCreateWithoutLifecycleHistoryInput>
+  connectOrCreate?: Prisma.CredentialCreateOrConnectWithoutLifecycleHistoryInput
+  upsert?: Prisma.CredentialUpsertWithoutLifecycleHistoryInput
+  connect?: Prisma.CredentialWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CredentialUpdateToOneWithWhereWithoutLifecycleHistoryInput, Prisma.CredentialUpdateWithoutLifecycleHistoryInput>, Prisma.CredentialUncheckedUpdateWithoutLifecycleHistoryInput>
+}
+
 export type CredentialCreateWithoutProfessionalInput = {
   id?: string
   typeCode: string
@@ -529,6 +555,7 @@ export type CredentialCreateWithoutProfessionalInput = {
   submittedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryCreateNestedManyWithoutCredentialInput
 }
 
 export type CredentialUncheckedCreateWithoutProfessionalInput = {
@@ -543,6 +570,7 @@ export type CredentialUncheckedCreateWithoutProfessionalInput = {
   submittedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryUncheckedCreateNestedManyWithoutCredentialInput
 }
 
 export type CredentialCreateOrConnectWithoutProfessionalInput = {
@@ -589,6 +617,82 @@ export type CredentialScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Credential"> | Date | string
 }
 
+export type CredentialCreateWithoutLifecycleHistoryInput = {
+  id?: string
+  typeCode: string
+  title: string
+  issuingOrganization: string
+  countryCode: string
+  issueDate: Date | string
+  expiryDate?: Date | string | null
+  status?: $Enums.CredentialStatus
+  submittedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  professional: Prisma.ProfessionalProfileCreateNestedOneWithoutCredentialsInput
+}
+
+export type CredentialUncheckedCreateWithoutLifecycleHistoryInput = {
+  id?: string
+  professionalProfileId: string
+  typeCode: string
+  title: string
+  issuingOrganization: string
+  countryCode: string
+  issueDate: Date | string
+  expiryDate?: Date | string | null
+  status?: $Enums.CredentialStatus
+  submittedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type CredentialCreateOrConnectWithoutLifecycleHistoryInput = {
+  where: Prisma.CredentialWhereUniqueInput
+  create: Prisma.XOR<Prisma.CredentialCreateWithoutLifecycleHistoryInput, Prisma.CredentialUncheckedCreateWithoutLifecycleHistoryInput>
+}
+
+export type CredentialUpsertWithoutLifecycleHistoryInput = {
+  update: Prisma.XOR<Prisma.CredentialUpdateWithoutLifecycleHistoryInput, Prisma.CredentialUncheckedUpdateWithoutLifecycleHistoryInput>
+  create: Prisma.XOR<Prisma.CredentialCreateWithoutLifecycleHistoryInput, Prisma.CredentialUncheckedCreateWithoutLifecycleHistoryInput>
+  where?: Prisma.CredentialWhereInput
+}
+
+export type CredentialUpdateToOneWithWhereWithoutLifecycleHistoryInput = {
+  where?: Prisma.CredentialWhereInput
+  data: Prisma.XOR<Prisma.CredentialUpdateWithoutLifecycleHistoryInput, Prisma.CredentialUncheckedUpdateWithoutLifecycleHistoryInput>
+}
+
+export type CredentialUpdateWithoutLifecycleHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  typeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  issuingOrganization?: Prisma.StringFieldUpdateOperationsInput | string
+  countryCode?: Prisma.StringFieldUpdateOperationsInput | string
+  issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  professional?: Prisma.ProfessionalProfileUpdateOneRequiredWithoutCredentialsNestedInput
+}
+
+export type CredentialUncheckedUpdateWithoutLifecycleHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  professionalProfileId?: Prisma.StringFieldUpdateOperationsInput | string
+  typeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  issuingOrganization?: Prisma.StringFieldUpdateOperationsInput | string
+  countryCode?: Prisma.StringFieldUpdateOperationsInput | string
+  issueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumCredentialStatusFieldUpdateOperationsInput | $Enums.CredentialStatus
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type CredentialCreateManyProfessionalInput = {
   id?: string
   typeCode: string
@@ -615,6 +719,7 @@ export type CredentialUpdateWithoutProfessionalInput = {
   submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryUpdateManyWithoutCredentialNestedInput
 }
 
 export type CredentialUncheckedUpdateWithoutProfessionalInput = {
@@ -629,6 +734,7 @@ export type CredentialUncheckedUpdateWithoutProfessionalInput = {
   submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lifecycleHistory?: Prisma.CredentialLifecycleHistoryUncheckedUpdateManyWithoutCredentialNestedInput
 }
 
 export type CredentialUncheckedUpdateManyWithoutProfessionalInput = {
@@ -646,6 +752,35 @@ export type CredentialUncheckedUpdateManyWithoutProfessionalInput = {
 }
 
 
+/**
+ * Count Type CredentialCountOutputType
+ */
+
+export type CredentialCountOutputType = {
+  lifecycleHistory: number
+}
+
+export type CredentialCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  lifecycleHistory?: boolean | CredentialCountOutputTypeCountLifecycleHistoryArgs
+}
+
+/**
+ * CredentialCountOutputType without action
+ */
+export type CredentialCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CredentialCountOutputType
+   */
+  select?: Prisma.CredentialCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * CredentialCountOutputType without action
+ */
+export type CredentialCountOutputTypeCountLifecycleHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CredentialLifecycleHistoryWhereInput
+}
+
 
 export type CredentialSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -660,7 +795,9 @@ export type CredentialSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   submittedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  lifecycleHistory?: boolean | Prisma.Credential$lifecycleHistoryArgs<ExtArgs>
   professional?: boolean | Prisma.ProfessionalProfileDefaultArgs<ExtArgs>
+  _count?: boolean | Prisma.CredentialCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["credential"]>
 
 export type CredentialSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -712,7 +849,9 @@ export type CredentialSelectScalar = {
 
 export type CredentialOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "professionalProfileId" | "typeCode" | "title" | "issuingOrganization" | "countryCode" | "issueDate" | "expiryDate" | "status" | "submittedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["credential"]>
 export type CredentialInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  lifecycleHistory?: boolean | Prisma.Credential$lifecycleHistoryArgs<ExtArgs>
   professional?: boolean | Prisma.ProfessionalProfileDefaultArgs<ExtArgs>
+  _count?: boolean | Prisma.CredentialCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CredentialIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   professional?: boolean | Prisma.ProfessionalProfileDefaultArgs<ExtArgs>
@@ -724,6 +863,7 @@ export type CredentialIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 export type $CredentialPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Credential"
   objects: {
+    lifecycleHistory: Prisma.$CredentialLifecycleHistoryPayload<ExtArgs>[]
     professional: Prisma.$ProfessionalProfilePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1133,6 +1273,7 @@ readonly fields: CredentialFieldRefs;
  */
 export interface Prisma__CredentialClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  lifecycleHistory<T extends Prisma.Credential$lifecycleHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Credential$lifecycleHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CredentialLifecycleHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   professional<T extends Prisma.ProfessionalProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProfessionalProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__ProfessionalProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfessionalProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1573,6 +1714,30 @@ export type CredentialDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many Credentials to delete.
    */
   limit?: number
+}
+
+/**
+ * Credential.lifecycleHistory
+ */
+export type Credential$lifecycleHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CredentialLifecycleHistory
+   */
+  select?: Prisma.CredentialLifecycleHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CredentialLifecycleHistory
+   */
+  omit?: Prisma.CredentialLifecycleHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CredentialLifecycleHistoryInclude<ExtArgs> | null
+  where?: Prisma.CredentialLifecycleHistoryWhereInput
+  orderBy?: Prisma.CredentialLifecycleHistoryOrderByWithRelationInput | Prisma.CredentialLifecycleHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.CredentialLifecycleHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CredentialLifecycleHistoryScalarFieldEnum | Prisma.CredentialLifecycleHistoryScalarFieldEnum[]
 }
 
 /**

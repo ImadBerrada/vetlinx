@@ -72,6 +72,80 @@ export class VerificationService {
     return this.withFileMetadata(requests, accountId);
   }
 
+  async listCredentialLifecycle(accountId: string, roles: string[]) {
+    const operations = roles.some((role) =>
+      ['OPERATIONS_ADMIN', 'PLATFORM_ADMIN'].includes(role),
+    );
+    const reviews = await this.prisma.verificationRequest.findMany({
+      where: {
+        status: 'VERIFIED',
+        ...(operations ? {} : { assignedReviewerId: accountId }),
+      },
+      select: {
+        id: true,
+        credentialId: true,
+        professionalProfileId: true,
+        assignedReviewerId: true,
+        reviewedAt: true,
+      },
+      orderBy: { reviewedAt: 'desc' },
+      take: 100,
+    });
+    const records = await Promise.all(
+      reviews.map(async (review) => {
+        const [credential, professional] = await Promise.all([
+          this.credentials.findLifecycle(review.credentialId),
+          this.professionals.findSummary(review.professionalProfileId),
+        ]);
+        if (!credential || !professional) return null;
+        return {
+          requestId: review.id,
+          originalReviewStatus: 'VERIFIED' as const,
+          reviewedAt: review.reviewedAt,
+          professionalName: professional.displayName,
+          canRevoke:
+            professional.accountId !== accountId &&
+            ['VERIFIED', 'EXPIRED'].includes(credential.status),
+          credential,
+        };
+      }),
+    );
+    return records.filter((record) => record !== null);
+  }
+
+  async revokeReviewedCredential(
+    accountId: string,
+    roles: string[],
+    requestId: string,
+    reason: string,
+    correlationId: string,
+  ) {
+    const review = await this.prisma.verificationRequest.findUnique({
+      where: { id: requestId },
+      select: { credentialId: true, status: true, assignedReviewerId: true },
+    });
+    if (!review) throw new NotFoundException('Verification request not found');
+    const operations = roles.some((role) =>
+      ['OPERATIONS_ADMIN', 'PLATFORM_ADMIN'].includes(role),
+    );
+    if (!operations && review.assignedReviewerId !== accountId)
+      throw new ForbiddenException(
+        'Only the assigned reviewer or an operations administrator can revoke this credential',
+      );
+    if (review.status !== 'VERIFIED')
+      throw new ConflictException(
+        'Only a previously approved credential review can be revoked',
+      );
+    return this.credentials.revokeCredential(
+      accountId,
+      review.credentialId,
+      reason,
+      correlationId,
+      operations ? 'OPERATIONS' : 'ASSIGNED_REVIEWER',
+      requestId,
+    );
+  }
+
   async createMine(
     accountId: string,
     credentialId: string,
@@ -329,20 +403,11 @@ export class VerificationService {
           account: { select: { email: true } },
         },
       }),
-      this.prisma.credential.findUnique({
-        where: { id: request.credentialId },
-        select: {
-          id: true,
-          typeCode: true,
-          title: true,
-          issuingOrganization: true,
-          countryCode: true,
-          issueDate: true,
-          expiryDate: true,
-          status: true,
-          submittedAt: true,
-        },
-      }),
+      this.credentials
+        .findLifecycle(request.credentialId)
+        .then((credential) =>
+          credential ? { ...credential, lifecycleHistory: [] } : null,
+        ),
       this.prisma.fileObject.findMany({
         where: { id: { in: fileIds } },
         select: {
@@ -472,6 +537,23 @@ export class VerificationService {
         );
       }
 
+      const changed = await transaction.verificationRequest.updateMany({
+        where: {
+          id: requestId,
+          status: 'UNDER_REVIEW',
+          assignedReviewerId: reviewerAccountId,
+        },
+        data: {
+          status: action,
+          reviewedAt: occurredAt,
+          assignedReviewerId:
+            action === 'NEEDS_INFORMATION' ? null : reviewerAccountId,
+        },
+      });
+      if (changed.count !== 1)
+        throw new ConflictException(
+          'This review was decided or changed by another action',
+        );
       await transaction.verificationDecision.create({
         data: {
           verificationRequestId: requestId,
@@ -480,20 +562,15 @@ export class VerificationService {
           reason,
         },
       });
-      await transaction.verificationRequest.update({
-        where: { id: requestId },
-        data: {
-          status: action,
-          reviewedAt: occurredAt,
-          assignedReviewerId:
-            action === 'NEEDS_INFORMATION' ? null : reviewerAccountId,
-        },
-      });
       if (action === 'VERIFIED' || action === 'REJECTED') {
-        await transaction.credential.update({
-          where: { id: current.credentialId },
+        const updatedCredential = await transaction.credential.updateMany({
+          where: { id: current.credentialId, status: 'SUBMITTED' },
           data: { status: action },
         });
+        if (updatedCredential.count !== 1)
+          throw new ConflictException(
+            'The credential lifecycle changed; this review cannot overwrite it',
+          );
         await this.audit.recordInTransaction(transaction, {
           actorId: reviewerAccountId,
           action: `credential.${action.toLowerCase()}`,

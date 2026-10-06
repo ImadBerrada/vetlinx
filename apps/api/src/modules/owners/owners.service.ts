@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import type { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../platform/persistence/prisma.service';
 import {
   OUTBOX_WRITER,
@@ -185,8 +186,14 @@ export class OwnersService implements OwnersPublicApi {
     });
   }
 
-  async findPetForBooking(accountId: string, petId: string) {
-    const pet = await this.prisma.pet.findFirst({
+  async findPetForBooking(
+    accountId: string,
+    petId: string,
+    tx?: Prisma.TransactionClient,
+  ) {
+    if (tx)
+      await tx.$queryRaw`SELECT pet.id FROM owners.pets pet JOIN owners.owner_profiles owner ON owner.id = pet.owner_profile_id WHERE pet.id = ${petId}::uuid AND owner.account_id = ${accountId}::uuid FOR SHARE OF pet, owner`;
+    const pet = await (tx ?? this.prisma).pet.findFirst({
       where: { id: petId, archivedAt: null, owner: { accountId } },
       select: {
         id: true,

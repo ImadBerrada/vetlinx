@@ -8,12 +8,14 @@ import { IdentityService } from './identity.service';
 import { IDENTITY_PUBLIC_API } from './identity.public';
 import { PASSWORD_HASHER } from './password-hasher.port';
 import { SystemRolesGuard } from './system-roles.guard';
+import { MfaService } from '../identity-security/mfa.service';
 
 @Module({
   imports: [JwtModule.register({})],
   controllers: [IdentityController],
   providers: [
     IdentityService,
+    MfaService,
     AuthTokenService,
     AccessTokenGuard,
     SystemRolesGuard,
@@ -27,6 +29,7 @@ import { SystemRolesGuard } from './system-roles.guard';
     SystemRolesGuard,
     IDENTITY_PUBLIC_API,
     PASSWORD_HASHER,
+    MfaService,
   ],
 })
 export class IdentityModule {}

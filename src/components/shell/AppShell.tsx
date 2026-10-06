@@ -13,8 +13,12 @@ import {
   Home,
   LogOut,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   ShieldCheck,
   Settings,
+  Bell,
+  Activity,
   UserRound,
   WalletCards,
   X,
@@ -22,7 +26,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import type { ApiSystemRole } from "@/lib/server/vetlinx-api";
@@ -67,6 +71,7 @@ const employerLinks = [
 
 const reviewLinks = [
   { href: "/review", label: "Professional reviews", icon: ClipboardCheck },
+  { href: "/review/credentials", label: "Credential validity", icon: WalletCards },
   { href: "/review/organizations", label: "Organization reviews", icon: ShieldCheck },
 ];
 
@@ -76,6 +81,25 @@ const ownerLinks = [
   { href: "/owner/onboarding", label: "Owner profile", icon: UserRound },
 ];
 
+const mobileQuery = "(max-width: 860px)";
+function subscribeToViewport(onChange: () => void) {
+  const query = window.matchMedia(mobileQuery);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+function subscribeToNavigation(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener("vetlinx:navigation-changed", onChange);
+  return () => { window.removeEventListener("storage", onChange); window.removeEventListener("vetlinx:navigation-changed", onChange); };
+}
+function readCollapsedNavigation() {
+  try { return window.localStorage.getItem("vetlinx:navigation-collapsed") === "true"; } catch { return false; }
+}
+function setCollapsedNavigation(value: boolean) {
+  try { window.localStorage.setItem("vetlinx:navigation-collapsed", String(value)); } catch { return; }
+  window.dispatchEvent(new Event("vetlinx:navigation-changed"));
+}
+
 export function AppShell({ title, description, actions, children, scope = "professional" }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -84,9 +108,48 @@ export function AppShell({ title, description, actions, children, scope = "profe
   const [session, setSession] = useState<SessionSummary>({});
   const [organizations, setOrganizations] = useState<ApiOrganizationMembershipSummary[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspacePreference>("personal");
+  const isMobile = useSyncExternalStore(subscribeToViewport, () => window.matchMedia(mobileQuery).matches, () => false);
+  const collapsed = useSyncExternalStore(subscribeToNavigation, readCollapsedNavigation, () => false);
+  const sidebar = useRef<HTMLElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const drawerTrigger = useRef<HTMLButtonElement | null>(null);
   const workspaceButton = useRef<HTMLButtonElement>(null);
   const mobileWorkspaceButton = useRef<HTMLButtonElement>(null);
   const workspaceMenu = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const query = window.matchMedia(mobileQuery);
+    function resetDrawer() { setMenuOpen(false); setWorkspaceOpen(false); }
+    query.addEventListener("change", resetDrawer);
+    return () => query.removeEventListener("change", resetDrawer);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile || !menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusFrame = window.requestAnimationFrame(() => {
+      if (!sidebar.current?.contains(document.activeElement)) (workspaceMenu.current?.querySelector<HTMLButtonElement>("button") ?? sidebar.current?.querySelector<HTMLButtonElement>("button"))?.focus();
+    });
+    function drawerKeys(event: KeyboardEvent) {
+      if (event.key === "Escape") { setMenuOpen(false); setWorkspaceOpen(false); return; }
+      if (event.key !== "Tab") return;
+      const items = Array.from(sidebar.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])') ?? []).filter(item => item.getClientRects().length > 0);
+      const first = items[0]; const last = items.at(-1);
+      if (!sidebar.current?.contains(document.activeElement)) { event.preventDefault(); (event.shiftKey ? last : first)?.focus(); return; }
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
+    document.addEventListener("keydown", drawerKeys);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener("keydown", drawerKeys);
+      // A desktop resize makes the mobile trigger invisible; leave focus in the visible rail.
+      const trigger = drawerTrigger.current;
+      window.requestAnimationFrame(() => { if (trigger?.getClientRects().length) trigger.focus(); });
+    };
+  }, [isMobile, menuOpen]);
 
   useEffect(() => {
     if (!workspaceOpen) return;
@@ -100,7 +163,13 @@ export function AppShell({ title, description, actions, children, scope = "profe
       } else workspaceButton.current?.focus();
     }
     document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
+    function closeOutside(event: PointerEvent) {
+      const target = event.target as Node;
+      if (workspaceMenu.current?.contains(target) || workspaceButton.current?.contains(target) || mobileWorkspaceButton.current?.contains(target)) return;
+      setWorkspaceOpen(false);
+    }
+    document.addEventListener("pointerdown", closeOutside);
+    return () => { document.removeEventListener("keydown", closeOnEscape); document.removeEventListener("pointerdown", closeOutside); };
   }, [workspaceOpen]);
 
   useEffect(() => {
@@ -141,6 +210,7 @@ export function AppShell({ title, description, actions, children, scope = "profe
   }, [session, scope]);
   const roles = session.account?.roles ?? [];
   const canReview = roles.some((role) => ["REVIEWER", "OPERATIONS_ADMIN", "PLATFORM_ADMIN"].includes(role));
+  const canOperate = roles.some((role) => ["OPERATIONS_ADMIN", "PLATFORM_ADMIN"].includes(role));
   const activeOrganizationId = organizationIdFromWorkspace(activeWorkspace);
   const activeOrganization = organizations.find((item) => item.organization.id === activeOrganizationId);
   const currentWorkspace = scope === "owner"
@@ -169,13 +239,15 @@ export function AppShell({ title, description, actions, children, scope = "profe
     router.refresh();
   }
 
+  function closeNavigation() { setMenuOpen(false); setWorkspaceOpen(false); }
+
   return (
-    <div className={styles.shell}>
-      <a className="vl-skip-link" href="#workspace-content">Skip to main content</a>
-      <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`} aria-label="Primary navigation">
-        <div className={styles.brandRow}><BrandMark inverse /><button onClick={() => setMenuOpen(false)} aria-label="Close navigation"><X /></button></div>
+    <div className={`${styles.shell} ${collapsed ? styles.shellCollapsed : ""}`}>
+      <a className="vl-skip-link" href="#workspace-content" inert={isMobile && menuOpen}>Skip to main content</a>
+      <aside ref={sidebar} id="primary-navigation" className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`} inert={isMobile && !menuOpen} role={isMobile && menuOpen ? "dialog" : undefined} aria-modal={isMobile && menuOpen ? true : undefined} aria-label="Primary navigation" onClick={(event) => { if ((event.target as HTMLElement).closest("a[href]")) closeNavigation(); }}>
+        <div className={styles.brandRow}><BrandMark inverse /><button onClick={closeNavigation} aria-label="Close navigation"><X /></button></div>
         <div className={styles.workspacePicker}>
-          <button ref={workspaceButton} className={styles.workspaceButton} type="button" aria-label={`Switch workspace: ${currentWorkspace.label}`} aria-controls="workspace-switcher" aria-expanded={workspaceOpen} onClick={() => setWorkspaceOpen((open) => !open)}>
+          <button ref={workspaceButton} className={styles.workspaceButton} type="button" title={`Switch workspace: ${currentWorkspace.label}`} aria-label={`Switch workspace: ${currentWorkspace.label}`} aria-controls="workspace-switcher" aria-expanded={workspaceOpen} onClick={() => { if (!isMobile && collapsed) setCollapsedNavigation(false); setWorkspaceOpen((open) => !open); }}>
             <span className={styles.workspaceIcon}><CurrentWorkspaceIcon /></span>
             <span><strong>{currentWorkspace.label}</strong><small>{currentWorkspace.detail}</small></span>
             <ChevronsUpDown />
@@ -203,19 +275,22 @@ export function AppShell({ title, description, actions, children, scope = "profe
         {scope === "employer" ? <NavGroup label="Organization" links={organizationLinks} pathname={pathname} /> : null}
         {scope === "review" && canReview ? <NavGroup label="Trust operations" links={reviewLinks} pathname={pathname} /> : null}
         <div className={styles.sidebarFoot}>
-          <Link href="/settings/security"><Settings />Settings & security</Link>
-          <a href="mailto:support@vetlinx.com"><HelpCircle />Help & support</a>
-          <button onClick={logout}><LogOut />Sign out</button>
+          <Link href="/settings/security" aria-label="Settings & security" title="Settings & security"><Settings /><span>Settings & security</span></Link>
+          <Link href="/settings/notifications" aria-label="Notification preferences" title="Notification preferences"><Bell /><span>Notification preferences</span></Link>
+          {canOperate ? <Link href="/operations/delivery" aria-label="Delivery operations" title="Delivery operations"><Activity /><span>Delivery operations</span></Link> : null}
+          <a href="mailto:support@vetlinx.com" aria-label="Help & support" title="Help & support"><HelpCircle /><span>Help & support</span></a>
+          <button onClick={logout} aria-label="Sign out" title="Sign out"><LogOut /><span>Sign out</span></button>
           <div className={styles.identity}><span>{initials}</span><div><strong>{(scope === "owner" ? session.owner?.displayName : session.profile?.displayName) ?? session.owner?.displayName ?? "VetLinX member"}</strong><small>{session.account?.email ?? "Secure workspace"}</small></div></div>
         </div>
       </aside>
-      {menuOpen ? <button className={styles.scrim} onClick={() => setMenuOpen(false)} aria-label="Close navigation" /> : null}
-      <div className={styles.stage}>
+      {menuOpen ? <button className={styles.scrim} onClick={closeNavigation} tabIndex={-1} aria-hidden="true" /> : null}
+      <div className={styles.stage} inert={isMobile && menuOpen}>
         <header className={styles.topbar}>
-          <button className={styles.menuButton} onClick={() => setMenuOpen(true)} aria-label="Open navigation"><Menu /></button>
-          <button ref={mobileWorkspaceButton} className={styles.mobileWorkspaceButton} aria-label={`Switch workspace: ${currentWorkspace.label}`} aria-expanded={workspaceOpen} aria-controls="workspace-switcher" onClick={() => { setMenuOpen(true); setWorkspaceOpen(true); }}><CurrentWorkspaceIcon /><span>{currentWorkspace.label}</span><ChevronsUpDown /></button>
+          <button ref={menuButton} className={styles.menuButton} onClick={() => { drawerTrigger.current = menuButton.current; setMenuOpen(true); }} aria-label="Open navigation" aria-expanded={isMobile && menuOpen} aria-controls="primary-navigation"><Menu /></button>
+          <button className={styles.collapseButton} onClick={() => { setWorkspaceOpen(false); setCollapsedNavigation(!collapsed); }} aria-label={collapsed ? "Expand navigation" : "Collapse navigation"} title={collapsed ? "Expand navigation" : "Collapse navigation"} aria-expanded={!collapsed} aria-controls="primary-navigation">{collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}</button>
+          <button ref={mobileWorkspaceButton} className={styles.mobileWorkspaceButton} aria-label={`Switch workspace: ${currentWorkspace.label}`} aria-expanded={workspaceOpen} aria-controls="workspace-switcher" onClick={() => { drawerTrigger.current = mobileWorkspaceButton.current; setMenuOpen(true); setWorkspaceOpen(true); }}><CurrentWorkspaceIcon /><span>{currentWorkspace.label}</span><ChevronsUpDown /></button>
           <div className={styles.titleBlock}><h1>{title}</h1>{description ? <p>{description}</p> : null}</div>
-          <div className={styles.topActions}>{actions}<NotificationCenter /><span className={styles.topIdentity}>{initials}</span></div>
+          <div className={styles.topActions}><div className={styles.desktopActions}>{actions}</div><NotificationCenter /><span className={styles.topIdentity} aria-label="Current account">{initials}</span></div>
         </header>
         <main id="workspace-content" tabIndex={-1} className={styles.content}>
           {actions ? <div className={styles.mobileActions}>{actions}</div> : null}
@@ -245,7 +320,7 @@ function NavGroup({ label, links, pathname }: { label: string; links: typeof pro
       <nav>
         {links.map(({ href, label: itemLabel, icon: Icon }) => {
           const active = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`) && !links.some((link) => link.href !== href && (pathname === link.href || pathname.startsWith(`${link.href}/`))));
-          return <Link key={href} href={href} className={active ? styles.active : ""} aria-current={active ? "page" : undefined}><Icon />{itemLabel}</Link>;
+          return <Link key={href} href={href} className={active ? styles.active : ""} aria-label={itemLabel} title={itemLabel} aria-current={active ? "page" : undefined}><Icon /><span>{itemLabel}</span></Link>;
         })}
       </nav>
     </section>

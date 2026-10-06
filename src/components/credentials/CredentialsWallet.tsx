@@ -18,13 +18,32 @@ import {
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { AppShell } from "@/components/shell/AppShell";
-import type { ApiCredential, ApiVerificationRequest } from "@/lib/server/vetlinx-api";
+import type {
+  ApiCredential,
+  ApiVerificationRequest,
+} from "@/lib/server/vetlinx-api";
 import styles from "./CredentialsWallet.module.css";
+import { CredentialLifecycleHistory } from "./CredentialLifecycleHistory";
 
 const credentialTypes = [
-  { code: "DEGREE", label: "Degree", help: "Academic degrees and diplomas", icon: GraduationCap },
-  { code: "PROFESSIONAL_LICENCE", label: "Professional licence", help: "Licences and registrations", icon: IdCard },
-  { code: "CERTIFICATION", label: "Certification", help: "Certifications and specializations", icon: BadgeCheck },
+  {
+    code: "DEGREE",
+    label: "Degree",
+    help: "Academic degrees and diplomas",
+    icon: GraduationCap,
+  },
+  {
+    code: "PROFESSIONAL_LICENCE",
+    label: "Professional licence",
+    help: "Licences and registrations",
+    icon: IdCard,
+  },
+  {
+    code: "CERTIFICATION",
+    label: "Certification",
+    help: "Certifications and specializations",
+    icon: BadgeCheck,
+  },
 ] as const;
 
 const countries = [
@@ -55,13 +74,16 @@ export function CredentialsWallet() {
   const router = useRouter();
   const [profile, setProfile] = useState<MeResponse["profile"]>(null);
   const [credentials, setCredentials] = useState<ApiCredential[]>([]);
-  const [verificationRequests, setVerificationRequests] = useState<ApiVerificationRequest[]>([]);
+  const [verificationRequests, setVerificationRequests] = useState<
+    ApiVerificationRequest[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [message, setMessage] = useState("");
-  const [evidenceRequest, setEvidenceRequest] = useState<ApiVerificationRequest | null>(null);
+  const [evidenceRequest, setEvidenceRequest] =
+    useState<ApiVerificationRequest | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -89,11 +111,16 @@ export function CredentialsWallet() {
         setProfile(me.profile);
         if (credentialsResponse.ok) setCredentials(wallet.credentials ?? []);
         else setMessage(wallet.message ?? "Credentials could not be loaded.");
-        if (verificationResponse.ok) setVerificationRequests(verification.verificationRequests ?? []);
+        if (verificationResponse.ok)
+          setVerificationRequests(verification.verificationRequests ?? []);
       })
-      .catch(() => active && setMessage("VetLinX could not load your credentials."))
+      .catch(
+        () => active && setMessage("VetLinX could not load your credentials."),
+      )
       .finally(() => active && setLoading(false));
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   async function createCredential(event: FormEvent<HTMLFormElement>) {
@@ -112,7 +139,9 @@ export function CredentialsWallet() {
       setPending(false);
       return;
     }
-    const body = (await response.json().catch(() => ({}))) as CredentialsResponse;
+    const body = (await response
+      .json()
+      .catch(() => ({}))) as CredentialsResponse;
     if (!response.ok || !body.credential) {
       setErrors(body.errors ?? {});
       setMessage(body.message ?? "Credential could not be saved.");
@@ -123,28 +152,42 @@ export function CredentialsWallet() {
     setCredentials((current) => [body.credential!, ...current]);
     setFormOpen(false);
     setPending(false);
-    setMessage("Credential saved as self-declared. Add evidence when you are ready to submit it.");
+    setMessage(
+      "Credential saved as self-declared. Add evidence when you are ready to submit it.",
+    );
   }
 
   async function submitCredential(credentialId: string) {
     setPending(true);
     setMessage("");
-    const response = await fetch(`/api/credentials/${credentialId}/submit`, { method: "POST" }).catch(() => null);
-    const body = response ? (await response.json().catch(() => ({}))) as CredentialsResponse : {};
+    const response = await fetch(`/api/credentials/${credentialId}/submit`, {
+      method: "POST",
+    }).catch(() => null);
+    const body = response
+      ? ((await response.json().catch(() => ({}))) as CredentialsResponse)
+      : {};
     if (!response?.ok || !body.credential) {
       setMessage(body.message ?? "Credential could not be submitted.");
       setPending(false);
       return;
     }
-    setCredentials((current) => current.map((item) => item.id === credentialId ? body.credential! : item));
+    setCredentials((current) =>
+      current.map((item) =>
+        item.id === credentialId ? body.credential! : item,
+      ),
+    );
     setPending(false);
-    setMessage("Credential details submitted. Evidence collection is the next verification step.");
+    setMessage(
+      "Credential details submitted. Evidence collection is the next verification step.",
+    );
   }
 
   function updateVerification(updated: ApiVerificationRequest) {
     setVerificationRequests((current) => {
       const exists = current.some((item) => item.id === updated.id);
-      return exists ? current.map((item) => item.id === updated.id ? updated : item) : [updated, ...current];
+      return exists
+        ? current.map((item) => (item.id === updated.id ? updated : item))
+        : [updated, ...current];
     });
     setEvidenceRequest(updated);
   }
@@ -152,8 +195,13 @@ export function CredentialsWallet() {
   async function startEvidence(credentialId: string) {
     setPending(true);
     setMessage("");
-    const response = await fetch(`/api/credentials/${credentialId}/verification`, { method: "POST" }).catch(() => null);
-    const body = response ? (await response.json().catch(() => ({}))) as VerificationResponse : {};
+    const response = await fetch(
+      `/api/credentials/${credentialId}/verification`,
+      { method: "POST" },
+    ).catch(() => null);
+    const body = response
+      ? ((await response.json().catch(() => ({}))) as VerificationResponse)
+      : {};
     if (!response?.ok || !body.verificationRequest) {
       setMessage(body.message ?? "Evidence collection could not be started.");
       setPending(false);
@@ -174,8 +222,13 @@ export function CredentialsWallet() {
     setMessage("");
     const data = new FormData();
     data.set("file", selectedFile, selectedFile.name);
-    const response = await fetch(`/api/verification-requests/${evidenceRequest.id}/evidence`, { method: "POST", body: data }).catch(() => null);
-    const body = response ? (await response.json().catch(() => ({}))) as VerificationResponse : {};
+    const response = await fetch(
+      `/api/verification-requests/${evidenceRequest.id}/evidence`,
+      { method: "POST", body: data },
+    ).catch(() => null);
+    const body = response
+      ? ((await response.json().catch(() => ({}))) as VerificationResponse)
+      : {};
     if (!response?.ok || !body.verificationRequest) {
       setMessage(body.message ?? "Evidence could not be uploaded.");
       setPending(false);
@@ -184,14 +237,21 @@ export function CredentialsWallet() {
     updateVerification(body.verificationRequest);
     setSelectedFile(null);
     setPending(false);
-    setMessage("Evidence received and validated. Submit it when you are ready for review.");
+    setMessage(
+      "Evidence received and validated. Submit it when you are ready for review.",
+    );
   }
 
   async function submitVerification(requestId: string) {
     setPending(true);
     setMessage("");
-    const response = await fetch(`/api/verification-requests/${requestId}/submit`, { method: "POST" }).catch(() => null);
-    const body = response ? (await response.json().catch(() => ({}))) as VerificationResponse : {};
+    const response = await fetch(
+      `/api/verification-requests/${requestId}/submit`,
+      { method: "POST" },
+    ).catch(() => null);
+    const body = response
+      ? ((await response.json().catch(() => ({}))) as VerificationResponse)
+      : {};
     if (!response?.ok || !body.verificationRequest) {
       setMessage(body.message ?? "Evidence could not be submitted for review.");
       setPending(false);
@@ -200,59 +260,260 @@ export function CredentialsWallet() {
     updateVerification(body.verificationRequest);
     setEvidenceRequest(null);
     setPending(false);
-    setMessage("Evidence submitted for review. VetLinX has not verified this credential yet.");
+    setMessage(
+      "Evidence submitted for review. VetLinX has not verified this credential yet.",
+    );
   }
 
-  const submittedCount = credentials.filter((item) => item.status === "SUBMITTED").length;
+  const submittedCount = credentials.filter(
+    (item) => item.status === "SUBMITTED",
+  ).length;
+
+  async function refreshWallet() {
+    setPending(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/credentials", { cache: "no-store" });
+      const body = (await response.json()) as CredentialsResponse;
+      if (!response.ok)
+        throw new Error(body.message ?? "Credentials could not be refreshed.");
+      setCredentials(body.credentials ?? []);
+    } catch (failure) {
+      setMessage(
+        failure instanceof Error
+          ? failure.message
+          : "Credentials could not be refreshed.",
+      );
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <>
-      <AppShell title="Credentials" description="Manage qualifications, submit evidence, and track every verification decision.">
+      <AppShell
+        title="Credentials"
+        description="Manage qualifications, submit evidence, and track every verification decision."
+      >
         <div className={styles.workspace}>
           <section className={styles.wallet}>
             <div className={styles.headingRow}>
-              <div><h2>Your credential record</h2><p>Claims remain self-declared until supporting evidence is reviewed.</p></div>
-              <button className={styles.primary} onClick={() => { setErrors({}); setMessage(""); setFormOpen(true); }}><Plus />Add credential</button>
+              <div>
+                <h2>Your credential record</h2>
+                <p>
+                  Claims remain self-declared until supporting evidence is
+                  reviewed.
+                </p>
+              </div>
+              <div>
+                <button
+                  className={styles.secondary}
+                  disabled={pending}
+                  onClick={() => void refreshWallet()}
+                >
+                  Refresh validity
+                </button>
+                <button
+                  className={styles.primary}
+                  onClick={() => {
+                    setErrors({});
+                    setMessage("");
+                    setFormOpen(true);
+                  }}
+                >
+                  <Plus />
+                  Add credential
+                </button>
+              </div>
             </div>
 
             <div className={styles.summary}>
-              <div><strong>{submittedCount}</strong><span>details submitted</span></div>
-              <div className={styles.summaryLine}><span>Identity</span><i className={styles.complete}><UserRound /></i><b /><i /><b /><i /><span>Credentials</span></div>
-              <small>{credentials.length ? `${credentials.length} credential${credentials.length === 1 ? "" : "s"} in your professional record` : "Complete credentials to build trust"}</small>
+              <div>
+                <strong>{submittedCount}</strong>
+                <span>details submitted</span>
+              </div>
+              <div className={styles.summaryLine}>
+                <span>Identity</span>
+                <i className={styles.complete}>
+                  <UserRound />
+                </i>
+                <b />
+                <i />
+                <b />
+                <i />
+                <span>Credentials</span>
+              </div>
+              <small>
+                {credentials.length
+                  ? `${credentials.length} credential${credentials.length === 1 ? "" : "s"} in your professional record`
+                  : "Complete credentials to build trust"}
+              </small>
             </div>
 
-            {message ? <div className={styles.notice} role="status">{message}</div> : null}
-            {loading ? <div className={styles.loading}><LoaderCircle />Loading your credentials…</div> : credentials.length === 0 ? (
+            {message ? (
+              <div className={styles.notice} role="status">
+                {message}
+              </div>
+            ) : null}
+            {loading ? (
+              <div className={styles.loading}>
+                <LoaderCircle />
+                Loading your credentials…
+              </div>
+            ) : credentials.length === 0 ? (
               <section className={styles.empty}>
-                <div className={styles.emptyIcon}><ShieldCheck /><IdCard /></div>
+                <div className={styles.emptyIcon}>
+                  <ShieldCheck />
+                  <IdCard />
+                </div>
                 <h2>Add your first credential</h2>
-                <p>Add your qualifications and licences to start building your verified record.</p>
+                <p>
+                  Add your qualifications and licences to start building your
+                  verified record.
+                </p>
                 <ul>
-                  {credentialTypes.map(({ code, label, help, icon: Icon }) => <li key={code}><span><Icon /></span><div><strong>{label}</strong><small>{help}</small></div></li>)}
+                  {credentialTypes.map(({ code, label, help, icon: Icon }) => (
+                    <li key={code}>
+                      <span>
+                        <Icon />
+                      </span>
+                      <div>
+                        <strong>{label}</strong>
+                        <small>{help}</small>
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               </section>
             ) : (
               <section className={styles.list} aria-label="Your credentials">
                 {credentials.map((credential) => {
-                  const type = credentialTypes.find((item) => item.code === credential.typeCode) ?? credentialTypes[0];
+                  const type =
+                    credentialTypes.find(
+                      (item) => item.code === credential.typeCode,
+                    ) ?? credentialTypes[0];
                   const Icon = type.icon;
-                  const verification = verificationRequests.find((item) => item.credentialId === credential.id);
+                  const verification = verificationRequests.find(
+                    (item) => item.credentialId === credential.id,
+                  );
                   const verificationLabel = getVerificationLabel(verification);
                   const decisionReason = verification?.decisions.at(-1)?.reason;
-                  return <article key={credential.id}>
-                    <span className={styles.credentialIcon}><Icon /></span>
-                    <div className={styles.credentialCopy}><small>{type.label}</small><h2>{credential.title}</h2><p>{credential.issuingOrganization} · {credential.countryCode}</p></div>
-                    <div className={styles.credentialState}>
-                      <span className={styles[`credential${credential.status}`]}>{credentialStatusLabel(credential.status)}</span>
-                      {credential.status === "DRAFT" ? <button disabled={pending} onClick={() => submitCredential(credential.id)}>Submit details<ChevronRight /></button>
-                        : verification?.status === "READY_TO_SUBMIT" ? <button disabled={pending} onClick={() => { setEvidenceRequest(verification); setSelectedFile(null); }}>Review evidence<ChevronRight /></button>
-                        : verification?.status === "SUBMITTED" || verification?.status === "UNDER_REVIEW" ? <small className={styles.reviewStatus}><FileCheck2 />{verificationLabel}</small>
-                        : verification?.status === "NEEDS_INFORMATION" ? <><small className={styles.attentionStatus}><FileUp />{verificationLabel}</small>{decisionReason ? <p className={styles.decisionReason}>{decisionReason}</p> : null}<button disabled={pending} onClick={() => { setEvidenceRequest(verification); setSelectedFile(null); }}>Add requested evidence<ChevronRight /></button></>
-                        : verification?.status === "VERIFIED" ? <small className={styles.verifiedStatus}><ShieldCheck />Verified by VetLinX</small>
-                        : verification?.status === "REJECTED" ? <>{decisionReason ? <p className={styles.decisionReason}>{decisionReason}</p> : null}<small className={styles.rejectedStatus}>This review is closed</small></>
-                        : <button disabled={pending} onClick={() => verification ? setEvidenceRequest(verification) : startEvidence(credential.id)}>{verification ? "Add evidence" : "Start evidence"}<ChevronRight /></button>}
-                    </div>
-                  </article>;
+                  const currentStatus =
+                    credential.effectiveStatus ?? credential.status;
+                  return (
+                    <article key={credential.id}>
+                      <span className={styles.credentialIcon}>
+                        <Icon />
+                      </span>
+                      <div className={styles.credentialCopy}>
+                        <small>{type.label}</small>
+                        <h2>{credential.title}</h2>
+                        <p>
+                          {credential.issuingOrganization} ·{" "}
+                          {credential.countryCode}
+                        </p>
+                        {credential.expiryDate ? (
+                          <p>
+                            Valid through {credential.expiryDate.slice(0, 10)}{" "}
+                            (UTC date)
+                          </p>
+                        ) : null}
+                        <CredentialLifecycleHistory credential={credential} />
+                      </div>
+                      <div className={styles.credentialState}>
+                        <span className={styles[`credential${currentStatus}`]}>
+                          {credentialStatusLabel(currentStatus)}
+                        </span>
+                        {["EXPIRED", "REVOKED"].includes(currentStatus) ? (
+                          <>
+                            <small className={styles.rejectedStatus}>
+                              Not current verified evidence
+                            </small>
+                            <p className={styles.decisionReason}>
+                              {currentStatus === "EXPIRED"
+                                ? "Add a new credential with updated evidence when it is renewed."
+                                : "Review the recorded reason in your validity history. Contact support if you dispute the decision."}
+                            </p>
+                          </>
+                        ) : credential.status === "DRAFT" ? (
+                          <button
+                            disabled={pending}
+                            onClick={() => submitCredential(credential.id)}
+                          >
+                            Submit details
+                            <ChevronRight />
+                          </button>
+                        ) : verification?.status === "READY_TO_SUBMIT" ? (
+                          <button
+                            disabled={pending}
+                            onClick={() => {
+                              setEvidenceRequest(verification);
+                              setSelectedFile(null);
+                            }}
+                          >
+                            Review evidence
+                            <ChevronRight />
+                          </button>
+                        ) : verification?.status === "SUBMITTED" ||
+                          verification?.status === "UNDER_REVIEW" ? (
+                          <small className={styles.reviewStatus}>
+                            <FileCheck2 />
+                            {verificationLabel}
+                          </small>
+                        ) : verification?.status === "NEEDS_INFORMATION" ? (
+                          <>
+                            <small className={styles.attentionStatus}>
+                              <FileUp />
+                              {verificationLabel}
+                            </small>
+                            {decisionReason ? (
+                              <p className={styles.decisionReason}>
+                                {decisionReason}
+                              </p>
+                            ) : null}
+                            <button
+                              disabled={pending}
+                              onClick={() => {
+                                setEvidenceRequest(verification);
+                                setSelectedFile(null);
+                              }}
+                            >
+                              Add requested evidence
+                              <ChevronRight />
+                            </button>
+                          </>
+                        ) : verification?.status === "VERIFIED" ? (
+                          <small className={styles.verifiedStatus}>
+                            <ShieldCheck />
+                            Verified by VetLinX
+                          </small>
+                        ) : verification?.status === "REJECTED" ? (
+                          <>
+                            {decisionReason ? (
+                              <p className={styles.decisionReason}>
+                                {decisionReason}
+                              </p>
+                            ) : null}
+                            <small className={styles.rejectedStatus}>
+                              This review is closed
+                            </small>
+                          </>
+                        ) : (
+                          <button
+                            disabled={pending}
+                            onClick={() =>
+                              verification
+                                ? setEvidenceRequest(verification)
+                                : startEvidence(credential.id)
+                            }
+                          >
+                            {verification ? "Add evidence" : "Start evidence"}
+                            <ChevronRight />
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  );
                 })}
               </section>
             )}
@@ -260,46 +521,316 @@ export function CredentialsWallet() {
 
           <aside className={styles.trustPanel}>
             <h2>Credential status</h2>
-            <p>Each step strengthens the record colleagues and employers can trust.</p>
+            <p>
+              Each step strengthens the record colleagues and employers can
+              trust.
+            </p>
             <ol>
-              <li><span><UserRound /></span><div><strong>Self-declared</strong><small>You add the credential details.</small></div></li>
-              <li className={verificationRequests.some((item) => ["SUBMITTED", "UNDER_REVIEW", "VERIFIED"].includes(item.status)) ? styles.completeStep : ""}><span><FileUp /></span><div><strong>Evidence submitted</strong><small>You provide supporting documents for review.</small></div></li>
-              <li className={verificationRequests.some((item) => item.status === "VERIFIED") ? styles.completeStep : ""}><span><ShieldCheck /></span><div><strong>VetLinX reviewed</strong><small>An authorized reviewer verifies the credential and updates its status.</small></div></li>
+              <li>
+                <span>
+                  <UserRound />
+                </span>
+                <div>
+                  <strong>Self-declared</strong>
+                  <small>You add the credential details.</small>
+                </div>
+              </li>
+              <li
+                className={
+                  verificationRequests.some((item) =>
+                    ["SUBMITTED", "UNDER_REVIEW", "VERIFIED"].includes(
+                      item.status,
+                    ),
+                  )
+                    ? styles.completeStep
+                    : ""
+                }
+              >
+                <span>
+                  <FileUp />
+                </span>
+                <div>
+                  <strong>Evidence submitted</strong>
+                  <small>You provide supporting documents for review.</small>
+                </div>
+              </li>
+              <li
+                className={
+                  verificationRequests.some(
+                    (item) => item.status === "VERIFIED",
+                  )
+                    ? styles.completeStep
+                    : ""
+                }
+              >
+                <span>
+                  <ShieldCheck />
+                </span>
+                <div>
+                  <strong>VetLinX reviewed</strong>
+                  <small>
+                    An authorized reviewer verifies the credential and updates
+                    its status.
+                  </small>
+                </div>
+              </li>
             </ol>
           </aside>
         </div>
       </AppShell>
 
-      {formOpen ? <div className={styles.modalBackdrop} role="presentation">
-        <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="credential-form-title">
-          <header><h2 id="credential-form-title">Add credential</h2><button onClick={() => setFormOpen(false)} aria-label="Close credential form"><X /></button></header>
-          <form onSubmit={createCredential} noValidate>
-            <label>Credential type<span>*</span><select name="typeCode" defaultValue=""><option value="" disabled>Select credential type</option>{credentialTypes.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}</select>{errors.typeCode ? <small className={styles.error}>{errors.typeCode[0]}</small> : null}</label>
-            <label>Credential title<span>*</span><input name="title" placeholder="e.g., Doctor of Veterinary Medicine" />{errors.title ? <small className={styles.error}>{errors.title[0]}</small> : null}</label>
-            <label>Issuing organization<span>*</span><input name="issuingOrganization" placeholder="e.g., University of Sydney" />{errors.issuingOrganization ? <small className={styles.error}>{errors.issuingOrganization[0]}</small> : null}</label>
-            <label>Issuing country<span>*</span><select name="countryCode" defaultValue={profile?.countryCode ?? "AE"}>{countries.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</select></label>
-            <div className={styles.dateFields}><label>Issue date<span>*</span><input name="issueDate" type="date" />{errors.issueDate ? <small className={styles.error}>{errors.issueDate[0]}</small> : null}</label><label>Expiry date <em>(optional)</em><input name="expiryDate" type="date" />{errors.expiryDate ? <small className={styles.error}>{errors.expiryDate[0]}</small> : null}</label></div>
-            <p className={styles.formNote}><FileUp />Evidence upload follows after the credential is saved.</p>
-            <footer><button type="button" className={styles.secondary} onClick={() => setFormOpen(false)}>Cancel</button><button className={styles.primary} type="submit" disabled={pending}>{pending ? <LoaderCircle className={styles.spinner} /> : <Check />}{pending ? "Saving…" : "Save credential"}</button></footer>
-          </form>
-        </section>
-      </div> : null}
+      {formOpen ? (
+        <div className={styles.modalBackdrop} role="presentation">
+          <section
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="credential-form-title"
+          >
+            <header>
+              <h2 id="credential-form-title">Add credential</h2>
+              <button
+                onClick={() => setFormOpen(false)}
+                aria-label="Close credential form"
+              >
+                <X />
+              </button>
+            </header>
+            <form onSubmit={createCredential} noValidate>
+              <label>
+                Credential type<span>*</span>
+                <select name="typeCode" defaultValue="">
+                  <option value="" disabled>
+                    Select credential type
+                  </option>
+                  {credentialTypes.map((item) => (
+                    <option key={item.code} value={item.code}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.typeCode ? (
+                  <small className={styles.error}>{errors.typeCode[0]}</small>
+                ) : null}
+              </label>
+              <label>
+                Credential title<span>*</span>
+                <input
+                  name="title"
+                  placeholder="e.g., Doctor of Veterinary Medicine"
+                />
+                {errors.title ? (
+                  <small className={styles.error}>{errors.title[0]}</small>
+                ) : null}
+              </label>
+              <label>
+                Issuing organization<span>*</span>
+                <input
+                  name="issuingOrganization"
+                  placeholder="e.g., University of Sydney"
+                />
+                {errors.issuingOrganization ? (
+                  <small className={styles.error}>
+                    {errors.issuingOrganization[0]}
+                  </small>
+                ) : null}
+              </label>
+              <label>
+                Issuing country<span>*</span>
+                <select
+                  name="countryCode"
+                  defaultValue={profile?.countryCode ?? "AE"}
+                >
+                  {countries.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className={styles.dateFields}>
+                <label>
+                  Issue date<span>*</span>
+                  <input name="issueDate" type="date" />
+                  {errors.issueDate ? (
+                    <small className={styles.error}>
+                      {errors.issueDate[0]}
+                    </small>
+                  ) : null}
+                </label>
+                <label>
+                  Expiry date <em>(optional)</em>
+                  <input name="expiryDate" type="date" />
+                  {errors.expiryDate ? (
+                    <small className={styles.error}>
+                      {errors.expiryDate[0]}
+                    </small>
+                  ) : null}
+                </label>
+              </div>
+              <p className={styles.formNote}>
+                <FileUp />
+                Evidence upload follows after the credential is saved.
+              </p>
+              <footer>
+                <button
+                  type="button"
+                  className={styles.secondary}
+                  onClick={() => setFormOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={styles.primary}
+                  type="submit"
+                  disabled={pending}
+                >
+                  {pending ? (
+                    <LoaderCircle className={styles.spinner} />
+                  ) : (
+                    <Check />
+                  )}
+                  {pending ? "Saving…" : "Save credential"}
+                </button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      ) : null}
 
-      {evidenceRequest ? <div className={styles.modalBackdrop} role="presentation">
-        <section className={`${styles.modal} ${styles.evidenceModal}`} role="dialog" aria-modal="true" aria-labelledby="evidence-form-title">
-          <header><div><small>Private evidence</small><h2 id="evidence-form-title">Support this credential</h2></div><button onClick={() => setEvidenceRequest(null)} aria-label="Close evidence form"><X /></button></header>
-          <div className={styles.securityNote}><LockKeyhole /><p><strong>Your document is private.</strong> It is stored outside public web assets, format-checked, hashed, and attached only to this verification request.</p></div>
-          {evidenceRequest.status === "NEEDS_INFORMATION" && evidenceRequest.decisions.at(-1)?.reason ? <div className={styles.informationRequest}><FileUp /><div><strong>Reviewer requested more information</strong><p>{evidenceRequest.decisions.at(-1)?.reason}</p></div></div> : null}
-          {evidenceRequest.evidence.length ? <div className={styles.evidenceFiles}>
-            <h3>Evidence received</h3>
-            {evidenceRequest.evidence.map((evidence) => <div key={evidence.id}><span><FileCheck2 /></span><div><strong>{evidence.file?.originalName ?? "Evidence file"}</strong><small>{evidence.file ? `${formatBytes(evidence.file.byteSize)} · ${evidence.file.validationStatus === "VALIDATED" ? "File format validated" : "Quarantined"}` : "Metadata unavailable"}</small></div></div>)}
-          </div> : null}
-          {evidenceRequest.status === "EVIDENCE_REQUIRED" || evidenceRequest.status === "NEEDS_INFORMATION" ? <form onSubmit={uploadEvidence}>
-            <label className={styles.fileDrop}>Evidence file<span>PDF, PNG, or JPEG · maximum 10 MB</span><input type="file" accept="application/pdf,image/png,image/jpeg" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />{selectedFile ? <strong>{selectedFile.name}</strong> : <small>Choose a supporting document</small>}</label>
-            <footer><button type="button" className={styles.secondary} onClick={() => setEvidenceRequest(null)}>Cancel</button><button className={styles.primary} disabled={pending || !selectedFile}>{pending ? <LoaderCircle className={styles.spinner} /> : <FileUp />}{pending ? "Uploading…" : "Upload evidence"}</button></footer>
-          </form> : evidenceRequest.status === "READY_TO_SUBMIT" ? <div className={styles.reviewActions}><p>Submitting sends this evidence to the VetLinX review queue. It does not automatically verify the credential.</p><button className={styles.primary} disabled={pending} onClick={() => submitVerification(evidenceRequest.id)}>{pending ? <LoaderCircle className={styles.spinner} /> : <ShieldCheck />}{pending ? "Submitting…" : "Submit for review"}</button></div> : <div className={styles.submittedPanel}><FileCheck2 /><div><strong>Evidence submitted for review</strong><p>This credential remains unverified until an authorized reviewer completes the assessment.</p></div></div>}
-        </section>
-      </div> : null}
+      {evidenceRequest ? (
+        <div className={styles.modalBackdrop} role="presentation">
+          <section
+            className={`${styles.modal} ${styles.evidenceModal}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="evidence-form-title"
+          >
+            <header>
+              <div>
+                <small>Private evidence</small>
+                <h2 id="evidence-form-title">Support this credential</h2>
+              </div>
+              <button
+                onClick={() => setEvidenceRequest(null)}
+                aria-label="Close evidence form"
+              >
+                <X />
+              </button>
+            </header>
+            <div className={styles.securityNote}>
+              <LockKeyhole />
+              <p>
+                <strong>Your document is private.</strong> It is stored outside
+                public web assets, format-checked, hashed, and attached only to
+                this verification request.
+              </p>
+            </div>
+            {evidenceRequest.status === "NEEDS_INFORMATION" &&
+            evidenceRequest.decisions.at(-1)?.reason ? (
+              <div className={styles.informationRequest}>
+                <FileUp />
+                <div>
+                  <strong>Reviewer requested more information</strong>
+                  <p>{evidenceRequest.decisions.at(-1)?.reason}</p>
+                </div>
+              </div>
+            ) : null}
+            {evidenceRequest.evidence.length ? (
+              <div className={styles.evidenceFiles}>
+                <h3>Evidence received</h3>
+                {evidenceRequest.evidence.map((evidence) => (
+                  <div key={evidence.id}>
+                    <span>
+                      <FileCheck2 />
+                    </span>
+                    <div>
+                      <strong>
+                        {evidence.file?.originalName ?? "Evidence file"}
+                      </strong>
+                      <small>
+                        {evidence.file
+                          ? `${formatBytes(evidence.file.byteSize)} · ${evidence.file.validationStatus === "VALIDATED" ? "File format validated" : "Quarantined"}`
+                          : "Metadata unavailable"}
+                      </small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {evidenceRequest.status === "EVIDENCE_REQUIRED" ||
+            evidenceRequest.status === "NEEDS_INFORMATION" ? (
+              <form onSubmit={uploadEvidence}>
+                <label className={styles.fileDrop}>
+                  Evidence file<span>PDF, PNG, or JPEG · maximum 10 MB</span>
+                  <input
+                    type="file"
+                    accept="application/pdf,image/png,image/jpeg"
+                    onChange={(event) =>
+                      setSelectedFile(event.target.files?.[0] ?? null)
+                    }
+                  />
+                  {selectedFile ? (
+                    <strong>{selectedFile.name}</strong>
+                  ) : (
+                    <small>Choose a supporting document</small>
+                  )}
+                </label>
+                <footer>
+                  <button
+                    type="button"
+                    className={styles.secondary}
+                    onClick={() => setEvidenceRequest(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className={styles.primary}
+                    disabled={pending || !selectedFile}
+                  >
+                    {pending ? (
+                      <LoaderCircle className={styles.spinner} />
+                    ) : (
+                      <FileUp />
+                    )}
+                    {pending ? "Uploading…" : "Upload evidence"}
+                  </button>
+                </footer>
+              </form>
+            ) : evidenceRequest.status === "READY_TO_SUBMIT" ? (
+              <div className={styles.reviewActions}>
+                <p>
+                  Submitting sends this evidence to the VetLinX review queue. It
+                  does not automatically verify the credential.
+                </p>
+                <button
+                  className={styles.primary}
+                  disabled={pending}
+                  onClick={() => submitVerification(evidenceRequest.id)}
+                >
+                  {pending ? (
+                    <LoaderCircle className={styles.spinner} />
+                  ) : (
+                    <ShieldCheck />
+                  )}
+                  {pending ? "Submitting…" : "Submit for review"}
+                </button>
+              </div>
+            ) : (
+              <div className={styles.submittedPanel}>
+                <FileCheck2 />
+                <div>
+                  <strong>Evidence submitted for review</strong>
+                  <p>
+                    This credential remains unverified until an authorized
+                    reviewer completes the assessment.
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      ) : null}
     </>
   );
 }

@@ -15,6 +15,8 @@ export interface QueuedEmail {
   text: string;
   sensitive: boolean;
   expiresAt?: Date;
+  recipientAccountId?: string;
+  category?: string;
 }
 
 @Injectable()
@@ -33,9 +35,10 @@ export class MailQueueService {
       .digest();
   }
 
-  encrypt(text: string) {
+  encrypt(text: string, context?: string) {
     const iv = randomBytes(12);
     const cipher = createCipheriv('aes-256-gcm', this.key(), iv);
+    if (context) cipher.setAAD(Buffer.from(context, 'utf8'));
     const ciphertext = Buffer.concat([
       cipher.update(text, 'utf8'),
       cipher.final(),
@@ -48,7 +51,7 @@ export class MailQueueService {
     ].join('.');
   }
 
-  decrypt(value: string) {
+  decrypt(value: string, context?: string) {
     const [version, iv, tag, ciphertext] = value.split('.');
     if (version !== 'v1' || !iv || !tag || ciphertext === undefined)
       throw new Error('Invalid encrypted delivery');
@@ -57,6 +60,7 @@ export class MailQueueService {
       this.key(),
       Buffer.from(iv, 'base64'),
     );
+    if (context) decipher.setAAD(Buffer.from(context, 'utf8'));
     decipher.setAuthTag(Buffer.from(tag, 'base64'));
     return Buffer.concat([
       decipher.update(Buffer.from(ciphertext, 'base64')),
@@ -77,6 +81,8 @@ export class MailQueueService {
           encryptedText: this.encrypt(message.text),
           sensitive: message.sensitive,
           expiresAt: message.expiresAt,
+          recipientAccountId: message.recipientAccountId,
+          category: message.category,
         },
       ],
       skipDuplicates: true,

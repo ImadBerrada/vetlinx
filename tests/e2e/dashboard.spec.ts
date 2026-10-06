@@ -31,7 +31,7 @@ test("dashboard protects private data and displays the authenticated record", as
 
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Open navigation" }).click();
-    await expect(page.getByRole("complementary", { name: "Primary navigation" })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Primary navigation" })).toHaveAttribute("aria-modal", "true");
   }
 
   expect(errors).toEqual([]);

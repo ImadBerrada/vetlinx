@@ -58,6 +58,13 @@ export interface ApiCredential {
   submittedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  effectiveStatus?: ApiCredential['status'];
+  lifecycleHistory?: Array<{ id: string; fromStatus: ApiCredential['status']; toStatus: ApiCredential['status']; reason: string; source: string; verificationRequestId: string | null; createdAt: string }>;
+}
+
+export interface ApiCredentialLifecycleReview {
+  requestId: string; originalReviewStatus: 'VERIFIED'; reviewedAt: string | null;
+  professionalName: string; canRevoke: boolean; credential: ApiCredential;
 }
 
 export interface ApiVerificationEvidence {
@@ -105,6 +112,8 @@ export interface ApiNotification {
     | "VERIFICATION_INFORMATION_REQUESTED"
     | "CREDENTIAL_VERIFIED"
     | "CREDENTIAL_REJECTED"
+    | "CREDENTIAL_EXPIRED"
+    | "CREDENTIAL_REVOKED"
     | "ORGANIZATION_INFORMATION_REQUESTED"
     | "ORGANIZATION_VERIFIED"
     | "ORGANIZATION_REJECTED"
@@ -285,6 +294,7 @@ export interface ApiPet {
 }
 
 export interface ApiClinic {
+  appointmentSchedulingEnabled?: boolean;
   id: string;
   publicName: string | null;
   legalName: string;
@@ -297,6 +307,11 @@ export interface ApiClinic {
 }
 
 export interface ApiAppointment {
+  slotId?: string | null;
+  proposedSlotId?: string | null;
+  serviceName?: string | null;
+  durationMinutes?: number | null;
+  slot?: { serviceId: string } | null;
   id: string;
   organizationId: string;
   petId: string;
@@ -308,15 +323,22 @@ export interface ApiAppointment {
   startsAt: string;
   timeZone: string;
   visitReason: string;
-  status: "REQUESTED" | "CONFIRMED" | "DECLINED" | "CANCELLED" | "COMPLETED";
+  status: "REQUESTED" | "CONFIRMED" | "DECLINED" | "CANCELLED" | "COMPLETED" | "NO_SHOW";
+  checkedInAt: string | null;
   responseNote: string | null;
   proposedStartsAt: string | null;
   proposedTimeZone: string | null;
   proposalExpiresAt: string | null;
   proposalVersion: number;
   proposalReason: string | null;
-  history: Array<{ fromStatus: string | null; toStatus: string; reason: string | null; createdAt: string; action: string; proposedStartsAt: string | null; proposedTimeZone: string | null; proposalVersion: number | null; proposalExpiresAt: string | null }>;
+  proposalInitiator: "OWNER" | "CLINIC" | null;
+  history: Array<{ fromStatus: string | null; toStatus: string; reason: string | null; createdAt: string; action: string; proposedStartsAt: string | null; proposedTimeZone: string | null; proposalVersion: number | null; proposalExpiresAt: string | null; proposalInitiator?: "OWNER" | "CLINIC" | null }>;
 }
+
+export interface ApiClinicService { id: string; name: string; description: string; durationMinutes: number; active: boolean; version: number }
+export interface ApiClinicResource { id: string; name: string; kind: "ROOM" | "EQUIPMENT" | "CARE_TEAM"; active: boolean; version: number }
+export interface ApiAppointmentSlot { id: string; serviceId: string; startsAt: string; endsAt: string; timeZone: string; capacity: number; remaining: number; published: boolean; version: number; resourcesReserved?: boolean; resources?: {resourceId: string}[] }
+export interface ApiClinicSchedule { enabled: boolean; services: ApiClinicService[]; slots: ApiAppointmentSlot[]; nextCursor: string | null; resources?: ApiClinicResource[] }
 
 export interface ApiOrganizationVerification {
   id: string;

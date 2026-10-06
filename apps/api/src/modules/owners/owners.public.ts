@@ -4,6 +4,7 @@ export interface OwnersPublicApi {
   findPetForBooking(
     accountId: string,
     petId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<{
     id: string;
     name: string;
@@ -13,3 +14,4 @@ export interface OwnersPublicApi {
     contactPhone: string;
   } | null>;
 }
+import type { Prisma } from '../../generated/prisma/client';

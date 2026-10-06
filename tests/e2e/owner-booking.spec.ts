@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 
 const fixtureDatabase = process.env.B2C_TEST_DATABASE_URL;
 test("pet owner requests a visit, accepts a clinic time proposal, and cancels with history preserved", async ({
@@ -180,6 +181,7 @@ test("pet owner requests a visit, accepts a clinic time proposal, and cancels wi
     await page
       .getByRole("button", { name: "Accept proposed time", exact: true })
       .click();
+    await page.getByRole("button", { name: "Confirm time change", exact: true }).click();
     await expect(
       page.getByRole("heading", {
         name: "Clinic proposed a different time",
@@ -199,6 +201,43 @@ test("pet owner requests a visit, accepts a clinic time proposal, and cancels wi
       proposedStartsAt: null,
       status: "CONFIRMED",
     });
+    await page.getByRole("button", { name: "Request a different time", exact: true }).click();
+    await page.getByLabel("Proposed date and time", { exact: true }).fill(new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 16));
+    await page.getByLabel("Response deadline", { exact: true }).fill(new Date(Date.now() + 86400000).toISOString().slice(0, 16));
+    await page.getByLabel("Reason for rescheduling", { exact: true }).fill("Please move Luna's visit to fit my work schedule");
+    await page.getByRole("button", { name: "Send reschedule request", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Owner requested a different time", exact: true })).toBeVisible();
+    const ownerPending = await (await page.request.get("/api/appointments")).json() as { appointments: Array<{ startsAt: string; proposedStartsAt: string; proposalInitiator: string }> };
+    expect(ownerPending.appointments[0].startsAt).toBe(after.appointments[0].startsAt);
+    expect(ownerPending.appointments[0].proposalInitiator).toBe("OWNER");
+    await page.evaluate(() => { window.scrollTo(0, 0); if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
+    await page.screenshot({ path: `playwright-report/care-qa/${testInfo.project.name}-real-owner-request.png`, fullPage: true });
+    await clinicPage.getByRole("button", { name: "Refresh", exact: true }).click();
+    await expect(clinicPage.getByRole("heading", { name: "Owner requested a different time", exact: true })).toBeVisible();
+    await clinicPage.evaluate(() => { window.scrollTo(0, 0); if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
+    await clinicPage.screenshot({ path: `playwright-report/care-qa/${testInfo.project.name}-real-clinic-pending.png`, fullPage: true });
+    await clinicPage.getByLabel("Response to reschedule request").fill("The requested time is unavailable; please suggest another time");
+    await clinicPage.getByRole("button", { name: "Decline reschedule request", exact: true }).click();
+    await expect(clinicPage.getByRole("heading", { name: "Owner requested a different time", exact: true })).toHaveCount(0);
+    await page.getByRole("button", { name: "Refresh", exact: true }).click();
+    const declinedChange = await (await page.request.get("/api/appointments")).json() as { appointments: Array<{ startsAt: string; proposedStartsAt: string | null }> };
+    expect(declinedChange.appointments[0]).toMatchObject({ startsAt: after.appointments[0].startsAt, proposedStartsAt: null });
+    await page.getByRole("button", { name: "Request a different time", exact: true }).click();
+    await page.getByLabel("Proposed date and time", { exact: true }).fill(new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 16));
+    await page.getByLabel("Response deadline", { exact: true }).fill(new Date(Date.now() + 86400000).toISOString().slice(0, 16));
+    await page.getByLabel("Reason for rescheduling", { exact: true }).fill("This alternative time works for my schedule");
+    await page.getByRole("button", { name: "Send reschedule request", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Owner requested a different time", exact: true })).toBeVisible();
+    const replacementPending = await (await page.request.get("/api/appointments")).json() as { appointments: Array<{ proposedStartsAt: string }> };
+    await clinicPage.getByRole("button", { name: "Refresh", exact: true }).click();
+    await expect(clinicPage.getByRole("heading", { name: "Owner requested a different time", exact: true })).toBeVisible();
+    await clinicPage.getByRole("button", { name: "Accept reschedule request", exact: true }).click();
+    await clinicPage.getByRole("button", { name: "Confirm time change", exact: true }).click();
+    await expect(clinicPage.getByRole("heading", { name: "Owner requested a different time", exact: true })).toHaveCount(0);
+    await page.getByRole("button", { name: "Refresh", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Owner requested a different time", exact: true })).toHaveCount(0);
+    const ownerAccepted = await (await page.request.get("/api/appointments")).json() as { appointments: Array<{ startsAt: string; proposedStartsAt: string | null }> };
+    expect(ownerAccepted.appointments[0]).toMatchObject({ startsAt: replacementPending.appointments[0].proposedStartsAt, proposedStartsAt: null });
     await page.evaluate(() => { window.scrollTo(0, 0); if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
     await page.screenshot({
       path: testInfo.outputPath("owner-confirmed.png"),
@@ -217,7 +256,31 @@ test("pet owner requests a visit, accepts a clinic time proposal, and cancels wi
       appointments: Array<{ status: string; history: unknown[] }>;
     };
     expect(body.appointments[0]).toMatchObject({ status: "CANCELLED" });
-    expect(body.appointments[0].history).toHaveLength(5);
+    expect(body.appointments[0].history).toHaveLength(9);
+
+    // Reuse the same sessions for a near-term visit, exercising the real arrival BFF.
+    const pets = await (await page.request.get("/api/pets")).json() as { pets: Array<{ id: string }> };
+    const arrivalRequest = await page.request.post("/api/appointments", { data: {
+      requestId: randomUUID(), organizationId: organization.workspace.organization.id,
+      petId: pets.pets[0].id, startsAt: new Date(Date.now() + 3600000).toISOString(),
+      timeZone: "UTC", visitReason: "Follow-up wellness visit", sharingConsent: true,
+    } });
+    expect(arrivalRequest.ok()).toBeTruthy();
+    const arriving = (await arrivalRequest.json()) as { appointment: { id: string; proposalVersion: number } };
+    const confirmation = await clinicContext.request.patch(`/api/organizations/${organization.workspace.organization.id}/appointments/${arriving.appointment.id}`, {
+      data: { status: "CONFIRMED", proposalVersion: arriving.appointment.proposalVersion },
+    });
+    expect(confirmation.ok()).toBeTruthy();
+    await clinicPage.getByRole("button", { name: "Refresh", exact: true }).click();
+    await clinicPage.getByRole("button", { name: "Check in Luna", exact: true }).click();
+    await expect(clinicPage.getByText("Checked in:", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Refresh", exact: true }).click();
+    await page.getByRole("button", { name: "Active (1)", exact: true }).click();
+    await expect(page.getByText("Your pet has been checked in.", { exact: false })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Request a different time", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Cancel request for Luna", exact: true })).toHaveCount(0);
+    await clinicPage.evaluate(() => { window.scrollTo(0, 0); if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
+    await clinicPage.screenshot({ path: `playwright-report/care-qa/${testInfo.project.name}-real-clinic-arrival.png`, fullPage: true });
   } finally {
     await clinicContext.close();
     await database.end();

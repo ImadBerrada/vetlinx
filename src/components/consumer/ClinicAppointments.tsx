@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/shell/AppShell";
-import { apiFetch } from "@/lib/client-api";
+import { apiFetch, ApiRequestError } from "@/lib/client-api";
 import {
   organizationIdFromWorkspace,
   organizationWorkspace,
@@ -16,6 +16,7 @@ import {
   type AppointmentProposalInput,
 } from "./AppointmentList";
 import styles from "./Consumer.module.css";
+import { ClinicSchedule } from "./ClinicSchedule";
 
 export function ClinicAppointments() {
   const { session, error } = useSession();
@@ -26,6 +27,7 @@ export function ClinicAppointments() {
   const [loading, setLoading] = useState(false);
   const [loadedId, setLoadedId] = useState("");
   const [message, setMessage] = useState("");
+  const [needsRefresh, setNeedsRefresh] = useState(false);
   const memberships =
     session?.organizations.filter(
       (item) =>
@@ -80,6 +82,7 @@ export function ClinicAppointments() {
     setAppointments([]);
     setMessage("");
     setEnabledOverride(null);
+    setNeedsRefresh(false);
     writeWorkspacePreference(organizationWorkspace(id));
   }
   async function toggle() {
@@ -107,20 +110,25 @@ export function ClinicAppointments() {
     status: ApiAppointment["status"],
     reason?: string,
   ) {
+    return appointmentCommand(appointment, "", { status, reason, proposalVersion: appointment.proposalVersion }, "PATCH");
+  }
+  async function appointmentCommand(appointment: ApiAppointment, suffix: string, body: object, method = "POST") {
+    if (pending || needsRefresh) return false;
     setPending(true);
     setMessage("");
     try {
-      await apiFetch(
-        `/api/organizations/${selectedId}/appointments/${appointment.id}`,
-        { method: "PATCH", body: JSON.stringify({ status, reason }) },
+      const result = await apiFetch<{ appointment: ApiAppointment }>(
+        `/api/organizations/${selectedId}/appointments/${appointment.id}${suffix}`,
+        { method, body: JSON.stringify(body) },
       );
-      setAppointments(await reload(selectedId));
+      setAppointments((current) => current.map((item) => item.id === result.appointment.id ? result.appointment : item));
+      try { setAppointments(await reload(selectedId)); }
+      catch { setNeedsRefresh(true); setMessage("The appointment was updated, but the latest queue could not be refreshed. Refresh before making another change."); }
+      return true;
     } catch (failure) {
-      setMessage(
-        failure instanceof Error
-          ? failure.message
-          : "Appointment could not be updated.",
-      );
+      if (failure instanceof ApiRequestError && failure.status === 409) { setNeedsRefresh(true); setMessage("This appointment changed. Your draft is kept. Refresh the appointments, review the latest time and status, then try again."); }
+      else setMessage(failure instanceof Error ? failure.message : "The appointment could not be updated. Your draft has been kept.");
+      return false;
     } finally {
       setPending(false);
     }
@@ -129,25 +137,13 @@ export function ClinicAppointments() {
     appointment: ApiAppointment,
     proposal: AppointmentProposalInput,
   ) {
-    setPending(true);
-    setMessage("");
-    try {
-      await apiFetch(
-        `/api/organizations/${selectedId}/appointments/${appointment.id}/proposal`,
-        { method: "POST", body: JSON.stringify(proposal) },
-      );
-      setAppointments(await reload(selectedId));
-      return true;
-    } catch (failure) {
-      setMessage(
-        failure instanceof Error
-          ? failure.message
-          : "The proposed time could not be sent.",
-      );
-      return false;
-    } finally {
-      setPending(false);
-    }
+    return appointmentCommand(appointment, "/proposal", proposal);
+  }
+  function respond(appointment: ApiAppointment, accept: boolean, reason?: string) {
+    return appointmentCommand(appointment, `/reschedule/${accept ? "accept" : "decline"}`, { proposalVersion: appointment.proposalVersion, reason });
+  }
+  function checkIn(appointment: ApiAppointment) {
+    return appointmentCommand(appointment, "/check-in", { proposalVersion: appointment.proposalVersion });
   }
   async function refresh() {
     setLoading(true);
@@ -155,6 +151,7 @@ export function ClinicAppointments() {
     try {
       setAppointments(await reload(selectedId));
       setLoadedId(selectedId);
+      setNeedsRefresh(false);
     } catch (failure) {
       setMessage(
         failure instanceof Error ? failure.message : "Could not refresh.",
@@ -245,6 +242,7 @@ export function ClinicAppointments() {
                   </button>
                 ) : null}
               </section>
+              <ClinicSchedule key={selectedId} organizationId={selectedId} canManage={Boolean(membership && ["OWNER", "ADMIN"].includes(membership.role))} />
               <div className={styles.sectionHead}>
                 <h2>Pet-owner requests</h2>
                 <button
@@ -259,9 +257,11 @@ export function ClinicAppointments() {
                 <AppointmentList
                   appointments={appointments}
                   clinic
-                  pending={pending}
+                  pending={pending || loading || needsRefresh}
                   onAction={decide}
                   onPropose={propose}
+                  onRespond={respond}
+                  onCheckIn={checkIn}
                 />
               ) : !message ? (
                 <p className={styles.loading}>Loading pet-owner requests…</p>

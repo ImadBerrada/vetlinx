@@ -23,6 +23,7 @@ import {
   RequiredDecisionReasonDto,
 } from './dto/verification-decision.dto';
 import { VerificationService } from './verification.service';
+import { RevokeCredentialDto } from '../credentials/dto/revoke-credential.dto';
 
 @ApiTags('Verification reviewer operations')
 @ApiBearerAuth()
@@ -31,6 +32,30 @@ import { VerificationService } from './verification.service';
 @Controller({ path: 'verification-reviews', version: '1' })
 export class ReviewerVerificationController {
   constructor(private readonly verification: VerificationService) {}
+
+  @Get('lifecycle')
+  lifecycle(@Req() request: AuthenticatedRequest) {
+    return this.verification.listCredentialLifecycle(
+      request.user.accountId,
+      request.user.roles ?? [],
+    );
+  }
+
+  @Post(':requestId/revoke')
+  @HttpCode(200)
+  revoke(
+    @Param('requestId', new ParseUUIDPipe()) requestId: string,
+    @Body() dto: RevokeCredentialDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.verification.revokeReviewedCredential(
+      request.user.accountId,
+      request.user.roles ?? [],
+      requestId,
+      dto.reason,
+      this.correlationId(request),
+    );
+  }
 
   @Get()
   @ApiOperation({ summary: 'List submitted and active verification reviews' })

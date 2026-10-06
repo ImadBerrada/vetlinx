@@ -54,10 +54,14 @@ export const ModelName = {
   Account: 'Account',
   Notification: 'Notification',
   AccountSystemRole: 'AccountSystemRole',
+  NotificationPreference: 'NotificationPreference',
   RefreshSession: 'RefreshSession',
   SecurityToken: 'SecurityToken',
+  MfaRecoveryCode: 'MfaRecoveryCode',
+  MfaChallenge: 'MfaChallenge',
   ProfessionalProfile: 'ProfessionalProfile',
   Credential: 'Credential',
+  CredentialLifecycleHistory: 'CredentialLifecycleHistory',
   FileObject: 'FileObject',
   VerificationRequest: 'VerificationRequest',
   VerificationDecision: 'VerificationDecision',
@@ -67,6 +71,11 @@ export const ModelName = {
   Pet: 'Pet',
   Appointment: 'Appointment',
   AppointmentHistory: 'AppointmentHistory',
+  ClinicService: 'ClinicService',
+  AppointmentSlot: 'AppointmentSlot',
+  ClinicResource: 'ClinicResource',
+  SlotResource: 'SlotResource',
+  BookingHold: 'BookingHold',
   AppointmentReminder: 'AppointmentReminder',
   Job: 'Job',
   JobRequirement: 'JobRequirement',
@@ -111,6 +120,13 @@ export const AccountScalarFieldEnum = {
   status: 'status',
   emailVerifiedAt: 'emailVerifiedAt',
   authVersion: 'authVersion',
+  mfaSecretEncrypted: 'mfaSecretEncrypted',
+  mfaEnabledAt: 'mfaEnabledAt',
+  mfaPendingSecretEncrypted: 'mfaPendingSecretEncrypted',
+  mfaPendingExpiresAt: 'mfaPendingExpiresAt',
+  mfaLastUsedStep: 'mfaLastUsedStep',
+  mfaFailedAttempts: 'mfaFailedAttempts',
+  mfaLockedUntil: 'mfaLockedUntil',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -146,6 +162,18 @@ export const AccountSystemRoleScalarFieldEnum = {
 export type AccountSystemRoleScalarFieldEnum = (typeof AccountSystemRoleScalarFieldEnum)[keyof typeof AccountSystemRoleScalarFieldEnum]
 
 
+export const NotificationPreferenceScalarFieldEnum = {
+  accountId: 'accountId',
+  appointmentUpdatesEmail: 'appointmentUpdatesEmail',
+  appointmentRemindersEmail: 'appointmentRemindersEmail',
+  credentialUpdatesEmail: 'credentialUpdatesEmail',
+  version: 'version',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
+
+
 export const RefreshSessionScalarFieldEnum = {
   id: 'id',
   accountId: 'accountId',
@@ -156,6 +184,7 @@ export const RefreshSessionScalarFieldEnum = {
   replacedById: 'replacedById',
   userAgent: 'userAgent',
   ipAddress: 'ipAddress',
+  mfaAuthenticatedAt: 'mfaAuthenticatedAt',
   createdAt: 'createdAt'
 } as const
 
@@ -173,6 +202,33 @@ export const SecurityTokenScalarFieldEnum = {
 } as const
 
 export type SecurityTokenScalarFieldEnum = (typeof SecurityTokenScalarFieldEnum)[keyof typeof SecurityTokenScalarFieldEnum]
+
+
+export const MfaRecoveryCodeScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  codeHash: 'codeHash',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type MfaRecoveryCodeScalarFieldEnum = (typeof MfaRecoveryCodeScalarFieldEnum)[keyof typeof MfaRecoveryCodeScalarFieldEnum]
+
+
+export const MfaChallengeScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  tokenHash: 'tokenHash',
+  authVersion: 'authVersion',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  attempts: 'attempts',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+} as const
+
+export type MfaChallengeScalarFieldEnum = (typeof MfaChallengeScalarFieldEnum)[keyof typeof MfaChallengeScalarFieldEnum]
 
 
 export const ProfessionalProfileScalarFieldEnum = {
@@ -212,6 +268,21 @@ export const CredentialScalarFieldEnum = {
 } as const
 
 export type CredentialScalarFieldEnum = (typeof CredentialScalarFieldEnum)[keyof typeof CredentialScalarFieldEnum]
+
+
+export const CredentialLifecycleHistoryScalarFieldEnum = {
+  id: 'id',
+  credentialId: 'credentialId',
+  actorAccountId: 'actorAccountId',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
+  reason: 'reason',
+  source: 'source',
+  verificationRequestId: 'verificationRequestId',
+  createdAt: 'createdAt'
+} as const
+
+export type CredentialLifecycleHistoryScalarFieldEnum = (typeof CredentialLifecycleHistoryScalarFieldEnum)[keyof typeof CredentialLifecycleHistoryScalarFieldEnum]
 
 
 export const FileObjectScalarFieldEnum = {
@@ -282,6 +353,7 @@ export const OrganizationScalarFieldEnum = {
   postalCode: 'postalCode',
   status: 'status',
   acceptsAppointmentRequests: 'acceptsAppointmentRequests',
+  appointmentSchedulingEnabled: 'appointmentSchedulingEnabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -341,6 +413,13 @@ export const AppointmentScalarFieldEnum = {
   proposalVersion: 'proposalVersion',
   proposedByAccountId: 'proposedByAccountId',
   proposalReason: 'proposalReason',
+  proposalInitiator: 'proposalInitiator',
+  checkedInAt: 'checkedInAt',
+  slotId: 'slotId',
+  proposedSlotId: 'proposedSlotId',
+  requestHoldId: 'requestHoldId',
+  serviceName: 'serviceName',
+  durationMinutes: 'durationMinutes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -360,10 +439,77 @@ export const AppointmentHistoryScalarFieldEnum = {
   proposedTimeZone: 'proposedTimeZone',
   proposalVersion: 'proposalVersion',
   proposalExpiresAt: 'proposalExpiresAt',
+  proposalInitiator: 'proposalInitiator',
+  slotId: 'slotId',
   createdAt: 'createdAt'
 } as const
 
 export type AppointmentHistoryScalarFieldEnum = (typeof AppointmentHistoryScalarFieldEnum)[keyof typeof AppointmentHistoryScalarFieldEnum]
+
+
+export const ClinicServiceScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description',
+  durationMinutes: 'durationMinutes',
+  active: 'active',
+  version: 'version',
+  createdAt: 'createdAt'
+} as const
+
+export type ClinicServiceScalarFieldEnum = (typeof ClinicServiceScalarFieldEnum)[keyof typeof ClinicServiceScalarFieldEnum]
+
+
+export const AppointmentSlotScalarFieldEnum = {
+  id: 'id',
+  serviceId: 'serviceId',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  timeZone: 'timeZone',
+  capacity: 'capacity',
+  published: 'published',
+  resourcesReserved: 'resourcesReserved',
+  version: 'version',
+  createdAt: 'createdAt'
+} as const
+
+export type AppointmentSlotScalarFieldEnum = (typeof AppointmentSlotScalarFieldEnum)[keyof typeof AppointmentSlotScalarFieldEnum]
+
+
+export const ClinicResourceScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  kind: 'kind',
+  active: 'active',
+  version: 'version',
+  createdAt: 'createdAt'
+} as const
+
+export type ClinicResourceScalarFieldEnum = (typeof ClinicResourceScalarFieldEnum)[keyof typeof ClinicResourceScalarFieldEnum]
+
+
+export const SlotResourceScalarFieldEnum = {
+  slotId: 'slotId',
+  resourceId: 'resourceId'
+} as const
+
+export type SlotResourceScalarFieldEnum = (typeof SlotResourceScalarFieldEnum)[keyof typeof SlotResourceScalarFieldEnum]
+
+
+export const BookingHoldScalarFieldEnum = {
+  id: 'id',
+  slotId: 'slotId',
+  accountId: 'accountId',
+  petId: 'petId',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  releasedAt: 'releasedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BookingHoldScalarFieldEnum = (typeof BookingHoldScalarFieldEnum)[keyof typeof BookingHoldScalarFieldEnum]
 
 
 export const AppointmentReminderScalarFieldEnum = {
@@ -619,6 +765,8 @@ export const EmailDeliveryScalarFieldEnum = {
   subject: 'subject',
   encryptedText: 'encryptedText',
   sensitive: 'sensitive',
+  recipientAccountId: 'recipientAccountId',
+  category: 'category',
   state: 'state',
   availableAt: 'availableAt',
   expiresAt: 'expiresAt',

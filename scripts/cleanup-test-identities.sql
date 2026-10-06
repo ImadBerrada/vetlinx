@@ -5,7 +5,8 @@ CREATE TEMP TABLE cleanup_accounts AS
 SELECT id FROM identity.accounts
 WHERE email LIKE '%@vetlinx.test'
    OR email LIKE '%@example.test'
-   OR email LIKE '%@booking.test';
+   OR email LIKE '%@booking.test'
+   OR email LIKE '%@scheduling.test';
 
 CREATE TEMP TABLE cleanup_profiles AS
 SELECT id FROM professionals.professional_profiles
@@ -43,6 +44,18 @@ WHERE requester_account_id IN (SELECT id FROM cleanup_accounts)
    OR pet_id IN (SELECT id FROM cleanup_pets)
    OR organization_id IN (SELECT id FROM cleanup_organizations);
 
+CREATE TEMP TABLE cleanup_services AS
+SELECT id FROM appointments.clinic_services
+WHERE organization_id IN (SELECT id FROM cleanup_organizations);
+
+CREATE TEMP TABLE cleanup_slots AS
+SELECT id FROM appointments.appointment_slots
+WHERE service_id IN (SELECT id FROM cleanup_services);
+
+CREATE TEMP TABLE cleanup_clinic_resources AS
+SELECT id FROM appointments.clinic_resources
+WHERE organization_id IN (SELECT id FROM cleanup_organizations);
+
 CREATE TEMP TABLE cleanup_jobs AS
 SELECT id FROM recruitment.jobs
 WHERE organization_id IN (SELECT id FROM cleanup_organizations)
@@ -74,6 +87,9 @@ INSERT INTO cleanup_resources SELECT id::text FROM cleanup_profiles ON CONFLICT 
 INSERT INTO cleanup_resources SELECT id::text FROM cleanup_owner_profiles ON CONFLICT DO NOTHING;
 INSERT INTO cleanup_resources SELECT id::text FROM cleanup_pets ON CONFLICT DO NOTHING;
 INSERT INTO cleanup_resources SELECT id::text FROM cleanup_appointments ON CONFLICT DO NOTHING;
+INSERT INTO cleanup_resources SELECT id::text FROM cleanup_services ON CONFLICT DO NOTHING;
+INSERT INTO cleanup_resources SELECT id::text FROM cleanup_slots ON CONFLICT DO NOTHING;
+INSERT INTO cleanup_resources SELECT id::text FROM cleanup_clinic_resources ON CONFLICT DO NOTHING;
 INSERT INTO cleanup_resources SELECT id::text FROM cleanup_credentials ON CONFLICT DO NOTHING;
 INSERT INTO cleanup_resources SELECT id::text FROM cleanup_requests ON CONFLICT DO NOTHING;
 INSERT INTO cleanup_resources SELECT id::text FROM cleanup_files ON CONFLICT DO NOTHING;
@@ -129,10 +145,15 @@ DELETE FROM organizations.organization_invitations
 WHERE organization_id IN (SELECT id FROM cleanup_organizations)
    OR email LIKE '%@vetlinx.test'
    OR email LIKE '%@example.test'
-   OR email LIKE '%@booking.test';
+   OR email LIKE '%@booking.test'
+   OR email LIKE '%@scheduling.test';
 DELETE FROM organizations.organization_memberships
 WHERE organization_id IN (SELECT id FROM cleanup_organizations)
    OR account_id IN (SELECT id FROM cleanup_accounts);
+DELETE FROM appointments.clinic_services
+WHERE id IN (SELECT id FROM cleanup_services);
+DELETE FROM appointments.clinic_resources
+WHERE id IN (SELECT id FROM cleanup_clinic_resources);
 DELETE FROM organizations.organizations
 WHERE id IN (SELECT id FROM cleanup_organizations);
 DELETE FROM verification.verification_evidence
@@ -141,6 +162,8 @@ DELETE FROM verification.verification_decisions
 WHERE verification_request_id IN (SELECT id FROM cleanup_requests);
 DELETE FROM verification.verification_requests
 WHERE id IN (SELECT id FROM cleanup_requests);
+DELETE FROM credentials.credential_lifecycle_history
+WHERE credential_id IN (SELECT id FROM cleanup_credentials);
 DELETE FROM credentials.credentials
 WHERE id IN (SELECT id FROM cleanup_credentials);
 DELETE FROM professionals.professional_profiles

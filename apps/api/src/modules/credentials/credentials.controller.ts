@@ -23,6 +23,9 @@ import {
 } from '../identity/access-token.guard';
 import { CredentialsService } from './credentials.service';
 import { CreateCredentialDto } from './dto/create-credential.dto';
+import { RevokeCredentialDto } from './dto/revoke-credential.dto';
+import { SystemRolesGuard } from '../identity/system-roles.guard';
+import { RequireSystemRoles } from '../identity/required-roles.decorator';
 
 @ApiTags('Credentials')
 @ApiBearerAuth()
@@ -30,6 +33,27 @@ import { CreateCredentialDto } from './dto/create-credential.dto';
 @Controller({ path: 'credentials', version: '1' })
 export class CredentialsController {
   constructor(private readonly credentials: CredentialsService) {}
+
+  @Post(':credentialId/revoke')
+  @HttpCode(200)
+  @UseGuards(SystemRolesGuard)
+  @RequireSystemRoles('OPERATIONS_ADMIN')
+  @ApiOperation({
+    summary: 'Record an independent governed credential revocation',
+  })
+  revoke(
+    @Param('credentialId', new ParseUUIDPipe()) credentialId: string,
+    @Body() dto: RevokeCredentialDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.credentials.revokeCredential(
+      request.user.accountId,
+      credentialId,
+      dto.reason,
+      request.header('x-correlation-id') || randomUUID(),
+      'OPERATIONS',
+    );
+  }
 
   @Get('me')
   @ApiOperation({

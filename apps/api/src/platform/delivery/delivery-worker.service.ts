@@ -1,3 +1,4 @@
+import { SchedulingService } from '../../modules/appointments/scheduling.service';
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../persistence/prisma.service';
@@ -9,17 +10,16 @@ import {
 } from '../../modules/notifications/notifications.public';
 import { AppointmentRemindersService } from '../../modules/appointments/appointment-reminders.service';
 import { Prisma, type OutboxEvent } from '../../generated/prisma/client';
+import {
+  CREDENTIALS_PUBLIC_API,
+  type CredentialsPublicApi,
+} from '../../modules/credentials/credentials.public';
 
-const EVENT_RESOURCES: Record<string, string> = {
-  AppointmentRequested: 'appointment',
-  AppointmentStatusChanged: 'appointment',
-  AppointmentTimeProposed: 'appointment',
-  AppointmentTimeAccepted: 'appointment',
-  AppointmentTimeProposalClosed: 'appointment',
-  CredentialVerified: 'verification_request',
-  CredentialRejected: 'verification_request',
-  VerificationInformationRequested: 'verification_request',
-};
+import { DELIVERY_EVENT_RESOURCES as EVENT_RESOURCES } from './delivery-event-resources';
+import {
+  IDENTITY_PUBLIC_API,
+  type IdentityPublicApi,
+} from '../../modules/identity/identity.public';
 
 @Injectable()
 export class DeliveryWorkerService {
@@ -28,8 +28,12 @@ export class DeliveryWorkerService {
     private readonly mail: MailQueueService,
     private readonly transport: MailTransportService,
     private readonly reminders: AppointmentRemindersService,
+    private readonly scheduling: SchedulingService,
     @Inject(NOTIFICATIONS_PUBLIC_API)
     private readonly notifications: NotificationsPublicApi,
+    @Inject(CREDENTIALS_PUBLIC_API)
+    private readonly credentials: CredentialsPublicApi,
+    @Inject(IDENTITY_PUBLIC_API) private readonly identity: IdentityPublicApi,
   ) {}
 
   async tick() {
@@ -39,6 +43,9 @@ export class DeliveryWorkerService {
       update: { lastSeenAt: new Date() },
     });
     try {
+      await this.identity.pruneExpiredSecurityArtifacts();
+      await this.scheduling.pruneExpiredHolds();
+      await this.credentials.expireDue();
       await this.reminders.enqueueDue();
       await this.dispatchEvents();
       await this.dispatchEmail();
@@ -180,7 +187,25 @@ export class DeliveryWorkerService {
         const stale =
           email.idempotencyKey.startsWith('appointment-reminder:') &&
           !(await this.reminders.isCurrent(email.idempotencyKey));
-        if (expired || stale) {
+        const reminder = email.idempotencyKey.startsWith(
+          'appointment-reminder:',
+        );
+        const canDeliver =
+          !expired &&
+          !stale &&
+          (await this.notifications.canDeliverEmail({
+            ...email,
+            recipientAccountId:
+              email.recipientAccountId ??
+              (reminder
+                ? await this.reminders.recipientForDelivery(
+                    email.idempotencyKey,
+                  )
+                : null),
+            category:
+              email.category ?? (reminder ? 'APPOINTMENT_REMINDERS' : null),
+          }));
+        if (expired || stale || !canDeliver) {
           await this.prisma.emailDelivery.updateMany({
             where: { id: email.id, leaseId },
             data: {

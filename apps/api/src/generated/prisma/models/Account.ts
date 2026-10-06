@@ -28,10 +28,14 @@ export type AggregateAccount = {
 
 export type AccountAvgAggregateOutputType = {
   authVersion: number | null
+  mfaLastUsedStep: number | null
+  mfaFailedAttempts: number | null
 }
 
 export type AccountSumAggregateOutputType = {
   authVersion: number | null
+  mfaLastUsedStep: bigint | null
+  mfaFailedAttempts: number | null
 }
 
 export type AccountMinAggregateOutputType = {
@@ -41,6 +45,13 @@ export type AccountMinAggregateOutputType = {
   status: $Enums.AccountStatus | null
   emailVerifiedAt: Date | null
   authVersion: number | null
+  mfaSecretEncrypted: string | null
+  mfaEnabledAt: Date | null
+  mfaPendingSecretEncrypted: string | null
+  mfaPendingExpiresAt: Date | null
+  mfaLastUsedStep: bigint | null
+  mfaFailedAttempts: number | null
+  mfaLockedUntil: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -52,6 +63,13 @@ export type AccountMaxAggregateOutputType = {
   status: $Enums.AccountStatus | null
   emailVerifiedAt: Date | null
   authVersion: number | null
+  mfaSecretEncrypted: string | null
+  mfaEnabledAt: Date | null
+  mfaPendingSecretEncrypted: string | null
+  mfaPendingExpiresAt: Date | null
+  mfaLastUsedStep: bigint | null
+  mfaFailedAttempts: number | null
+  mfaLockedUntil: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -63,6 +81,13 @@ export type AccountCountAggregateOutputType = {
   status: number
   emailVerifiedAt: number
   authVersion: number
+  mfaSecretEncrypted: number
+  mfaEnabledAt: number
+  mfaPendingSecretEncrypted: number
+  mfaPendingExpiresAt: number
+  mfaLastUsedStep: number
+  mfaFailedAttempts: number
+  mfaLockedUntil: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -71,10 +96,14 @@ export type AccountCountAggregateOutputType = {
 
 export type AccountAvgAggregateInputType = {
   authVersion?: true
+  mfaLastUsedStep?: true
+  mfaFailedAttempts?: true
 }
 
 export type AccountSumAggregateInputType = {
   authVersion?: true
+  mfaLastUsedStep?: true
+  mfaFailedAttempts?: true
 }
 
 export type AccountMinAggregateInputType = {
@@ -84,6 +113,13 @@ export type AccountMinAggregateInputType = {
   status?: true
   emailVerifiedAt?: true
   authVersion?: true
+  mfaSecretEncrypted?: true
+  mfaEnabledAt?: true
+  mfaPendingSecretEncrypted?: true
+  mfaPendingExpiresAt?: true
+  mfaLastUsedStep?: true
+  mfaFailedAttempts?: true
+  mfaLockedUntil?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -95,6 +131,13 @@ export type AccountMaxAggregateInputType = {
   status?: true
   emailVerifiedAt?: true
   authVersion?: true
+  mfaSecretEncrypted?: true
+  mfaEnabledAt?: true
+  mfaPendingSecretEncrypted?: true
+  mfaPendingExpiresAt?: true
+  mfaLastUsedStep?: true
+  mfaFailedAttempts?: true
+  mfaLockedUntil?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -106,6 +149,13 @@ export type AccountCountAggregateInputType = {
   status?: true
   emailVerifiedAt?: true
   authVersion?: true
+  mfaSecretEncrypted?: true
+  mfaEnabledAt?: true
+  mfaPendingSecretEncrypted?: true
+  mfaPendingExpiresAt?: true
+  mfaLastUsedStep?: true
+  mfaFailedAttempts?: true
+  mfaLockedUntil?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -204,6 +254,13 @@ export type AccountGroupByOutputType = {
   status: $Enums.AccountStatus
   emailVerifiedAt: Date | null
   authVersion: number
+  mfaSecretEncrypted: string | null
+  mfaEnabledAt: Date | null
+  mfaPendingSecretEncrypted: string | null
+  mfaPendingExpiresAt: Date | null
+  mfaLastUsedStep: bigint | null
+  mfaFailedAttempts: number
+  mfaLockedUntil: Date | null
   createdAt: Date
   updatedAt: Date
   _count: AccountCountAggregateOutputType | null
@@ -238,12 +295,23 @@ export type AccountWhereInput = {
   status?: Prisma.EnumAccountStatusFilter<"Account"> | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   authVersion?: Prisma.IntFilter<"Account"> | number
+  mfaSecretEncrypted?: Prisma.StringNullableFilter<"Account"> | string | null
+  mfaEnabledAt?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.StringNullableFilter<"Account"> | string | null
+  mfaPendingExpiresAt?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
+  mfaLastUsedStep?: Prisma.BigIntNullableFilter<"Account"> | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFilter<"Account"> | number
+  mfaLockedUntil?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeListRelationFilter
+  mfaChallenges?: Prisma.MfaChallengeListRelationFilter
+  notificationPreference?: Prisma.XOR<Prisma.NotificationPreferenceNullableScalarRelationFilter, Prisma.NotificationPreferenceWhereInput> | null
   securityTokens?: Prisma.SecurityTokenListRelationFilter
   professional?: Prisma.XOR<Prisma.ProfessionalProfileNullableScalarRelationFilter, Prisma.ProfessionalProfileWhereInput> | null
   owner?: Prisma.XOR<Prisma.OwnerProfileNullableScalarRelationFilter, Prisma.OwnerProfileWhereInput> | null
   appointments?: Prisma.AppointmentListRelationFilter
+  bookingHolds?: Prisma.BookingHoldListRelationFilter
   memberships?: Prisma.OrganizationMembershipListRelationFilter
   refreshSessions?: Prisma.RefreshSessionListRelationFilter
   systemRoles?: Prisma.AccountSystemRoleListRelationFilter
@@ -262,12 +330,23 @@ export type AccountOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   authVersion?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaEnabledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaPendingExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaLastUsedStep?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaFailedAttempts?: Prisma.SortOrder
+  mfaLockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeOrderByRelationAggregateInput
+  mfaChallenges?: Prisma.MfaChallengeOrderByRelationAggregateInput
+  notificationPreference?: Prisma.NotificationPreferenceOrderByWithRelationInput
   securityTokens?: Prisma.SecurityTokenOrderByRelationAggregateInput
   professional?: Prisma.ProfessionalProfileOrderByWithRelationInput
   owner?: Prisma.OwnerProfileOrderByWithRelationInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
+  bookingHolds?: Prisma.BookingHoldOrderByRelationAggregateInput
   memberships?: Prisma.OrganizationMembershipOrderByRelationAggregateInput
   refreshSessions?: Prisma.RefreshSessionOrderByRelationAggregateInput
   systemRoles?: Prisma.AccountSystemRoleOrderByRelationAggregateInput
@@ -289,12 +368,23 @@ export type AccountWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumAccountStatusFilter<"Account"> | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   authVersion?: Prisma.IntFilter<"Account"> | number
+  mfaSecretEncrypted?: Prisma.StringNullableFilter<"Account"> | string | null
+  mfaEnabledAt?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.StringNullableFilter<"Account"> | string | null
+  mfaPendingExpiresAt?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
+  mfaLastUsedStep?: Prisma.BigIntNullableFilter<"Account"> | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFilter<"Account"> | number
+  mfaLockedUntil?: Prisma.DateTimeNullableFilter<"Account"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeListRelationFilter
+  mfaChallenges?: Prisma.MfaChallengeListRelationFilter
+  notificationPreference?: Prisma.XOR<Prisma.NotificationPreferenceNullableScalarRelationFilter, Prisma.NotificationPreferenceWhereInput> | null
   securityTokens?: Prisma.SecurityTokenListRelationFilter
   professional?: Prisma.XOR<Prisma.ProfessionalProfileNullableScalarRelationFilter, Prisma.ProfessionalProfileWhereInput> | null
   owner?: Prisma.XOR<Prisma.OwnerProfileNullableScalarRelationFilter, Prisma.OwnerProfileWhereInput> | null
   appointments?: Prisma.AppointmentListRelationFilter
+  bookingHolds?: Prisma.BookingHoldListRelationFilter
   memberships?: Prisma.OrganizationMembershipListRelationFilter
   refreshSessions?: Prisma.RefreshSessionListRelationFilter
   systemRoles?: Prisma.AccountSystemRoleListRelationFilter
@@ -313,6 +403,13 @@ export type AccountOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   authVersion?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaEnabledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaPendingExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaLastUsedStep?: Prisma.SortOrderInput | Prisma.SortOrder
+  mfaFailedAttempts?: Prisma.SortOrder
+  mfaLockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AccountCountOrderByAggregateInput
@@ -332,6 +429,13 @@ export type AccountScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumAccountStatusWithAggregatesFilter<"Account"> | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Account"> | Date | string | null
   authVersion?: Prisma.IntWithAggregatesFilter<"Account"> | number
+  mfaSecretEncrypted?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
+  mfaEnabledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Account"> | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.StringNullableWithAggregatesFilter<"Account"> | string | null
+  mfaPendingExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Account"> | Date | string | null
+  mfaLastUsedStep?: Prisma.BigIntNullableWithAggregatesFilter<"Account"> | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntWithAggregatesFilter<"Account"> | number
+  mfaLockedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"Account"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Account"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Account"> | Date | string
 }
@@ -343,12 +447,23 @@ export type AccountCreateInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -367,12 +482,23 @@ export type AccountUncheckedCreateInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -391,12 +517,23 @@ export type AccountUpdateInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -415,12 +552,23 @@ export type AccountUncheckedUpdateInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -439,6 +587,13 @@ export type AccountCreateManyInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -450,6 +605,13 @@ export type AccountUpdateManyMutationInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -461,6 +623,13 @@ export type AccountUncheckedUpdateManyInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -472,12 +641,21 @@ export type AccountCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   authVersion?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrder
+  mfaEnabledAt?: Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrder
+  mfaPendingExpiresAt?: Prisma.SortOrder
+  mfaLastUsedStep?: Prisma.SortOrder
+  mfaFailedAttempts?: Prisma.SortOrder
+  mfaLockedUntil?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type AccountAvgOrderByAggregateInput = {
   authVersion?: Prisma.SortOrder
+  mfaLastUsedStep?: Prisma.SortOrder
+  mfaFailedAttempts?: Prisma.SortOrder
 }
 
 export type AccountMaxOrderByAggregateInput = {
@@ -487,6 +665,13 @@ export type AccountMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   authVersion?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrder
+  mfaEnabledAt?: Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrder
+  mfaPendingExpiresAt?: Prisma.SortOrder
+  mfaLastUsedStep?: Prisma.SortOrder
+  mfaFailedAttempts?: Prisma.SortOrder
+  mfaLockedUntil?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -498,12 +683,21 @@ export type AccountMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   emailVerifiedAt?: Prisma.SortOrder
   authVersion?: Prisma.SortOrder
+  mfaSecretEncrypted?: Prisma.SortOrder
+  mfaEnabledAt?: Prisma.SortOrder
+  mfaPendingSecretEncrypted?: Prisma.SortOrder
+  mfaPendingExpiresAt?: Prisma.SortOrder
+  mfaLastUsedStep?: Prisma.SortOrder
+  mfaFailedAttempts?: Prisma.SortOrder
+  mfaLockedUntil?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type AccountSumOrderByAggregateInput = {
   authVersion?: Prisma.SortOrder
+  mfaLastUsedStep?: Prisma.SortOrder
+  mfaFailedAttempts?: Prisma.SortOrder
 }
 
 export type AccountScalarRelationFilter = {
@@ -534,6 +728,18 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type NullableBigIntFieldUpdateOperationsInput = {
+  set?: bigint | number | null
+  increment?: bigint | number
+  decrement?: bigint | number
+  multiply?: bigint | number
+  divide?: bigint | number
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -568,6 +774,20 @@ export type AccountUpdateOneRequiredWithoutSystemRolesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutSystemRolesInput, Prisma.AccountUpdateWithoutSystemRolesInput>, Prisma.AccountUncheckedUpdateWithoutSystemRolesInput>
 }
 
+export type AccountCreateNestedOneWithoutNotificationPreferenceInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutNotificationPreferenceInput, Prisma.AccountUncheckedCreateWithoutNotificationPreferenceInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutNotificationPreferenceInput
+  connect?: Prisma.AccountWhereUniqueInput
+}
+
+export type AccountUpdateOneRequiredWithoutNotificationPreferenceNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutNotificationPreferenceInput, Prisma.AccountUncheckedCreateWithoutNotificationPreferenceInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutNotificationPreferenceInput
+  upsert?: Prisma.AccountUpsertWithoutNotificationPreferenceInput
+  connect?: Prisma.AccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutNotificationPreferenceInput, Prisma.AccountUpdateWithoutNotificationPreferenceInput>, Prisma.AccountUncheckedUpdateWithoutNotificationPreferenceInput>
+}
+
 export type AccountCreateNestedOneWithoutRefreshSessionsInput = {
   create?: Prisma.XOR<Prisma.AccountCreateWithoutRefreshSessionsInput, Prisma.AccountUncheckedCreateWithoutRefreshSessionsInput>
   connectOrCreate?: Prisma.AccountCreateOrConnectWithoutRefreshSessionsInput
@@ -594,6 +814,34 @@ export type AccountUpdateOneRequiredWithoutSecurityTokensNestedInput = {
   upsert?: Prisma.AccountUpsertWithoutSecurityTokensInput
   connect?: Prisma.AccountWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutSecurityTokensInput, Prisma.AccountUpdateWithoutSecurityTokensInput>, Prisma.AccountUncheckedUpdateWithoutSecurityTokensInput>
+}
+
+export type AccountCreateNestedOneWithoutMfaRecoveryCodesInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutMfaRecoveryCodesInput, Prisma.AccountUncheckedCreateWithoutMfaRecoveryCodesInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutMfaRecoveryCodesInput
+  connect?: Prisma.AccountWhereUniqueInput
+}
+
+export type AccountUpdateOneRequiredWithoutMfaRecoveryCodesNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutMfaRecoveryCodesInput, Prisma.AccountUncheckedCreateWithoutMfaRecoveryCodesInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutMfaRecoveryCodesInput
+  upsert?: Prisma.AccountUpsertWithoutMfaRecoveryCodesInput
+  connect?: Prisma.AccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutMfaRecoveryCodesInput, Prisma.AccountUpdateWithoutMfaRecoveryCodesInput>, Prisma.AccountUncheckedUpdateWithoutMfaRecoveryCodesInput>
+}
+
+export type AccountCreateNestedOneWithoutMfaChallengesInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutMfaChallengesInput, Prisma.AccountUncheckedCreateWithoutMfaChallengesInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutMfaChallengesInput
+  connect?: Prisma.AccountWhereUniqueInput
+}
+
+export type AccountUpdateOneRequiredWithoutMfaChallengesNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutMfaChallengesInput, Prisma.AccountUncheckedCreateWithoutMfaChallengesInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutMfaChallengesInput
+  upsert?: Prisma.AccountUpsertWithoutMfaChallengesInput
+  connect?: Prisma.AccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutMfaChallengesInput, Prisma.AccountUpdateWithoutMfaChallengesInput>, Prisma.AccountUncheckedUpdateWithoutMfaChallengesInput>
 }
 
 export type AccountCreateNestedOneWithoutProfessionalInput = {
@@ -668,6 +916,20 @@ export type AccountUpdateOneRequiredWithoutAppointmentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutAppointmentsInput, Prisma.AccountUpdateWithoutAppointmentsInput>, Prisma.AccountUncheckedUpdateWithoutAppointmentsInput>
 }
 
+export type AccountCreateNestedOneWithoutBookingHoldsInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutBookingHoldsInput, Prisma.AccountUncheckedCreateWithoutBookingHoldsInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutBookingHoldsInput
+  connect?: Prisma.AccountWhereUniqueInput
+}
+
+export type AccountUpdateOneRequiredWithoutBookingHoldsNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutBookingHoldsInput, Prisma.AccountUncheckedCreateWithoutBookingHoldsInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutBookingHoldsInput
+  upsert?: Prisma.AccountUpsertWithoutBookingHoldsInput
+  connect?: Prisma.AccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutBookingHoldsInput, Prisma.AccountUpdateWithoutBookingHoldsInput>, Prisma.AccountUncheckedUpdateWithoutBookingHoldsInput>
+}
+
 export type AccountCreateNestedOneWithoutCreatedJobsInput = {
   create?: Prisma.XOR<Prisma.AccountCreateWithoutCreatedJobsInput, Prisma.AccountUncheckedCreateWithoutCreatedJobsInput>
   connectOrCreate?: Prisma.AccountCreateOrConnectWithoutCreatedJobsInput
@@ -733,12 +995,23 @@ export type AccountCreateWithoutNotificationsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -756,12 +1029,23 @@ export type AccountUncheckedCreateWithoutNotificationsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -795,12 +1079,23 @@ export type AccountUpdateWithoutNotificationsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -818,12 +1113,23 @@ export type AccountUncheckedUpdateWithoutNotificationsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -841,12 +1147,23 @@ export type AccountCreateWithoutSystemRolesInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   assignedReviews?: Prisma.VerificationRequestCreateNestedManyWithoutAssignedReviewerInput
@@ -864,12 +1181,23 @@ export type AccountUncheckedCreateWithoutSystemRolesInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   assignedReviews?: Prisma.VerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
@@ -903,12 +1231,23 @@ export type AccountUpdateWithoutSystemRolesInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   assignedReviews?: Prisma.VerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
@@ -926,14 +1265,177 @@ export type AccountUncheckedUpdateWithoutSystemRolesInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
+  assignedReviews?: Prisma.VerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
+  reviewDecisions?: Prisma.VerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
+  createdJobs?: Prisma.JobUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type AccountCreateWithoutNotificationPreferenceInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  status?: $Enums.AccountStatus
+  emailVerifiedAt?: Date | string | null
+  authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
+  professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
+  owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
+  memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
+  systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
+  assignedReviews?: Prisma.VerificationRequestCreateNestedManyWithoutAssignedReviewerInput
+  reviewDecisions?: Prisma.VerificationDecisionCreateNestedManyWithoutReviewerInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipientInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestCreateNestedManyWithoutAssignedReviewerInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionCreateNestedManyWithoutReviewerInput
+  createdJobs?: Prisma.JobCreateNestedManyWithoutCreatedByInput
+}
+
+export type AccountUncheckedCreateWithoutNotificationPreferenceInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  status?: $Enums.AccountStatus
+  emailVerifiedAt?: Date | string | null
+  authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
+  professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
+  owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
+  memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
+  systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
+  assignedReviews?: Prisma.VerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
+  reviewDecisions?: Prisma.VerificationDecisionUncheckedCreateNestedManyWithoutReviewerInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUncheckedCreateNestedManyWithoutReviewerInput
+  createdJobs?: Prisma.JobUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type AccountCreateOrConnectWithoutNotificationPreferenceInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutNotificationPreferenceInput, Prisma.AccountUncheckedCreateWithoutNotificationPreferenceInput>
+}
+
+export type AccountUpsertWithoutNotificationPreferenceInput = {
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutNotificationPreferenceInput, Prisma.AccountUncheckedUpdateWithoutNotificationPreferenceInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutNotificationPreferenceInput, Prisma.AccountUncheckedCreateWithoutNotificationPreferenceInput>
+  where?: Prisma.AccountWhereInput
+}
+
+export type AccountUpdateToOneWithWhereWithoutNotificationPreferenceInput = {
+  where?: Prisma.AccountWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutNotificationPreferenceInput, Prisma.AccountUncheckedUpdateWithoutNotificationPreferenceInput>
+}
+
+export type AccountUpdateWithoutNotificationPreferenceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
+  professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
+  owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
+  memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
+  systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
+  assignedReviews?: Prisma.VerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
+  reviewDecisions?: Prisma.VerificationDecisionUpdateManyWithoutReviewerNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUpdateManyWithoutReviewerNestedInput
+  createdJobs?: Prisma.JobUpdateManyWithoutCreatedByNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutNotificationPreferenceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
+  professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
+  owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
+  memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
+  systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
   assignedReviews?: Prisma.VerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
   reviewDecisions?: Prisma.VerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
@@ -949,12 +1451,23 @@ export type AccountCreateWithoutRefreshSessionsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
   assignedReviews?: Prisma.VerificationRequestCreateNestedManyWithoutAssignedReviewerInput
@@ -972,12 +1485,23 @@ export type AccountUncheckedCreateWithoutRefreshSessionsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
   assignedReviews?: Prisma.VerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
@@ -1011,12 +1535,23 @@ export type AccountUpdateWithoutRefreshSessionsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
   assignedReviews?: Prisma.VerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
@@ -1034,12 +1569,23 @@ export type AccountUncheckedUpdateWithoutRefreshSessionsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
   assignedReviews?: Prisma.VerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
@@ -1057,11 +1603,22 @@ export type AccountCreateWithoutSecurityTokensInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1080,11 +1637,22 @@ export type AccountUncheckedCreateWithoutSecurityTokensInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1119,11 +1687,22 @@ export type AccountUpdateWithoutSecurityTokensInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -1142,11 +1721,326 @@ export type AccountUncheckedUpdateWithoutSecurityTokensInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
+  memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
+  systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
+  assignedReviews?: Prisma.VerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
+  reviewDecisions?: Prisma.VerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
+  createdJobs?: Prisma.JobUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type AccountCreateWithoutMfaRecoveryCodesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  status?: $Enums.AccountStatus
+  emailVerifiedAt?: Date | string | null
+  authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
+  securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
+  professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
+  owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
+  memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
+  systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
+  assignedReviews?: Prisma.VerificationRequestCreateNestedManyWithoutAssignedReviewerInput
+  reviewDecisions?: Prisma.VerificationDecisionCreateNestedManyWithoutReviewerInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipientInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestCreateNestedManyWithoutAssignedReviewerInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionCreateNestedManyWithoutReviewerInput
+  createdJobs?: Prisma.JobCreateNestedManyWithoutCreatedByInput
+}
+
+export type AccountUncheckedCreateWithoutMfaRecoveryCodesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  status?: $Enums.AccountStatus
+  emailVerifiedAt?: Date | string | null
+  authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
+  securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
+  professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
+  owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
+  memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
+  systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
+  assignedReviews?: Prisma.VerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
+  reviewDecisions?: Prisma.VerificationDecisionUncheckedCreateNestedManyWithoutReviewerInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUncheckedCreateNestedManyWithoutReviewerInput
+  createdJobs?: Prisma.JobUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type AccountCreateOrConnectWithoutMfaRecoveryCodesInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutMfaRecoveryCodesInput, Prisma.AccountUncheckedCreateWithoutMfaRecoveryCodesInput>
+}
+
+export type AccountUpsertWithoutMfaRecoveryCodesInput = {
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutMfaRecoveryCodesInput, Prisma.AccountUncheckedUpdateWithoutMfaRecoveryCodesInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutMfaRecoveryCodesInput, Prisma.AccountUncheckedCreateWithoutMfaRecoveryCodesInput>
+  where?: Prisma.AccountWhereInput
+}
+
+export type AccountUpdateToOneWithWhereWithoutMfaRecoveryCodesInput = {
+  where?: Prisma.AccountWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutMfaRecoveryCodesInput, Prisma.AccountUncheckedUpdateWithoutMfaRecoveryCodesInput>
+}
+
+export type AccountUpdateWithoutMfaRecoveryCodesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
+  securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
+  professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
+  owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
+  memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
+  systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
+  assignedReviews?: Prisma.VerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
+  reviewDecisions?: Prisma.VerificationDecisionUpdateManyWithoutReviewerNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUpdateManyWithoutReviewerNestedInput
+  createdJobs?: Prisma.JobUpdateManyWithoutCreatedByNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutMfaRecoveryCodesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
+  securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
+  professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
+  owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
+  memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
+  systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
+  assignedReviews?: Prisma.VerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
+  reviewDecisions?: Prisma.VerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
+  createdJobs?: Prisma.JobUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type AccountCreateWithoutMfaChallengesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  status?: $Enums.AccountStatus
+  emailVerifiedAt?: Date | string | null
+  authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
+  securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
+  professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
+  owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
+  memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
+  systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
+  assignedReviews?: Prisma.VerificationRequestCreateNestedManyWithoutAssignedReviewerInput
+  reviewDecisions?: Prisma.VerificationDecisionCreateNestedManyWithoutReviewerInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipientInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestCreateNestedManyWithoutAssignedReviewerInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionCreateNestedManyWithoutReviewerInput
+  createdJobs?: Prisma.JobCreateNestedManyWithoutCreatedByInput
+}
+
+export type AccountUncheckedCreateWithoutMfaChallengesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  status?: $Enums.AccountStatus
+  emailVerifiedAt?: Date | string | null
+  authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
+  securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
+  professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
+  owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
+  memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
+  systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
+  assignedReviews?: Prisma.VerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
+  reviewDecisions?: Prisma.VerificationDecisionUncheckedCreateNestedManyWithoutReviewerInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUncheckedCreateNestedManyWithoutReviewerInput
+  createdJobs?: Prisma.JobUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type AccountCreateOrConnectWithoutMfaChallengesInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutMfaChallengesInput, Prisma.AccountUncheckedCreateWithoutMfaChallengesInput>
+}
+
+export type AccountUpsertWithoutMfaChallengesInput = {
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutMfaChallengesInput, Prisma.AccountUncheckedUpdateWithoutMfaChallengesInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutMfaChallengesInput, Prisma.AccountUncheckedCreateWithoutMfaChallengesInput>
+  where?: Prisma.AccountWhereInput
+}
+
+export type AccountUpdateToOneWithWhereWithoutMfaChallengesInput = {
+  where?: Prisma.AccountWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutMfaChallengesInput, Prisma.AccountUncheckedUpdateWithoutMfaChallengesInput>
+}
+
+export type AccountUpdateWithoutMfaChallengesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
+  securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
+  professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
+  owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
+  memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
+  systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
+  assignedReviews?: Prisma.VerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
+  reviewDecisions?: Prisma.VerificationDecisionUpdateManyWithoutReviewerNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUpdateManyWithoutReviewerNestedInput
+  createdJobs?: Prisma.JobUpdateManyWithoutCreatedByNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutMfaChallengesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
+  securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
+  professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
+  owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -1165,11 +2059,22 @@ export type AccountCreateWithoutProfessionalInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1188,11 +2093,22 @@ export type AccountUncheckedCreateWithoutProfessionalInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1227,11 +2143,22 @@ export type AccountUpdateWithoutProfessionalInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -1250,11 +2177,22 @@ export type AccountUncheckedUpdateWithoutProfessionalInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -1273,12 +2211,23 @@ export type AccountCreateWithoutAssignedReviewsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1296,12 +2245,23 @@ export type AccountUncheckedCreateWithoutAssignedReviewsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1335,12 +2295,23 @@ export type AccountUpdateWithoutAssignedReviewsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -1358,12 +2329,23 @@ export type AccountUncheckedUpdateWithoutAssignedReviewsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -1381,12 +2363,23 @@ export type AccountCreateWithoutReviewDecisionsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1404,12 +2397,23 @@ export type AccountUncheckedCreateWithoutReviewDecisionsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1443,12 +2447,23 @@ export type AccountUpdateWithoutReviewDecisionsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -1466,12 +2481,23 @@ export type AccountUncheckedUpdateWithoutReviewDecisionsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -1489,11 +2515,22 @@ export type AccountCreateWithoutOwnerInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1512,11 +2549,22 @@ export type AccountUncheckedCreateWithoutOwnerInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1551,11 +2599,22 @@ export type AccountUpdateWithoutOwnerInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -1574,11 +2633,22 @@ export type AccountUncheckedUpdateWithoutOwnerInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -1597,11 +2667,22 @@ export type AccountCreateWithoutAppointmentsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1620,11 +2701,22 @@ export type AccountUncheckedCreateWithoutAppointmentsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1659,11 +2751,22 @@ export type AccountUpdateWithoutAppointmentsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -1682,11 +2785,174 @@ export type AccountUncheckedUpdateWithoutAppointmentsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
+  memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
+  systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
+  assignedReviews?: Prisma.VerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
+  reviewDecisions?: Prisma.VerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUncheckedUpdateManyWithoutReviewerNestedInput
+  createdJobs?: Prisma.JobUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type AccountCreateWithoutBookingHoldsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  status?: $Enums.AccountStatus
+  emailVerifiedAt?: Date | string | null
+  authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
+  securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
+  professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
+  owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
+  appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
+  systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
+  assignedReviews?: Prisma.VerificationRequestCreateNestedManyWithoutAssignedReviewerInput
+  reviewDecisions?: Prisma.VerificationDecisionCreateNestedManyWithoutReviewerInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipientInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestCreateNestedManyWithoutAssignedReviewerInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionCreateNestedManyWithoutReviewerInput
+  createdJobs?: Prisma.JobCreateNestedManyWithoutCreatedByInput
+}
+
+export type AccountUncheckedCreateWithoutBookingHoldsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  status?: $Enums.AccountStatus
+  emailVerifiedAt?: Date | string | null
+  authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
+  securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
+  professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
+  owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
+  appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
+  systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
+  assignedReviews?: Prisma.VerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
+  reviewDecisions?: Prisma.VerificationDecisionUncheckedCreateNestedManyWithoutReviewerInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUncheckedCreateNestedManyWithoutReviewerInput
+  createdJobs?: Prisma.JobUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type AccountCreateOrConnectWithoutBookingHoldsInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutBookingHoldsInput, Prisma.AccountUncheckedCreateWithoutBookingHoldsInput>
+}
+
+export type AccountUpsertWithoutBookingHoldsInput = {
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutBookingHoldsInput, Prisma.AccountUncheckedUpdateWithoutBookingHoldsInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutBookingHoldsInput, Prisma.AccountUncheckedCreateWithoutBookingHoldsInput>
+  where?: Prisma.AccountWhereInput
+}
+
+export type AccountUpdateToOneWithWhereWithoutBookingHoldsInput = {
+  where?: Prisma.AccountWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutBookingHoldsInput, Prisma.AccountUncheckedUpdateWithoutBookingHoldsInput>
+}
+
+export type AccountUpdateWithoutBookingHoldsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
+  securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
+  professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
+  owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
+  appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
+  systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
+  assignedReviews?: Prisma.VerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
+  reviewDecisions?: Prisma.VerificationDecisionUpdateManyWithoutReviewerNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput
+  assignedOrganizationReviews?: Prisma.OrganizationVerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
+  organizationReviewDecisions?: Prisma.OrganizationVerificationDecisionUpdateManyWithoutReviewerNestedInput
+  createdJobs?: Prisma.JobUpdateManyWithoutCreatedByNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutBookingHoldsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
+  securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
+  professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
+  owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
+  appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -1705,12 +2971,23 @@ export type AccountCreateWithoutCreatedJobsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1728,12 +3005,23 @@ export type AccountUncheckedCreateWithoutCreatedJobsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1767,12 +3055,23 @@ export type AccountUpdateWithoutCreatedJobsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -1790,12 +3089,23 @@ export type AccountUncheckedUpdateWithoutCreatedJobsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -1813,12 +3123,23 @@ export type AccountCreateWithoutAssignedOrganizationReviewsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1836,12 +3157,23 @@ export type AccountUncheckedCreateWithoutAssignedOrganizationReviewsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1875,12 +3207,23 @@ export type AccountUpdateWithoutAssignedOrganizationReviewsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -1898,12 +3241,23 @@ export type AccountUncheckedUpdateWithoutAssignedOrganizationReviewsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -1921,12 +3275,23 @@ export type AccountCreateWithoutOrganizationReviewDecisionsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
@@ -1944,12 +3309,23 @@ export type AccountUncheckedCreateWithoutOrganizationReviewDecisionsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   memberships?: Prisma.OrganizationMembershipUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
@@ -1983,12 +3359,23 @@ export type AccountUpdateWithoutOrganizationReviewDecisionsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
@@ -2006,12 +3393,23 @@ export type AccountUncheckedUpdateWithoutOrganizationReviewDecisionsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   memberships?: Prisma.OrganizationMembershipUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
@@ -2029,12 +3427,23 @@ export type AccountCreateWithoutMembershipsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleCreateNestedManyWithoutAccountInput
   assignedReviews?: Prisma.VerificationRequestCreateNestedManyWithoutAssignedReviewerInput
@@ -2052,12 +3461,23 @@ export type AccountUncheckedCreateWithoutMembershipsInput = {
   status?: $Enums.AccountStatus
   emailVerifiedAt?: Date | string | null
   authVersion?: number
+  mfaSecretEncrypted?: string | null
+  mfaEnabledAt?: Date | string | null
+  mfaPendingSecretEncrypted?: string | null
+  mfaPendingExpiresAt?: Date | string | null
+  mfaLastUsedStep?: bigint | number | null
+  mfaFailedAttempts?: number
+  mfaLockedUntil?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedCreateNestedManyWithoutAccountInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedCreateNestedManyWithoutAccountInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedCreateNestedOneWithoutAccountInput
   securityTokens?: Prisma.SecurityTokenUncheckedCreateNestedManyWithoutAccountInput
   professional?: Prisma.ProfessionalProfileUncheckedCreateNestedOneWithoutAccountInput
   owner?: Prisma.OwnerProfileUncheckedCreateNestedOneWithoutAccountInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutRequesterInput
+  bookingHolds?: Prisma.BookingHoldUncheckedCreateNestedManyWithoutAccountInput
   refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutAccountInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedCreateNestedManyWithoutAccountInput
   assignedReviews?: Prisma.VerificationRequestUncheckedCreateNestedManyWithoutAssignedReviewerInput
@@ -2091,12 +3511,23 @@ export type AccountUpdateWithoutMembershipsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUpdateManyWithoutAccountNestedInput
   assignedReviews?: Prisma.VerificationRequestUpdateManyWithoutAssignedReviewerNestedInput
@@ -2114,12 +3545,23 @@ export type AccountUncheckedUpdateWithoutMembershipsInput = {
   status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
   emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   authVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaEnabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaPendingSecretEncrypted?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mfaPendingExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mfaLastUsedStep?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  mfaFailedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  mfaLockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mfaRecoveryCodes?: Prisma.MfaRecoveryCodeUncheckedUpdateManyWithoutAccountNestedInput
+  mfaChallenges?: Prisma.MfaChallengeUncheckedUpdateManyWithoutAccountNestedInput
+  notificationPreference?: Prisma.NotificationPreferenceUncheckedUpdateOneWithoutAccountNestedInput
   securityTokens?: Prisma.SecurityTokenUncheckedUpdateManyWithoutAccountNestedInput
   professional?: Prisma.ProfessionalProfileUncheckedUpdateOneWithoutAccountNestedInput
   owner?: Prisma.OwnerProfileUncheckedUpdateOneWithoutAccountNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutRequesterNestedInput
+  bookingHolds?: Prisma.BookingHoldUncheckedUpdateManyWithoutAccountNestedInput
   refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutAccountNestedInput
   systemRoles?: Prisma.AccountSystemRoleUncheckedUpdateManyWithoutAccountNestedInput
   assignedReviews?: Prisma.VerificationRequestUncheckedUpdateManyWithoutAssignedReviewerNestedInput
@@ -2136,8 +3578,11 @@ export type AccountUncheckedUpdateWithoutMembershipsInput = {
  */
 
 export type AccountCountOutputType = {
+  mfaRecoveryCodes: number
+  mfaChallenges: number
   securityTokens: number
   appointments: number
+  bookingHolds: number
   memberships: number
   refreshSessions: number
   systemRoles: number
@@ -2150,8 +3595,11 @@ export type AccountCountOutputType = {
 }
 
 export type AccountCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  mfaRecoveryCodes?: boolean | AccountCountOutputTypeCountMfaRecoveryCodesArgs
+  mfaChallenges?: boolean | AccountCountOutputTypeCountMfaChallengesArgs
   securityTokens?: boolean | AccountCountOutputTypeCountSecurityTokensArgs
   appointments?: boolean | AccountCountOutputTypeCountAppointmentsArgs
+  bookingHolds?: boolean | AccountCountOutputTypeCountBookingHoldsArgs
   memberships?: boolean | AccountCountOutputTypeCountMembershipsArgs
   refreshSessions?: boolean | AccountCountOutputTypeCountRefreshSessionsArgs
   systemRoles?: boolean | AccountCountOutputTypeCountSystemRolesArgs
@@ -2176,6 +3624,20 @@ export type AccountCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
 /**
  * AccountCountOutputType without action
  */
+export type AccountCountOutputTypeCountMfaRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MfaRecoveryCodeWhereInput
+}
+
+/**
+ * AccountCountOutputType without action
+ */
+export type AccountCountOutputTypeCountMfaChallengesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MfaChallengeWhereInput
+}
+
+/**
+ * AccountCountOutputType without action
+ */
 export type AccountCountOutputTypeCountSecurityTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SecurityTokenWhereInput
 }
@@ -2185,6 +3647,13 @@ export type AccountCountOutputTypeCountSecurityTokensArgs<ExtArgs extends runtim
  */
 export type AccountCountOutputTypeCountAppointmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AppointmentWhereInput
+}
+
+/**
+ * AccountCountOutputType without action
+ */
+export type AccountCountOutputTypeCountBookingHoldsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookingHoldWhereInput
 }
 
 /**
@@ -2258,12 +3727,23 @@ export type AccountSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   status?: boolean
   emailVerifiedAt?: boolean
   authVersion?: boolean
+  mfaSecretEncrypted?: boolean
+  mfaEnabledAt?: boolean
+  mfaPendingSecretEncrypted?: boolean
+  mfaPendingExpiresAt?: boolean
+  mfaLastUsedStep?: boolean
+  mfaFailedAttempts?: boolean
+  mfaLockedUntil?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  mfaRecoveryCodes?: boolean | Prisma.Account$mfaRecoveryCodesArgs<ExtArgs>
+  mfaChallenges?: boolean | Prisma.Account$mfaChallengesArgs<ExtArgs>
+  notificationPreference?: boolean | Prisma.Account$notificationPreferenceArgs<ExtArgs>
   securityTokens?: boolean | Prisma.Account$securityTokensArgs<ExtArgs>
   professional?: boolean | Prisma.Account$professionalArgs<ExtArgs>
   owner?: boolean | Prisma.Account$ownerArgs<ExtArgs>
   appointments?: boolean | Prisma.Account$appointmentsArgs<ExtArgs>
+  bookingHolds?: boolean | Prisma.Account$bookingHoldsArgs<ExtArgs>
   memberships?: boolean | Prisma.Account$membershipsArgs<ExtArgs>
   refreshSessions?: boolean | Prisma.Account$refreshSessionsArgs<ExtArgs>
   systemRoles?: boolean | Prisma.Account$systemRolesArgs<ExtArgs>
@@ -2283,6 +3763,13 @@ export type AccountSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   emailVerifiedAt?: boolean
   authVersion?: boolean
+  mfaSecretEncrypted?: boolean
+  mfaEnabledAt?: boolean
+  mfaPendingSecretEncrypted?: boolean
+  mfaPendingExpiresAt?: boolean
+  mfaLastUsedStep?: boolean
+  mfaFailedAttempts?: boolean
+  mfaLockedUntil?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["account"]>
@@ -2294,6 +3781,13 @@ export type AccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   emailVerifiedAt?: boolean
   authVersion?: boolean
+  mfaSecretEncrypted?: boolean
+  mfaEnabledAt?: boolean
+  mfaPendingSecretEncrypted?: boolean
+  mfaPendingExpiresAt?: boolean
+  mfaLastUsedStep?: boolean
+  mfaFailedAttempts?: boolean
+  mfaLockedUntil?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["account"]>
@@ -2305,16 +3799,27 @@ export type AccountSelectScalar = {
   status?: boolean
   emailVerifiedAt?: boolean
   authVersion?: boolean
+  mfaSecretEncrypted?: boolean
+  mfaEnabledAt?: boolean
+  mfaPendingSecretEncrypted?: boolean
+  mfaPendingExpiresAt?: boolean
+  mfaLastUsedStep?: boolean
+  mfaFailedAttempts?: boolean
+  mfaLockedUntil?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "status" | "emailVerifiedAt" | "authVersion" | "createdAt" | "updatedAt", ExtArgs["result"]["account"]>
+export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "status" | "emailVerifiedAt" | "authVersion" | "mfaSecretEncrypted" | "mfaEnabledAt" | "mfaPendingSecretEncrypted" | "mfaPendingExpiresAt" | "mfaLastUsedStep" | "mfaFailedAttempts" | "mfaLockedUntil" | "createdAt" | "updatedAt", ExtArgs["result"]["account"]>
 export type AccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  mfaRecoveryCodes?: boolean | Prisma.Account$mfaRecoveryCodesArgs<ExtArgs>
+  mfaChallenges?: boolean | Prisma.Account$mfaChallengesArgs<ExtArgs>
+  notificationPreference?: boolean | Prisma.Account$notificationPreferenceArgs<ExtArgs>
   securityTokens?: boolean | Prisma.Account$securityTokensArgs<ExtArgs>
   professional?: boolean | Prisma.Account$professionalArgs<ExtArgs>
   owner?: boolean | Prisma.Account$ownerArgs<ExtArgs>
   appointments?: boolean | Prisma.Account$appointmentsArgs<ExtArgs>
+  bookingHolds?: boolean | Prisma.Account$bookingHoldsArgs<ExtArgs>
   memberships?: boolean | Prisma.Account$membershipsArgs<ExtArgs>
   refreshSessions?: boolean | Prisma.Account$refreshSessionsArgs<ExtArgs>
   systemRoles?: boolean | Prisma.Account$systemRolesArgs<ExtArgs>
@@ -2332,10 +3837,14 @@ export type AccountIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type $AccountPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Account"
   objects: {
+    mfaRecoveryCodes: Prisma.$MfaRecoveryCodePayload<ExtArgs>[]
+    mfaChallenges: Prisma.$MfaChallengePayload<ExtArgs>[]
+    notificationPreference: Prisma.$NotificationPreferencePayload<ExtArgs> | null
     securityTokens: Prisma.$SecurityTokenPayload<ExtArgs>[]
     professional: Prisma.$ProfessionalProfilePayload<ExtArgs> | null
     owner: Prisma.$OwnerProfilePayload<ExtArgs> | null
     appointments: Prisma.$AppointmentPayload<ExtArgs>[]
+    bookingHolds: Prisma.$BookingHoldPayload<ExtArgs>[]
     memberships: Prisma.$OrganizationMembershipPayload<ExtArgs>[]
     refreshSessions: Prisma.$RefreshSessionPayload<ExtArgs>[]
     systemRoles: Prisma.$AccountSystemRolePayload<ExtArgs>[]
@@ -2353,6 +3862,13 @@ export type $AccountPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     status: $Enums.AccountStatus
     emailVerifiedAt: Date | null
     authVersion: number
+    mfaSecretEncrypted: string | null
+    mfaEnabledAt: Date | null
+    mfaPendingSecretEncrypted: string | null
+    mfaPendingExpiresAt: Date | null
+    mfaLastUsedStep: bigint | null
+    mfaFailedAttempts: number
+    mfaLockedUntil: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["account"]>
@@ -2749,10 +4265,14 @@ readonly fields: AccountFieldRefs;
  */
 export interface Prisma__AccountClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  mfaRecoveryCodes<T extends Prisma.Account$mfaRecoveryCodesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$mfaRecoveryCodesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MfaRecoveryCodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  mfaChallenges<T extends Prisma.Account$mfaChallengesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$mfaChallengesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MfaChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notificationPreference<T extends Prisma.Account$notificationPreferenceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$notificationPreferenceArgs<ExtArgs>>): Prisma.Prisma__NotificationPreferenceClient<runtime.Types.Result.GetResult<Prisma.$NotificationPreferencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   securityTokens<T extends Prisma.Account$securityTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$securityTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SecurityTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   professional<T extends Prisma.Account$professionalArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$professionalArgs<ExtArgs>>): Prisma.Prisma__ProfessionalProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfessionalProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   owner<T extends Prisma.Account$ownerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$ownerArgs<ExtArgs>>): Prisma.Prisma__OwnerProfileClient<runtime.Types.Result.GetResult<Prisma.$OwnerProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   appointments<T extends Prisma.Account$appointmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$appointmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  bookingHolds<T extends Prisma.Account$bookingHoldsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$bookingHoldsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingHoldPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   memberships<T extends Prisma.Account$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   refreshSessions<T extends Prisma.Account$refreshSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$refreshSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   systemRoles<T extends Prisma.Account$systemRolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$systemRolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountSystemRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2797,6 +4317,13 @@ export interface AccountFieldRefs {
   readonly status: Prisma.FieldRef<"Account", 'AccountStatus'>
   readonly emailVerifiedAt: Prisma.FieldRef<"Account", 'DateTime'>
   readonly authVersion: Prisma.FieldRef<"Account", 'Int'>
+  readonly mfaSecretEncrypted: Prisma.FieldRef<"Account", 'String'>
+  readonly mfaEnabledAt: Prisma.FieldRef<"Account", 'DateTime'>
+  readonly mfaPendingSecretEncrypted: Prisma.FieldRef<"Account", 'String'>
+  readonly mfaPendingExpiresAt: Prisma.FieldRef<"Account", 'DateTime'>
+  readonly mfaLastUsedStep: Prisma.FieldRef<"Account", 'BigInt'>
+  readonly mfaFailedAttempts: Prisma.FieldRef<"Account", 'Int'>
+  readonly mfaLockedUntil: Prisma.FieldRef<"Account", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Account", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Account", 'DateTime'>
 }
@@ -3192,6 +4719,73 @@ export type AccountDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
+ * Account.mfaRecoveryCodes
+ */
+export type Account$mfaRecoveryCodesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MfaRecoveryCode
+   */
+  select?: Prisma.MfaRecoveryCodeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MfaRecoveryCode
+   */
+  omit?: Prisma.MfaRecoveryCodeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MfaRecoveryCodeInclude<ExtArgs> | null
+  where?: Prisma.MfaRecoveryCodeWhereInput
+  orderBy?: Prisma.MfaRecoveryCodeOrderByWithRelationInput | Prisma.MfaRecoveryCodeOrderByWithRelationInput[]
+  cursor?: Prisma.MfaRecoveryCodeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MfaRecoveryCodeScalarFieldEnum | Prisma.MfaRecoveryCodeScalarFieldEnum[]
+}
+
+/**
+ * Account.mfaChallenges
+ */
+export type Account$mfaChallengesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MfaChallenge
+   */
+  select?: Prisma.MfaChallengeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MfaChallenge
+   */
+  omit?: Prisma.MfaChallengeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MfaChallengeInclude<ExtArgs> | null
+  where?: Prisma.MfaChallengeWhereInput
+  orderBy?: Prisma.MfaChallengeOrderByWithRelationInput | Prisma.MfaChallengeOrderByWithRelationInput[]
+  cursor?: Prisma.MfaChallengeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MfaChallengeScalarFieldEnum | Prisma.MfaChallengeScalarFieldEnum[]
+}
+
+/**
+ * Account.notificationPreference
+ */
+export type Account$notificationPreferenceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the NotificationPreference
+   */
+  select?: Prisma.NotificationPreferenceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the NotificationPreference
+   */
+  omit?: Prisma.NotificationPreferenceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationPreferenceInclude<ExtArgs> | null
+  where?: Prisma.NotificationPreferenceWhereInput
+}
+
+/**
  * Account.securityTokens
  */
 export type Account$securityTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3275,6 +4869,30 @@ export type Account$appointmentsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.AppointmentScalarFieldEnum | Prisma.AppointmentScalarFieldEnum[]
+}
+
+/**
+ * Account.bookingHolds
+ */
+export type Account$bookingHoldsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BookingHold
+   */
+  select?: Prisma.BookingHoldSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BookingHold
+   */
+  omit?: Prisma.BookingHoldOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingHoldInclude<ExtArgs> | null
+  where?: Prisma.BookingHoldWhereInput
+  orderBy?: Prisma.BookingHoldOrderByWithRelationInput | Prisma.BookingHoldOrderByWithRelationInput[]
+  cursor?: Prisma.BookingHoldWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookingHoldScalarFieldEnum | Prisma.BookingHoldScalarFieldEnum[]
 }
 
 /**
