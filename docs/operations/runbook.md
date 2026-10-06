@@ -4,6 +4,8 @@
 
 For local development, start PostgreSQL, deploy migrations, then start API and web. Confirm `/api/v1/health` reports both API and database up. In containers, use `compose.production.yaml`; the API applies committed migrations before boot.
 
+For the selected Railway environment, use the [Railway deployment guide](railway-deployment.md) for service roots, private networking, persistent storage and production email configuration.
+
 ## Database changes
 
 1. Update `apps/api/prisma/schema.prisma`.

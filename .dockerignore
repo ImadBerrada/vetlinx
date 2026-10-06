@@ -6,6 +6,8 @@ apps/api/dist
 test-results
 playwright-report
 var
+backups
+coverage
 *.log
 .env*
 !.env.example
